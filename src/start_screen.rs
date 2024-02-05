@@ -19,7 +19,7 @@ impl Plugin for StartScreenPlugin {
 
 #[derive(Resource)]
 struct MenuData {
-    button_entity: Entity,
+    deploy_button_entity: Entity,
 }
 
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
@@ -28,12 +28,12 @@ const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 
 fn start_start_screen(mut commands: Commands) {
     debug!("starting start screen");
-    let button_entity = commands
+    let deploy_button_entity = commands
         .spawn(NodeBundle {
             style: Style {
                 // center button
-                width: Val::Percent(100.),
-                height: Val::Percent(100.),
+                width: Val::Percent(80.),
+                height: Val::Percent(80.),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 ..default()
@@ -57,7 +57,7 @@ fn start_start_screen(mut commands: Commands) {
                 })
                 .with_children(|parent| {
                     parent.spawn(TextBundle::from_section(
-                        "Play",
+                        "Deploy",
                         TextStyle {
                             font_size: 40.0,
                             color: Color::rgb(0.9, 0.9, 0.9),
@@ -67,7 +67,9 @@ fn start_start_screen(mut commands: Commands) {
                 });
         })
         .id();
-    commands.insert_resource(MenuData { button_entity });
+    commands.insert_resource(MenuData {
+        deploy_button_entity,
+    });
 }
 
 fn update_start_screen(
@@ -99,7 +101,9 @@ fn update_start_screen(
 
 fn bye_start_screen(mut commands: Commands, menu_data: Res<MenuData>) {
     debug!("bye start screen!");
-    commands.entity(menu_data.button_entity).despawn_recursive();
+    commands
+        .entity(menu_data.deploy_button_entity)
+        .despawn_recursive();
 }
 
 // --- Start Screen STOP
