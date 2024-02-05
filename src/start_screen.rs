@@ -20,6 +20,7 @@ impl Plugin for StartScreenPlugin {
 #[derive(Resource)]
 struct MenuData {
     deploy_button_entity: Entity,
+    mission_objective_button_entity: Entity,
 }
 
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
@@ -32,8 +33,8 @@ fn start_start_screen(mut commands: Commands) {
         .spawn(NodeBundle {
             style: Style {
                 // center button
-                width: Val::Percent(80.),
-                height: Val::Percent(80.),
+                width: Val::Percent(30.),
+                height: Val::Percent(120.),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 ..default()
@@ -45,7 +46,7 @@ fn start_start_screen(mut commands: Commands) {
                 .spawn(ButtonBundle {
                     style: Style {
                         width: Val::Px(150.),
-                        height: Val::Px(65.),
+                        height: Val::Px(110.),
                         // horizontally center child text
                         justify_content: JustifyContent::Center,
                         // vertically center child text
@@ -67,8 +68,50 @@ fn start_start_screen(mut commands: Commands) {
                 });
         })
         .id();
+
+    let mission_objective_button_entity = commands
+        .spawn(NodeBundle {
+            style: Style {
+                // center button
+                width: Val::Percent(80.),
+                height: Val::Percent(120.),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            ..default()
+        })
+        .with_children(|parent| {
+            parent
+                .spawn(ButtonBundle {
+                    style: Style {
+                        width: Val::Px(220.),
+                        height: Val::Px(110.),
+                        // horizontally center child text
+                        justify_content: JustifyContent::Center,
+                        // vertically center child text
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    background_color: NORMAL_BUTTON.into(),
+                    ..default()
+                })
+                .with_children(|parent| {
+                    parent.spawn(TextBundle::from_section(
+                        "Mission Objectives",
+                        TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..default()
+                        },
+                    ));
+                });
+        })
+        .id();
+
     commands.insert_resource(MenuData {
         deploy_button_entity,
+        mission_objective_button_entity,
     });
 }
 
@@ -103,6 +146,9 @@ fn bye_start_screen(mut commands: Commands, menu_data: Res<MenuData>) {
     debug!("bye start screen!");
     commands
         .entity(menu_data.deploy_button_entity)
+        .despawn_recursive();
+    commands
+        .entity(menu_data.mission_objective_button_entity)
         .despawn_recursive();
 }
 
