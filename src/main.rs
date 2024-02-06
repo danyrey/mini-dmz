@@ -1,5 +1,8 @@
 use bevy::prelude::*;
+use mission_objective_screen::MissionObjectivesScreenPlugin;
+use start_screen::StartScreenPlugin;
 
+mod mission_objective_screen;
 mod start_screen;
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, States)]
@@ -14,6 +17,7 @@ enum AppState {
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, States)]
 enum MissionObjectives {
     #[default]
+    Start,
     Missions,
     EditMissions, // how to remove redundancy as this screen exists also in MissionObjectives
     Upgrades,
@@ -56,7 +60,11 @@ fn setup(mut commands: Commands) {
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, start_screen::StartScreenPlugin))
+        .add_plugins((
+            DefaultPlugins,
+            StartScreenPlugin,
+            MissionObjectivesScreenPlugin,
+        ))
         .add_state::<AppState>()
         .add_systems(Update, bevy::window::close_on_esc)
         .add_systems(Startup, (add_people, setup))

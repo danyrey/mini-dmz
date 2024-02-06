@@ -1,5 +1,5 @@
 use crate::AppState;
-use crate::DeployScreen;
+use crate::MissionObjectives::Start;
 use bevy::prelude::*;
 
 // --- Start Screen START
@@ -125,10 +125,11 @@ fn update_start_screen(
     debug!("updating start screen");
     for (interaction, mut color) in &mut interaction_query {
         match *interaction {
+            // TODO: how to distinguish between the two buttons
             Interaction::Pressed => {
                 debug!("button pressed");
                 *color = PRESSED_BUTTON.into();
-                next_state.set(AppState::DeployScreen(DeployScreen::ChooseLocation));
+                next_state.set(AppState::MissionObjectives(Start));
             }
             Interaction::Hovered => {
                 debug!("button hovered");
