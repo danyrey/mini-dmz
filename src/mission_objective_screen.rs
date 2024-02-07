@@ -1,6 +1,7 @@
 use crate::AppState;
 use crate::AppState::MissionObjectives;
 use crate::DeployScreen;
+use crate::MissionObjectives::Missions;
 use crate::MissionObjectives::Start;
 use bevy::prelude::*;
 
@@ -25,7 +26,7 @@ impl Plugin for MissionObjectivesScreenPlugin {
 
 #[derive(Resource)]
 struct MissionObjectiveMenuData {
-    missions_button_entity: Entity,
+    missions_button: (Entity, AppState),
     upgrades_button_entity: Entity,
     location_objectives_button_entity: Entity,
     notes_button_entity: Entity,
@@ -198,7 +199,10 @@ fn start_mission_objectives_screen(mut commands: Commands) {
         .id();
 
     commands.insert_resource(MissionObjectiveMenuData {
-        missions_button_entity,
+        missions_button: (
+            missions_button_entity,
+            AppState::MissionObjectives(Missions),
+        ),
         upgrades_button_entity,
         location_objectives_button_entity,
         notes_button_entity,
@@ -235,7 +239,7 @@ fn update_mission_objectives_screen(
 fn bye_mission_objective_screen(mut commands: Commands, menu_data: Res<MissionObjectiveMenuData>) {
     debug!("bye mission objectives screen!");
     commands
-        .entity(menu_data.missions_button_entity)
+        .entity(menu_data.missions_button.0)
         .despawn_recursive();
     commands
         .entity(menu_data.upgrades_button_entity)
