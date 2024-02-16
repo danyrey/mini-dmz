@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 bevy = "0.12"
+bevy-inspector-egui = "0.22"
 # below: hardcoded version of :
 # cargo run --features bevy/dynamic_linking
 # bevy = { version = "0.12", features = ["dynamic_linking"] }

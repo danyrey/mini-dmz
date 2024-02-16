@@ -1,9 +1,8 @@
 use crate::AppState;
 use crate::AppState::MissionObjectives;
-use crate::DeployScreen;
-use crate::MissionObjectives::Missions;
-use crate::MissionObjectives::Start;
+use crate::MissionObjectives::*;
 use bevy::prelude::*;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 pub struct MissionObjectivesScreenPlugin;
 
@@ -21,12 +20,16 @@ impl Plugin for MissionObjectivesScreenPlugin {
             OnExit(MissionObjectives(Start)),
             bye_mission_objective_screen,
         );
+        app.add_plugins(WorldInspectorPlugin::new());
     }
 }
 
+#[derive(Component)]
+struct ButtonTargetState(AppState);
+
 #[derive(Resource)]
 struct MissionObjectiveMenuData {
-    missions_button: (Entity, AppState),
+    missions_button_entity: Entity,
     upgrades_button_entity: Entity,
     location_objectives_button_entity: Entity,
     notes_button_entity: Entity,
@@ -38,6 +41,8 @@ const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 
 fn start_mission_objectives_screen(mut commands: Commands) {
     debug!("starting mission objectives screen");
+    //var x = commands.spawn_empty()
+    //commands.spawn(ButtonTargetState(AppState::MissionObjectives(Missions)));
     let missions_button_entity = commands
         .spawn(NodeBundle {
             style: Style {
@@ -116,6 +121,11 @@ fn start_mission_objectives_screen(mut commands: Commands) {
                     ));
                 });
         })
+        /*
+        .with_children(|parent| {
+            parent.spawn(ButtonTargetState(AppState::MissionObjectives(Upgrades)));
+        })
+        */
         .id();
 
     let location_objectives_button_entity = commands
@@ -156,6 +166,13 @@ fn start_mission_objectives_screen(mut commands: Commands) {
                     ));
                 });
         })
+        /*
+        .with_children(|parent| {
+            parent.spawn(ButtonTargetState(AppState::MissionObjectives(
+                LocationObjectives,
+            )));
+        })
+        */
         .id();
 
     let notes_button_entity = commands
@@ -196,17 +213,35 @@ fn start_mission_objectives_screen(mut commands: Commands) {
                     ));
                 });
         })
+        /*
+        .with_children(|parent| {
+            parent.spawn(ButtonTargetState(AppState::MissionObjectives(Notes)));
+        })
+        */
         .id();
 
     commands.insert_resource(MissionObjectiveMenuData {
-        missions_button: (
-            missions_button_entity,
-            AppState::MissionObjectives(Missions),
-        ),
+        missions_button_entity,
         upgrades_button_entity,
         location_objectives_button_entity,
         notes_button_entity,
     });
+
+    commands
+        .entity(missions_button_entity)
+        .insert(Name::new("Mission Button"));
+
+    commands
+        .entity(upgrades_button_entity)
+        .insert(Name::new("Upgrades Button"));
+
+    commands
+        .entity(location_objectives_button_entity)
+        .insert(Name::new("Location Objectives Button"));
+
+    commands
+        .entity(notes_button_entity)
+        .insert(Name::new("Notes Button"));
 }
 
 fn update_mission_objectives_screen(
@@ -222,7 +257,8 @@ fn update_mission_objectives_screen(
             Interaction::Pressed => {
                 debug!("button pressed");
                 *color = PRESSED_BUTTON.into();
-                next_state.set(AppState::DeployScreen(DeployScreen::ChooseLocation));
+                // TODO: take state dynamic from entity
+                next_state.set(MissionObjectives(Missions));
             }
             Interaction::Hovered => {
                 debug!("button hovered");
@@ -239,7 +275,7 @@ fn update_mission_objectives_screen(
 fn bye_mission_objective_screen(mut commands: Commands, menu_data: Res<MissionObjectiveMenuData>) {
     debug!("bye mission objectives screen!");
     commands
-        .entity(menu_data.missions_button.0)
+        .entity(menu_data.missions_button_entity)
         .despawn_recursive();
     commands
         .entity(menu_data.upgrades_button_entity)
