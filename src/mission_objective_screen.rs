@@ -229,18 +229,22 @@ fn start_mission_objectives_screen(mut commands: Commands) {
 
     commands
         .entity(missions_button_entity)
+        .insert(ButtonTargetState(MissionObjectives(Missions)))
         .insert(Name::new("Mission Button"));
 
     commands
         .entity(upgrades_button_entity)
+        .insert(ButtonTargetState(MissionObjectives(Upgrades)))
         .insert(Name::new("Upgrades Button"));
 
     commands
         .entity(location_objectives_button_entity)
+        .insert(ButtonTargetState(MissionObjectives(LocationObjectives)))
         .insert(Name::new("Location Objectives Button"));
 
     commands
         .entity(notes_button_entity)
+        .insert(ButtonTargetState(MissionObjectives(Notes)))
         .insert(Name::new("Notes Button"));
 }
 
