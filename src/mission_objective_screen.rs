@@ -24,7 +24,7 @@ impl Plugin for MissionObjectivesScreenPlugin {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 struct ButtonTargetState(AppState);
 
 #[derive(Resource)]
@@ -79,7 +79,8 @@ fn start_mission_objectives_screen(mut commands: Commands) {
                             ..default()
                         },
                     ));
-                });
+                })
+                .insert(ButtonTargetState(MissionObjectives(Missions)));
         })
         .id();
 
@@ -119,13 +120,9 @@ fn start_mission_objectives_screen(mut commands: Commands) {
                             ..default()
                         },
                     ));
-                });
+                })
+                .insert(ButtonTargetState(MissionObjectives(Upgrades)));
         })
-        /*
-        .with_children(|parent| {
-            parent.spawn(ButtonTargetState(AppState::MissionObjectives(Upgrades)));
-        })
-        */
         .id();
 
     let location_objectives_button_entity = commands
@@ -164,15 +161,9 @@ fn start_mission_objectives_screen(mut commands: Commands) {
                             ..default()
                         },
                     ));
-                });
+                })
+                .insert(ButtonTargetState(MissionObjectives(LocationObjectives)));
         })
-        /*
-        .with_children(|parent| {
-            parent.spawn(ButtonTargetState(AppState::MissionObjectives(
-                LocationObjectives,
-            )));
-        })
-        */
         .id();
 
     let notes_button_entity = commands
@@ -211,13 +202,9 @@ fn start_mission_objectives_screen(mut commands: Commands) {
                             ..default()
                         },
                     ));
-                });
+                })
+                .insert(ButtonTargetState(MissionObjectives(Notes)));
         })
-        /*
-        .with_children(|parent| {
-            parent.spawn(ButtonTargetState(AppState::MissionObjectives(Notes)));
-        })
-        */
         .id();
 
     commands.insert_resource(MissionObjectiveMenuData {
@@ -229,40 +216,35 @@ fn start_mission_objectives_screen(mut commands: Commands) {
 
     commands
         .entity(missions_button_entity)
-        .insert(ButtonTargetState(MissionObjectives(Missions)))
         .insert(Name::new("Mission Button"));
 
     commands
         .entity(upgrades_button_entity)
-        .insert(ButtonTargetState(MissionObjectives(Upgrades)))
         .insert(Name::new("Upgrades Button"));
 
     commands
         .entity(location_objectives_button_entity)
-        .insert(ButtonTargetState(MissionObjectives(LocationObjectives)))
         .insert(Name::new("Location Objectives Button"));
 
     commands
         .entity(notes_button_entity)
-        .insert(ButtonTargetState(MissionObjectives(Notes)))
         .insert(Name::new("Notes Button"));
 }
 
 fn update_mission_objectives_screen(
     mut next_state: ResMut<NextState<AppState>>,
     mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor),
+        (&Interaction, &mut BackgroundColor, &ButtonTargetState),
         (Changed<Interaction>, With<Button>),
     >,
 ) {
     debug!("updating mission objectives screen");
-    for (interaction, mut color) in &mut interaction_query {
+    for (interaction, mut color, target_state) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
-                debug!("button pressed");
+                debug!("button pressed, target_state: {:?}", target_state);
                 *color = PRESSED_BUTTON.into();
-                // TODO: take state dynamic from entity
-                next_state.set(MissionObjectives(Missions));
+                next_state.set(target_state.0.clone());
             }
             Interaction::Hovered => {
                 debug!("button hovered");
