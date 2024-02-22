@@ -65,7 +65,7 @@ fn main() {
             StartScreenPlugin,
             MissionObjectivesScreenPlugin,
         ))
-        .add_state::<AppState>()
+        .init_state::<AppState>()
         .add_systems(Update, bevy::window::close_on_esc)
         .add_systems(Startup, (add_people, setup))
         //.add_systems(Update, greet_people)

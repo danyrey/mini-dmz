@@ -2,7 +2,7 @@ use crate::AppState;
 use crate::AppState::MissionObjectives;
 use crate::MissionObjectives::*;
 use bevy::prelude::*;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
+//use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 pub struct MissionObjectivesScreenPlugin;
 
@@ -20,7 +20,7 @@ impl Plugin for MissionObjectivesScreenPlugin {
             OnExit(MissionObjectives(Start)),
             bye_mission_objective_screen,
         );
-        app.add_plugins(WorldInspectorPlugin::new());
+        //app.add_plugins(WorldInspectorPlugin::new());
     }
 }
 
