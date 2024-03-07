@@ -2,7 +2,7 @@ use crate::AppState;
 use crate::AppState::MissionObjectives;
 use crate::MissionObjectives::*;
 use bevy::prelude::*;
-//use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 pub struct MissionObjectivesScreenPlugin;
 
@@ -20,10 +20,12 @@ impl Plugin for MissionObjectivesScreenPlugin {
             OnExit(MissionObjectives(Start)),
             bye_mission_objective_screen,
         );
-        //app.add_plugins(WorldInspectorPlugin::new());
+        app.add_plugins(WorldInspectorPlugin::new());
     }
 }
 
+// TODO : enable proper inspector output, currently it shows:
+// "ButtonTargetState is not registered in the TypeRegistry"
 #[derive(Component, Debug)]
 struct ButtonTargetState(AppState);
 
@@ -41,8 +43,6 @@ const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 
 fn start_mission_objectives_screen(mut commands: Commands) {
     debug!("starting mission objectives screen");
-    //var x = commands.spawn_empty()
-    //commands.spawn(ButtonTargetState(AppState::MissionObjectives(Missions)));
     let missions_button_entity = commands
         .spawn(NodeBundle {
             style: Style {
