@@ -36,6 +36,11 @@ enum DeployScreen {
     MatchMake,
 }
 
+// TODO : enable proper inspector output, currently it shows:
+// "ButtonTargetState is not registered in the TypeRegistry"
+#[derive(Component, Debug)]
+struct ButtonTargetState(AppState);
+
 #[derive(Component)]
 struct Person;
 
@@ -48,11 +53,13 @@ fn add_people(mut commands: Commands) {
     commands.spawn((Person, Name("Zayna Nieves".to_string())));
 }
 
+/*
 fn greet_people(query: Query<&Name, With<Person>>) {
     for name in &query {
         debug!("hello {}!", name.0);
     }
 }
+*/
 
 fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());

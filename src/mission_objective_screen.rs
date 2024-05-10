@@ -1,6 +1,6 @@
-use crate::AppState;
 use crate::AppState::MissionObjectives;
 use crate::MissionObjectives::*;
+use crate::{AppState, ButtonTargetState};
 use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
@@ -23,11 +23,6 @@ impl Plugin for MissionObjectivesScreenPlugin {
         app.add_plugins(WorldInspectorPlugin::new());
     }
 }
-
-// TODO : enable proper inspector output, currently it shows:
-// "ButtonTargetState is not registered in the TypeRegistry"
-#[derive(Component, Debug)]
-struct ButtonTargetState(AppState);
 
 #[derive(Resource)]
 struct MissionObjectiveMenuData {

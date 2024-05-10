@@ -126,6 +126,7 @@ fn update_start_screen(
     for (interaction, mut color) in &mut interaction_query {
         match *interaction {
             // TODO: how to distinguish between the two buttons
+            // see ButtonTargetState and its implementation in mission objectives
             Interaction::Pressed => {
                 debug!("button pressed");
                 *color = PRESSED_BUTTON.into();
