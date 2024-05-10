@@ -1,5 +1,9 @@
-use crate::AppState;
-use crate::MissionObjectives::Start;
+use crate::{
+    AppState::{self, *},
+    ButtonTargetState,
+    DeployScreen::*,
+    MissionObjectives::{self, Start},
+};
 use bevy::prelude::*;
 
 // --- Start Screen START
@@ -8,12 +12,9 @@ pub struct StartScreenPlugin;
 
 impl Plugin for StartScreenPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(AppState::StartScreen), start_start_screen)
-            .add_systems(
-                Update,
-                (update_start_screen).run_if(in_state(AppState::StartScreen)),
-            )
-            .add_systems(OnExit(AppState::StartScreen), bye_start_screen);
+        app.add_systems(OnEnter(StartScreen), start_start_screen)
+            .add_systems(Update, (update_start_screen).run_if(in_state(StartScreen)))
+            .add_systems(OnExit(StartScreen), bye_start_screen);
     }
 }
 
@@ -65,7 +66,8 @@ fn start_start_screen(mut commands: Commands) {
                             ..default()
                         },
                     ));
-                });
+                })
+                .insert(ButtonTargetState(DeployScreen(ChooseLocation)));
         })
         .id();
 
@@ -105,7 +107,8 @@ fn start_start_screen(mut commands: Commands) {
                             ..default()
                         },
                     ));
-                });
+                })
+                .insert(ButtonTargetState(MissionObjectives(Start)));
         })
         .id();
 
@@ -118,19 +121,19 @@ fn start_start_screen(mut commands: Commands) {
 fn update_start_screen(
     mut next_state: ResMut<NextState<AppState>>,
     mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor),
+        (&Interaction, &mut BackgroundColor, &ButtonTargetState),
         (Changed<Interaction>, With<Button>),
     >,
 ) {
     debug!("updating start screen");
-    for (interaction, mut color) in &mut interaction_query {
+    for (interaction, mut color, target_state) in &mut interaction_query {
         match *interaction {
             // TODO: how to distinguish between the two buttons
             // see ButtonTargetState and its implementation in mission objectives
             Interaction::Pressed => {
                 debug!("button pressed");
                 *color = PRESSED_BUTTON.into();
-                next_state.set(AppState::MissionObjectives(Start));
+                next_state.set(target_state.0.clone());
             }
             Interaction::Hovered => {
                 debug!("button hovered");
