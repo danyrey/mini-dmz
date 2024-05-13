@@ -26,6 +26,7 @@ struct MenuData {
 
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
+const HOVERED_INACTIVE_BUTTON: Color = Color::rgb(1.0, 0.0, 0.0);
 const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 
 fn start_start_screen(mut commands: Commands) {
@@ -66,8 +67,8 @@ fn start_start_screen(mut commands: Commands) {
                             ..default()
                         },
                     ));
-                })
-                .insert(ButtonTargetState(DeployScreen(ChooseLocation)));
+                });
+            //.insert(ButtonTargetState(DeployScreen(ChooseLocation)));
         })
         .id();
 
@@ -128,8 +129,6 @@ fn update_start_screen(
     debug!("updating start screen");
     for (interaction, mut color, target_state) in &mut interaction_query {
         match *interaction {
-            // TODO: how to distinguish between the two buttons
-            // see ButtonTargetState and its implementation in mission objectives
             Interaction::Pressed => {
                 debug!("button pressed");
                 *color = PRESSED_BUTTON.into();

@@ -156,8 +156,8 @@ fn start_mission_objectives_screen(mut commands: Commands) {
                             ..default()
                         },
                     ));
-                })
-                .insert(ButtonTargetState(MissionObjectives(LocationObjectives)));
+                });
+            //.insert(ButtonTargetState(MissionObjectives(LocationObjectives)));
         })
         .id();
 
@@ -197,8 +197,8 @@ fn start_mission_objectives_screen(mut commands: Commands) {
                             ..default()
                         },
                     ));
-                })
-                .insert(ButtonTargetState(MissionObjectives(Notes)));
+                });
+            //.insert(ButtonTargetState(MissionObjectives(Notes)));
         })
         .id();
 
