@@ -67,8 +67,8 @@ fn start_start_screen(mut commands: Commands) {
                             ..default()
                         },
                     ));
-                });
-            //.insert(ButtonTargetState(DeployScreen(ChooseLocation)));
+                })
+                .insert(ButtonTargetState(DeployScreen(ChooseLocation)));
         })
         .id();
 
