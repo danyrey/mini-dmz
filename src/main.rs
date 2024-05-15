@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use choose_location::ChooseLocationScreenPlugin;
 use mission_objective_screen::MissionObjectivesScreenPlugin;
 use start_screen::StartScreenPlugin;
 
@@ -24,7 +25,7 @@ enum MissionObjectives {
     #[default]
     Start,
     Missions,
-    EditMissions, // how to remove redundancy as this screen exists also in MissionObjectives
+    EditMissions, // how to remove redundancy as this screen exists also in DeployScreen
     Upgrades,
     LocationObjectives,
     Notes,
@@ -76,6 +77,7 @@ fn main() {
             DefaultPlugins,
             StartScreenPlugin,
             MissionObjectivesScreenPlugin,
+            ChooseLocationScreenPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, bevy::window::close_on_esc)

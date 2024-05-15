@@ -26,7 +26,6 @@ struct MenuData {
 
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
-const HOVERED_INACTIVE_BUTTON: Color = Color::rgb(1.0, 0.0, 0.0);
 const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 
 fn start_start_screen(mut commands: Commands) {
@@ -68,6 +67,7 @@ fn start_start_screen(mut commands: Commands) {
                         },
                     ));
                 })
+                // TODO: instead of hardcoding ChooseLocation it would be nice to just say DeployScreen and let the default kick in
                 .insert(ButtonTargetState(DeployScreen(ChooseLocation)));
         })
         .id();
