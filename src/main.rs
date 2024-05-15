@@ -2,8 +2,12 @@ use bevy::prelude::*;
 use mission_objective_screen::MissionObjectivesScreenPlugin;
 use start_screen::StartScreenPlugin;
 
+mod active_duty;
+mod choose_location;
 mod deploy;
+mod matchmake;
 mod mission_objective_screen;
+mod missions;
 mod start_screen;
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, States)]
