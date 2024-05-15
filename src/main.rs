@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use mission_objective_screen::MissionObjectivesScreenPlugin;
 use start_screen::StartScreenPlugin;
 
+mod deploy;
 mod mission_objective_screen;
 mod start_screen;
 
