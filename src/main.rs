@@ -50,26 +50,6 @@ enum DeployScreen {
 #[derive(Component, Debug)]
 struct ButtonTargetState(AppState);
 
-#[derive(Component)]
-struct Person;
-
-#[derive(Component)]
-struct Name(String);
-
-fn add_people(mut commands: Commands) {
-    commands.spawn((Person, Name("Elaina Proctor".to_string())));
-    commands.spawn((Person, Name("Renzo Hume".to_string())));
-    commands.spawn((Person, Name("Zayna Nieves".to_string())));
-}
-
-/*
-fn greet_people(query: Query<&Name, With<Person>>) {
-    for name in &query {
-        debug!("hello {}!", name.0);
-    }
-}
-*/
-
 fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 }
@@ -87,7 +67,6 @@ fn main() {
         ))
         .init_state::<AppState>()
         .add_systems(Update, bevy::window::close_on_esc)
-        .add_systems(Startup, (add_people, setup))
-        //.add_systems(Update, greet_people)
+        .add_systems(Startup, setup)
         .run();
 }
