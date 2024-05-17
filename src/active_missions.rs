@@ -3,39 +3,38 @@ use crate::DeployScreen::*;
 use crate::{AppState, ButtonTargetState};
 use bevy::prelude::*;
 
-pub struct ActiveDutyConfirmationScreenPlugin;
+pub struct ActiveMissionsScreenPlugin;
 
-impl Plugin for ActiveDutyConfirmationScreenPlugin {
+impl Plugin for ActiveMissionsScreenPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            OnEnter(DeployScreen(ActiveDutyConfirmation)),
-            start_active_duty_confirmation_screen,
+            OnEnter(DeployScreen(ActiveMissions)),
+            start_active_missions_screen,
         )
         .add_systems(
             Update,
-            (update_active_duty_confirmation_screen)
-                .run_if(in_state(DeployScreen(ActiveDutyConfirmation))),
+            (update_active_missions_screen).run_if(in_state(DeployScreen(ActiveMissions))),
         )
         .add_systems(
-            OnExit(DeployScreen(ActiveDutyConfirmation)),
-            bye_active_duty_confirmation_screen,
+            OnExit(DeployScreen(ActiveMissions)),
+            bye_active_missions_screen,
         );
     }
 }
 
 #[derive(Resource)]
-struct ActiveDutyConfirmationMenuData {
+struct ActiveMissionsMenuData {
     confirm_button_entity: Entity,
     edit_button_entity: Entity,
-    back_button_entity: Entity,
+    cancel_button_entity: Entity,
 }
 
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
 const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 
-fn start_active_duty_confirmation_screen(mut commands: Commands) {
-    debug!("starting active duty confirmation screen");
+fn start_active_missions_screen(mut commands: Commands) {
+    debug!("starting active missions screen");
     let confirm_button_entity = commands
         .spawn(NodeBundle {
             style: Style {
@@ -73,7 +72,7 @@ fn start_active_duty_confirmation_screen(mut commands: Commands) {
                         },
                     ));
                 })
-                .insert(ButtonTargetState(DeployScreen(MatchMake)));
+                .insert(ButtonTargetState(DeployScreen(ActiveDutyConfirmation)));
         })
         .id();
 
@@ -114,11 +113,11 @@ fn start_active_duty_confirmation_screen(mut commands: Commands) {
                         },
                     ));
                 })
-                .insert(ButtonTargetState(DeployScreen(EditLoadout)));
+                .insert(ButtonTargetState(DeployScreen(EditMissions)));
         })
         .id();
 
-    let back_button_entity = commands
+    let cancel_button_entity = commands
         .spawn(NodeBundle {
             style: Style {
                 // center button
@@ -147,7 +146,7 @@ fn start_active_duty_confirmation_screen(mut commands: Commands) {
                 })
                 .with_children(|parent| {
                     parent.spawn(TextBundle::from_section(
-                        "BACK",
+                        "CANCEL",
                         TextStyle {
                             font_size: 40.0,
                             color: Color::rgb(0.9, 0.9, 0.9),
@@ -155,14 +154,14 @@ fn start_active_duty_confirmation_screen(mut commands: Commands) {
                         },
                     ));
                 })
-                .insert(ButtonTargetState(DeployScreen(ActiveMissions)));
+                .insert(ButtonTargetState(DeployScreen(ChooseLocation)));
         })
         .id();
 
-    commands.insert_resource(ActiveDutyConfirmationMenuData {
+    commands.insert_resource(ActiveMissionsMenuData {
         confirm_button_entity,
         edit_button_entity,
-        back_button_entity,
+        cancel_button_entity,
     });
 
     commands
@@ -172,18 +171,18 @@ fn start_active_duty_confirmation_screen(mut commands: Commands) {
         .entity(edit_button_entity)
         .insert(Name::new("Edit Button"));
     commands
-        .entity(back_button_entity)
-        .insert(Name::new("Back Button"));
+        .entity(cancel_button_entity)
+        .insert(Name::new("Cancel Button"));
 }
 
-fn update_active_duty_confirmation_screen(
+fn update_active_missions_screen(
     mut next_state: ResMut<NextState<AppState>>,
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor, &ButtonTargetState),
         (Changed<Interaction>, With<Button>),
     >,
 ) {
-    debug!("updating active duty confirmation screen");
+    debug!("updating active missions screen");
     for (interaction, mut color, target_state) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
@@ -203,11 +202,8 @@ fn update_active_duty_confirmation_screen(
     }
 }
 
-fn bye_active_duty_confirmation_screen(
-    mut commands: Commands,
-    menu_data: Res<ActiveDutyConfirmationMenuData>,
-) {
-    debug!("exiting active duty confirmation screen");
+fn bye_active_missions_screen(mut commands: Commands, menu_data: Res<ActiveMissionsMenuData>) {
+    debug!("exiting active missions screen");
     commands
         .entity(menu_data.confirm_button_entity)
         .despawn_recursive();
@@ -215,6 +211,6 @@ fn bye_active_duty_confirmation_screen(
         .entity(menu_data.edit_button_entity)
         .despawn_recursive();
     commands
-        .entity(menu_data.back_button_entity)
+        .entity(menu_data.cancel_button_entity)
         .despawn_recursive();
 }
