@@ -2,6 +2,7 @@ use active_duty_confirmation::ActiveDutyConfirmationScreenPlugin;
 use active_missions::ActiveMissionsScreenPlugin;
 use bevy::prelude::*;
 use choose_location::ChooseLocationScreenPlugin;
+use matchmake::MatchmakeScreenPlugin;
 use mission_objective_screen::MissionObjectivesScreenPlugin;
 use start_screen::StartScreenPlugin;
 
@@ -82,6 +83,7 @@ fn main() {
             ChooseLocationScreenPlugin,
             ActiveMissionsScreenPlugin,
             ActiveDutyConfirmationScreenPlugin,
+            MatchmakeScreenPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, bevy::window::close_on_esc)
