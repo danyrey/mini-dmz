@@ -39,8 +39,60 @@ const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
 const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 
 fn start_choose_location_screen(mut commands: Commands) {
-    println!("start testtest");
-    todo!()
+    debug!("starting choose location screen");
+    let vondel_button_entity = commands
+        .spawn(NodeBundle {
+            style: Style {
+                // center button
+                width: Val::Percent(30.),
+                height: Val::Percent(120.),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            ..default()
+        })
+        .with_children(|parent| {
+            parent
+                .spawn(ButtonBundle {
+                    style: Style {
+                        width: Val::Px(150.),
+                        height: Val::Px(110.),
+                        // horizontally center child text
+                        justify_content: JustifyContent::Center,
+                        // vertically center child text
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    background_color: NORMAL_BUTTON.into(),
+                    ..default()
+                })
+                .with_children(|parent| {
+                    parent.spawn(TextBundle::from_section(
+                        "Vondel",
+                        TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..default()
+                        },
+                    ));
+                })
+                .insert(ButtonTargetState(DeployScreen(ActiveMissions)));
+        })
+        .id();
+
+    // TODO: add the others
+
+    commands.insert_resource(ChooseLocationMenuData {
+        vondel_button_entity,
+        ashika_island_button_entity: vondel_button_entity,
+        al_mazrah_objectives_button_entity: vondel_button_entity,
+        building_21_button_entity: vondel_button_entity,
+    });
+
+    commands
+        .entity(vondel_button_entity)
+        .insert(Name::new("Vondel Button"));
 }
 
 fn update_choose_location_screen(
@@ -50,10 +102,29 @@ fn update_choose_location_screen(
         (Changed<Interaction>, With<Button>),
     >,
 ) {
-    println!("update testtest");
-    todo!()
+    debug!("updating choose location screen");
+    for (interaction, mut color, target_state) in &mut interaction_query {
+        match *interaction {
+            Interaction::Pressed => {
+                debug!("button pressed, target_state: {:?}", target_state);
+                *color = PRESSED_BUTTON.into();
+                next_state.set(target_state.0.clone());
+            }
+            Interaction::Hovered => {
+                debug!("button hovered");
+                *color = HOVERED_BUTTON.into();
+            }
+            Interaction::None => {
+                debug!("button normal");
+                *color = NORMAL_BUTTON.into();
+            }
+        }
+    }
 }
 
 fn bye_choose_location_screen(mut commands: Commands, menu_data: Res<ChooseLocationMenuData>) {
-    todo!()
+    debug!("exiting choose location screen");
+    commands
+        .entity(menu_data.vondel_button_entity)
+        .despawn_recursive();
 }
