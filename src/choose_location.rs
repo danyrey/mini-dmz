@@ -77,7 +77,8 @@ fn start_choose_location_screen(mut commands: Commands) {
                         },
                     ));
                 })
-                .insert(ButtonTargetState(DeployScreen(ActiveMissions)));
+                // TODO: change back to missions once missions is implemented
+                .insert(ButtonTargetState(DeployScreen(ActiveDutyConfirmation)));
         })
         .id();
 
