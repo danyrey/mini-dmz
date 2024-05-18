@@ -2,11 +2,14 @@
 // state. the party leader and matchmaker is ready by default and i think he can forcibly matchmake
 // if not all members are ready, not sure.
 // TODO: more research for corner cases. make screenshots for when not the whole team is not ready.
+// TODO: messages during matchmaking need to be displayed until we can advance to loading screen
 
 use crate::AppState::DeployScreen;
 use crate::DeployScreen::*;
 use crate::{AppState, ButtonTargetState};
 use bevy::prelude::*;
+
+// Matchmake screen
 
 pub struct MatchmakeScreenPlugin;
 
@@ -70,8 +73,7 @@ fn start_matchmake_screen(mut commands: Commands) {
                         },
                     ));
                 })
-                // TODO: figure out target state, will just use this state for now
-                .insert(ButtonTargetState(DeployScreen(MatchMake)));
+                .insert(ButtonTargetState(DeployScreen(MatchMakeInProgress)));
         })
         .id();
 
@@ -164,4 +166,77 @@ fn bye_matchmake_screen(mut commands: Commands, menu_data: Res<MatchmakeMenuData
     commands
         .entity(menu_data.back_button_entity)
         .despawn_recursive();
+}
+
+// Matchmake in progress screen
+// this is the screen you seen when you clicked the matchmake button
+// and will show the notifications from the matchmake server
+
+pub struct MatchmakeInProgressScreenPlugin;
+
+#[derive(Resource)]
+struct MatchmakeInProgressMenuData {
+    matchmake_messagebox_entity: Entity,
+}
+
+impl Plugin for MatchmakeInProgressScreenPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            OnEnter(DeployScreen(MatchMakeInProgress)),
+            start_matchmake_in_progress_screen,
+        )
+        .add_systems(
+            Update,
+            (update_matchmake_in_progress_screen)
+                .run_if(in_state(DeployScreen(MatchMakeInProgress))),
+        )
+        .add_systems(
+            OnExit(DeployScreen(MatchMakeInProgress)),
+            bye_matchmake_in_progress_screen,
+        );
+    }
+}
+
+fn start_matchmake_in_progress_screen(mut commands: Commands) {
+    debug!("starting matchmake in progress screen");
+    let message_box = commands
+        .spawn(NodeBundle {
+            style: Style {
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::SpaceBetween,
+                align_items: AlignItems::Start,
+                flex_grow: 1.,
+                margin: UiRect::axes(Val::Px(15.), Val::Px(5.)),
+                ..default()
+            },
+            ..default()
+        })
+        .with_children(|builder| {
+            builder.spawn(TextBundle::from_section(
+                "This is\ntext with\nline breaks\nin the top left.",
+                TextStyle {
+                    font_size: 30.0,
+                    ..default()
+                },
+            ));
+        })
+        .id();
+
+    commands.entity(message_box);
+}
+
+fn update_matchmake_in_progress_screen(
+    mut next_state: ResMut<NextState<AppState>>,
+    mut interaction_query: Query<
+        (&Interaction, &mut BackgroundColor, &ButtonTargetState),
+        (Changed<Interaction>, With<Button>),
+    >,
+) {
+    debug!("updating matchmake in progress screen");
+    todo!()
+}
+
+fn bye_matchmake_in_progress_screen(mut commands: Commands, menu_data: Res<MatchmakeMenuData>) {
+    debug!("exiting matchmake in progress screen");
+    todo!()
 }

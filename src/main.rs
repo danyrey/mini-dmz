@@ -2,7 +2,7 @@ use active_duty_confirmation::ActiveDutyConfirmationScreenPlugin;
 use active_missions::ActiveMissionsScreenPlugin;
 use bevy::prelude::*;
 use choose_location::ChooseLocationScreenPlugin;
-use matchmake::MatchmakeScreenPlugin;
+use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
 use mission_objective_screen::MissionObjectivesScreenPlugin;
 use start_screen::StartScreenPlugin;
 
@@ -10,6 +10,7 @@ mod active_duty_confirmation;
 mod active_missions;
 mod choose_location;
 mod deploy;
+mod loading_screen;
 mod matchmake;
 mod mission_objective_screen;
 mod start_screen;
@@ -43,6 +44,7 @@ enum DeployScreen {
     ActiveDutyConfirmation,
     EditLoadout, // how to remove redundancy as this screen exists also in MissionObjectives
     MatchMake,
+    MatchMakeInProgress,
 }
 
 // TODO : enable proper inspector output, currently it shows:
@@ -64,6 +66,7 @@ fn main() {
             ActiveMissionsScreenPlugin,
             ActiveDutyConfirmationScreenPlugin,
             MatchmakeScreenPlugin,
+            MatchmakeInProgressScreenPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, bevy::window::close_on_esc)
