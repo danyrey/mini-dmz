@@ -21,6 +21,7 @@ enum AppState {
     StartScreen,
     MissionObjectives(MissionObjectives),
     DeployScreen(DeployScreen),
+    LoadingScreen,
     Match,
 }
 

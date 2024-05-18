@@ -199,7 +199,7 @@ impl Plugin for MatchmakeInProgressScreenPlugin {
 
 fn start_matchmake_in_progress_screen(mut commands: Commands) {
     debug!("starting matchmake in progress screen");
-    let message_box = commands
+    let matchmake_messagebox_entity = commands
         .spawn(NodeBundle {
             style: Style {
                 flex_direction: FlexDirection::Column,
@@ -222,21 +222,33 @@ fn start_matchmake_in_progress_screen(mut commands: Commands) {
         })
         .id();
 
-    commands.entity(message_box);
+    commands.insert_resource(MatchmakeInProgressMenuData {
+        matchmake_messagebox_entity,
+    });
+
+    commands.entity(matchmake_messagebox_entity);
 }
 
 fn update_matchmake_in_progress_screen(
     mut next_state: ResMut<NextState<AppState>>,
-    mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor, &ButtonTargetState),
-        (Changed<Interaction>, With<Button>),
-    >,
+    mut interaction_query: Query<&mut Text, With<Text>>,
 ) {
     debug!("updating matchmake in progress screen");
-    todo!()
+    // TODO: add update to progress via message box
+    // for now just jump to loading screen instead
+    for mut _text in &mut interaction_query {
+        debug!("updating text in message box");
+    }
+    next_state.set(AppState::LoadingScreen);
 }
 
-fn bye_matchmake_in_progress_screen(mut commands: Commands, menu_data: Res<MatchmakeMenuData>) {
+fn bye_matchmake_in_progress_screen(
+    mut commands: Commands,
+    menu_data: Res<MatchmakeInProgressMenuData>,
+) {
     debug!("exiting matchmake in progress screen");
-    todo!()
+    commands
+        .entity(menu_data.matchmake_messagebox_entity)
+        .despawn_recursive();
+    commands.remove_resource::<MatchmakeInProgressMenuData>();
 }
