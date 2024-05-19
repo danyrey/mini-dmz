@@ -207,12 +207,12 @@ impl Plugin for MatchmakeInProgressScreenPlugin {
         )
         .add_systems(
             Update,
-            (
-                update_matchmake_in_progress_screen,
-                update_fake_matchmake_server,
-                matchmaking_started,
-            )
+            (update_matchmake_in_progress_screen, matchmaking_started)
                 .run_if(in_state(DeployScreen(MatchMakeInProgress))),
+        )
+        .add_systems(
+            FixedUpdate,
+            (update_fake_matchmake_server).run_if(in_state(DeployScreen(MatchMakeInProgress))),
         )
         .add_systems(
             OnExit(DeployScreen(MatchMakeInProgress)),
@@ -223,7 +223,10 @@ impl Plugin for MatchmakeInProgressScreenPlugin {
         .add_event::<MatchFound>()
         .add_event::<FoundPlayersUpdate>()
         .add_event::<LobbyFilled>()
-        .add_event::<LevelLoaded>();
+        .add_event::<LevelLoaded>()
+        // TODO: research how to have multiple fixed time
+        // schedules and not just one
+        .insert_resource(Time::<Fixed>::from_seconds(1.0));
     }
 }
 
@@ -291,6 +294,7 @@ fn bye_matchmake_in_progress_screen(
 // that would usually come from the network communication with a
 // matchmaking server. this system runs on a timer
 fn update_fake_matchmake_server(
+    time_fixed: Res<Time<Fixed>>,
     mut started: EventWriter<MatchmakingStarted>,
     mut update: EventWriter<MatchmakingUpdate>, // new ping we are currently searching for
     mut match_found: EventWriter<MatchFound>,
@@ -298,9 +302,11 @@ fn update_fake_matchmake_server(
     mut filled: EventWriter<LobbyFilled>,
     mut loaded: EventWriter<LevelLoaded>,
 ) {
-    // TODO: implement timer
-    // maybe this service can run on a 1 sec timer instead of every frame? research different scheduling when registering this service
-    debug!("fake matchmake server update")
+    debug!(
+        "fake matchmake server update. fixed time: {:?}",
+        time_fixed.elapsed()
+    );
+    // TODO: create a queue/stack of some sort and every seconds send out the next event
 }
 
 // TODO: add other event readers
