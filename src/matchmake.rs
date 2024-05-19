@@ -9,6 +9,26 @@ use crate::DeployScreen::*;
 use crate::{AppState, ButtonTargetState};
 use bevy::prelude::*;
 
+// Events
+
+#[derive(Event)]
+struct MatchmakingStarted;
+
+#[derive(Event)]
+struct MatchmakingUpdate(u32); // new ping we are currently searching for
+
+#[derive(Event)]
+struct MatchFound;
+
+#[derive(Event)]
+struct FoundPlayersUpdate(u32); // total amount of players found
+
+#[derive(Event)]
+struct LobbyFilled;
+
+#[derive(Event)]
+struct LevelLoaded;
+
 // Matchmake screen
 
 pub struct MatchmakeScreenPlugin;
@@ -187,17 +207,30 @@ impl Plugin for MatchmakeInProgressScreenPlugin {
         )
         .add_systems(
             Update,
-            (update_matchmake_in_progress_screen)
+            (
+                update_matchmake_in_progress_screen,
+                update_fake_matchmake_server,
+                matchmaking_started,
+            )
                 .run_if(in_state(DeployScreen(MatchMakeInProgress))),
         )
         .add_systems(
             OnExit(DeployScreen(MatchMakeInProgress)),
             bye_matchmake_in_progress_screen,
-        );
+        )
+        .add_event::<MatchmakingStarted>()
+        .add_event::<MatchmakingUpdate>()
+        .add_event::<MatchFound>()
+        .add_event::<FoundPlayersUpdate>()
+        .add_event::<LobbyFilled>()
+        .add_event::<LevelLoaded>();
     }
 }
 
-fn start_matchmake_in_progress_screen(mut commands: Commands) {
+fn start_matchmake_in_progress_screen(
+    mut commands: Commands,
+    mut matchmake_started_event: EventWriter<MatchmakingStarted>,
+) {
     debug!("starting matchmake in progress screen");
     let matchmake_messagebox_entity = commands
         .spawn(NodeBundle {
@@ -227,6 +260,7 @@ fn start_matchmake_in_progress_screen(mut commands: Commands) {
     });
 
     commands.entity(matchmake_messagebox_entity);
+    matchmake_started_event.send(MatchmakingStarted);
 }
 
 fn update_matchmake_in_progress_screen(
@@ -239,7 +273,7 @@ fn update_matchmake_in_progress_screen(
     for mut _text in &mut interaction_query {
         debug!("updating text in message box");
     }
-    next_state.set(AppState::LoadingScreen);
+    //next_state.set(AppState::LoadingScreen); // TODO: move this to the LevelLoaded event reader
 }
 
 fn bye_matchmake_in_progress_screen(
@@ -251,4 +285,28 @@ fn bye_matchmake_in_progress_screen(
         .entity(menu_data.matchmake_messagebox_entity)
         .despawn_recursive();
     commands.remove_resource::<MatchmakeInProgressMenuData>();
+}
+
+// TODO: add a fake system that periodically sends out the events
+// that would usually come from the network communication with a
+// matchmaking server. this system runs on a timer
+fn update_fake_matchmake_server(
+    mut started: EventWriter<MatchmakingStarted>,
+    mut update: EventWriter<MatchmakingUpdate>, // new ping we are currently searching for
+    mut match_found: EventWriter<MatchFound>,
+    mut players_found: EventWriter<FoundPlayersUpdate>, // total amount of players found
+    mut filled: EventWriter<LobbyFilled>,
+    mut loaded: EventWriter<LevelLoaded>,
+) {
+    // TODO: implement timer
+    // maybe this service can run on a 1 sec timer instead of every frame? research different scheduling when registering this service
+    debug!("fake matchmake server update")
+}
+
+// TODO: add other event readers
+fn matchmaking_started(mut event: EventReader<MatchmakingStarted>) {
+    for ev in event.read() {
+        // TODO: change textbox contents
+        debug!("matchmaking started");
+    }
 }

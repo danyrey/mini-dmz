@@ -2,7 +2,7 @@ use crate::{
     AppState::{self, *},
     ButtonTargetState,
     DeployScreen::*,
-    MissionObjectives::{self, Start},
+    MissionObjectives::Start,
 };
 use bevy::prelude::*;
 
