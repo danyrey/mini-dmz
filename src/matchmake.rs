@@ -277,17 +277,13 @@ fn start_matchmake_in_progress_screen(
     matchmake_started_event.send(MatchmakingStarted);
 }
 
-fn update_matchmake_in_progress_screen(
-    _next_state: ResMut<NextState<AppState>>,
-    mut interaction_query: Query<&mut Text, With<Text>>,
-) {
+fn update_matchmake_in_progress_screen(mut interaction_query: Query<&mut Text, With<Text>>) {
     debug!("updating matchmake in progress screen");
     // TODO: add update to progress via message box
     // for now just jump to loading screen instead
     for mut _text in &mut interaction_query {
         debug!("updating text in message box");
     }
-    //next_state.set(AppState::LoadingScreen); // TODO: move this to the LevelLoaded event reader
 }
 
 fn bye_matchmake_in_progress_screen(
@@ -382,8 +378,12 @@ fn lobby_filled_listener(mut event: EventReader<LobbyFilled>) {
     }
 }
 
-fn level_loaded_listener(mut event: EventReader<LevelLoaded>) {
+fn level_loaded_listener(
+    mut next_state: ResMut<NextState<AppState>>,
+    mut event: EventReader<LevelLoaded>,
+) {
     for _ev in event.read() {
-        debug!("level loaded");
+        debug!("level loaded, switching to loading screen");
+        next_state.set(AppState::LoadingScreen);
     }
 }
