@@ -21,7 +21,7 @@ struct MatchmakingUpdate(u32); // new ping we are currently searching for
 struct MatchFound;
 
 #[derive(Event)]
-struct FoundPlayersUpdate(u32); // total amount of players found
+struct PlayersFoundUpdate(u32); // total amount of players found
 
 #[derive(Event)]
 struct LobbyFilled;
@@ -209,8 +209,11 @@ impl Plugin for MatchmakeInProgressScreenPlugin {
             Update,
             (
                 update_matchmake_in_progress_screen,
-                matchmaking_started,
-                matchmaking_update,
+                matchmaking_started_listener,
+                matchmaking_update_listener,
+                match_found_listener,
+                players_found_listener,
+                lobby_filled_listener,
                 level_loaded_listener,
             )
                 .run_if(in_state(DeployScreen(MatchMakeInProgress))),
@@ -226,7 +229,7 @@ impl Plugin for MatchmakeInProgressScreenPlugin {
         .add_event::<MatchmakingStarted>()
         .add_event::<MatchmakingUpdate>()
         .add_event::<MatchFound>()
-        .add_event::<FoundPlayersUpdate>()
+        .add_event::<PlayersFoundUpdate>()
         .add_event::<LobbyFilled>()
         .add_event::<LevelLoaded>()
         // TODO: research how to have multiple fixed time
@@ -309,10 +312,9 @@ struct EventCounter {
 fn update_fake_matchmake_server(
     mut event_counter: Local<EventCounter>,
     time_fixed: Res<Time<Fixed>>,
-    mut started: EventWriter<MatchmakingStarted>,
     mut update: EventWriter<MatchmakingUpdate>, // new ping we are currently searching for
     mut match_found: EventWriter<MatchFound>,
-    mut players_found: EventWriter<FoundPlayersUpdate>, // total amount of players found
+    mut players_found: EventWriter<PlayersFoundUpdate>, // total amount of players found
     mut filled: EventWriter<LobbyFilled>,
     mut loaded: EventWriter<LevelLoaded>,
 ) {
@@ -328,14 +330,21 @@ fn update_fake_matchmake_server(
         update.send(MatchmakingUpdate(32));
     } else if event_counter.counter == 3 {
         update.send(MatchmakingUpdate(52));
+    } else if event_counter.counter == 4 {
+        match_found.send(MatchFound);
+    } else if event_counter.counter == 5 {
+        players_found.send(PlayersFoundUpdate(1));
+    } else if event_counter.counter == 6 {
+        players_found.send(PlayersFoundUpdate(5));
+    } else if event_counter.counter == 7 {
+        filled.send(LobbyFilled);
     } else {
         loaded.send(LevelLoaded);
     }
     event_counter.counter += 1;
 }
 
-// TODO: add other event readers
-fn matchmaking_started(
+fn matchmaking_started_listener(
     mut event: EventReader<MatchmakingStarted>,
     // TODO: figure out how to query for the Text component so we can change it
     //mut query: Query<(&mut BackgroundColor, &ButtonTargetState), (With<Text, Text>)>,
@@ -346,11 +355,30 @@ fn matchmaking_started(
     }
 }
 
-fn matchmaking_update(mut event: EventReader<MatchmakingUpdate>) {
+fn matchmaking_update_listener(mut event: EventReader<MatchmakingUpdate>) {
     for ev in event.read() {
         // TODO: change textbox contents
         let e = ev.0;
         debug!("matchmaking updated. searching for ping <{:?}ms", e);
+    }
+}
+
+fn match_found_listener(mut event: EventReader<MatchFound>) {
+    for _ev in event.read() {
+        debug!("match found");
+    }
+}
+
+fn players_found_listener(mut event: EventReader<PlayersFoundUpdate>) {
+    for ev in event.read() {
+        let num = ev.0;
+        debug!("found players. ({:?})", num);
+    }
+}
+
+fn lobby_filled_listener(mut event: EventReader<LobbyFilled>) {
+    for _ev in event.read() {
+        debug!("lobby filled");
     }
 }
 
