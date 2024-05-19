@@ -194,6 +194,9 @@ fn bye_matchmake_screen(mut commands: Commands, menu_data: Res<MatchmakeMenuData
 
 pub struct MatchmakeInProgressScreenPlugin;
 
+#[derive(Component, Debug)]
+struct MessageTextMarker;
+
 #[derive(Resource)]
 struct MatchmakeInProgressMenuData {
     matchmake_messagebox_entity: Entity,
@@ -256,13 +259,15 @@ fn start_matchmake_in_progress_screen(
             ..default()
         })
         .with_children(|builder| {
-            builder.spawn(TextBundle::from_section(
-                "This is\ntext with\nline breaks\nin the top left.",
-                TextStyle {
-                    font_size: 30.0,
-                    ..default()
-                },
-            ));
+            builder
+                .spawn(TextBundle::from_section(
+                    "This is\ntext with\nline breaks\nin the top left.",
+                    TextStyle {
+                        font_size: 30.0,
+                        ..default()
+                    },
+                ))
+                .insert(MessageTextMarker);
         })
         .id();
 
@@ -277,12 +282,19 @@ fn start_matchmake_in_progress_screen(
     matchmake_started_event.send(MatchmakingStarted);
 }
 
-fn update_matchmake_in_progress_screen(mut interaction_query: Query<&mut Text, With<Text>>) {
+fn update_matchmake_in_progress_screen(
+    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
+) {
     debug!("updating matchmake in progress screen");
-    // TODO: add update to progress via message box
-    // for now just jump to loading screen instead
-    for mut _text in &mut interaction_query {
-        debug!("updating text in message box");
+    debug!("query result empty: {:?}", query.is_empty());
+    for mut text in &mut query {
+        let x = text.as_mut();
+        // TODO: update text
+        debug!("updating text in message box: {:?}", x);
+        for section in x.sections.clone().into_iter() {
+            // FIXME: due to cloning no manipulation possible, only here for debug output
+            debug!("section: {:?}", section.value)
+        }
     }
 }
 
@@ -361,12 +373,14 @@ fn matchmaking_update_listener(mut event: EventReader<MatchmakingUpdate>) {
 
 fn match_found_listener(mut event: EventReader<MatchFound>) {
     for _ev in event.read() {
+        // TODO: change textbox contents
         debug!("match found");
     }
 }
 
 fn players_found_listener(mut event: EventReader<PlayersFoundUpdate>) {
     for ev in event.read() {
+        // TODO: change textbox contents
         let num = ev.0;
         debug!("found players. ({:?})", num);
     }
@@ -374,6 +388,7 @@ fn players_found_listener(mut event: EventReader<PlayersFoundUpdate>) {
 
 fn lobby_filled_listener(mut event: EventReader<LobbyFilled>) {
     for _ev in event.read() {
+        // TODO: change textbox contents
         debug!("lobby filled");
     }
 }
@@ -383,7 +398,8 @@ fn level_loaded_listener(
     mut event: EventReader<LevelLoaded>,
 ) {
     for _ev in event.read() {
+        // TODO: change textbox contents
         debug!("level loaded, switching to loading screen");
-        next_state.set(AppState::LoadingScreen);
+        //next_state.set(AppState::LoadingScreen);
     }
 }
