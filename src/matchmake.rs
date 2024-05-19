@@ -207,7 +207,12 @@ impl Plugin for MatchmakeInProgressScreenPlugin {
         )
         .add_systems(
             Update,
-            (update_matchmake_in_progress_screen, matchmaking_started)
+            (
+                update_matchmake_in_progress_screen,
+                matchmaking_started,
+                matchmaking_update,
+                level_loaded_listener,
+            )
                 .run_if(in_state(DeployScreen(MatchMakeInProgress))),
         )
         .add_systems(
@@ -262,7 +267,10 @@ fn start_matchmake_in_progress_screen(
         matchmake_messagebox_entity,
     });
 
-    commands.entity(matchmake_messagebox_entity);
+    commands
+        .entity(matchmake_messagebox_entity)
+        .insert(Name::new("Message Box"));
+
     matchmake_started_event.send(MatchmakingStarted);
 }
 
@@ -290,10 +298,16 @@ fn bye_matchmake_in_progress_screen(
     commands.remove_resource::<MatchmakeInProgressMenuData>();
 }
 
+#[derive(Default)]
+struct EventCounter {
+    counter: u32,
+}
+
 // TODO: add a fake system that periodically sends out the events
 // that would usually come from the network communication with a
 // matchmaking server. this system runs on a timer
 fn update_fake_matchmake_server(
+    mut event_counter: Local<EventCounter>,
     time_fixed: Res<Time<Fixed>>,
     mut started: EventWriter<MatchmakingStarted>,
     mut update: EventWriter<MatchmakingUpdate>, // new ping we are currently searching for
@@ -303,16 +317,45 @@ fn update_fake_matchmake_server(
     mut loaded: EventWriter<LevelLoaded>,
 ) {
     debug!(
-        "fake matchmake server update. fixed time: {:?}",
+        "fake matchmake server update. counter: {:?}, fixed time: {:?}",
+        event_counter.counter,
         time_fixed.elapsed()
     );
-    // TODO: create a queue/stack of some sort and every seconds send out the next event
+    // TODO: create a match case for a counter and every seconds send out the next event
+    if event_counter.counter <= 1 {
+        update.send(MatchmakingUpdate(20));
+    } else if event_counter.counter == 2 {
+        update.send(MatchmakingUpdate(32));
+    } else if event_counter.counter == 3 {
+        update.send(MatchmakingUpdate(52));
+    } else {
+        loaded.send(LevelLoaded);
+    }
+    event_counter.counter += 1;
 }
 
 // TODO: add other event readers
-fn matchmaking_started(mut event: EventReader<MatchmakingStarted>) {
+fn matchmaking_started(
+    mut event: EventReader<MatchmakingStarted>,
+    // TODO: figure out how to query for the Text component so we can change it
+    //mut query: Query<(&mut BackgroundColor, &ButtonTargetState), (With<Text, Text>)>,
+) {
+    for _ev in event.read() {
+        // TODO: change textbox contents
+        debug!("matchmaking started.");
+    }
+}
+
+fn matchmaking_update(mut event: EventReader<MatchmakingUpdate>) {
     for ev in event.read() {
         // TODO: change textbox contents
-        debug!("matchmaking started");
+        let e = ev.0;
+        debug!("matchmaking updated. searching for ping <{:?}ms", e);
+    }
+}
+
+fn level_loaded_listener(mut event: EventReader<LevelLoaded>) {
+    for _ev in event.read() {
+        debug!("level loaded");
     }
 }
