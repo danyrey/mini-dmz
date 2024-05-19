@@ -278,7 +278,7 @@ fn start_matchmake_in_progress_screen(
 }
 
 fn update_matchmake_in_progress_screen(
-    mut next_state: ResMut<NextState<AppState>>,
+    _next_state: ResMut<NextState<AppState>>,
     mut interaction_query: Query<&mut Text, With<Text>>,
 ) {
     debug!("updating matchmake in progress screen");
