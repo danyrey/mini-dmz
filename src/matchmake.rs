@@ -261,7 +261,7 @@ fn start_matchmake_in_progress_screen(
         .with_children(|builder| {
             builder
                 .spawn(TextBundle::from_section(
-                    "This is\ntext with\nline breaks\nin the top left.",
+                    "",
                     TextStyle {
                         font_size: 30.0,
                         ..default()
@@ -282,20 +282,8 @@ fn start_matchmake_in_progress_screen(
     matchmake_started_event.send(MatchmakingStarted);
 }
 
-fn update_matchmake_in_progress_screen(
-    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
-) {
+fn update_matchmake_in_progress_screen() {
     debug!("updating matchmake in progress screen");
-    debug!("query result empty: {:?}", query.is_empty());
-    for mut text in &mut query {
-        let x = text.as_mut();
-        // TODO: update text
-        debug!("updating text in message box: {:?}", x);
-        for section in x.sections.clone().into_iter() {
-            // FIXME: due to cloning no manipulation possible, only here for debug output
-            debug!("section: {:?}", section.value)
-        }
-    }
 }
 
 fn bye_matchmake_in_progress_screen(
@@ -314,9 +302,6 @@ struct EventCounter {
     counter: u32,
 }
 
-// TODO: add a fake system that periodically sends out the events
-// that would usually come from the network communication with a
-// matchmaking server. this system runs on a timer
 fn update_fake_matchmake_server(
     mut event_counter: Local<EventCounter>,
     time_fixed: Res<Time<Fixed>>,
@@ -331,7 +316,6 @@ fn update_fake_matchmake_server(
         event_counter.counter,
         time_fixed.elapsed()
     );
-    // TODO: create a match case for a counter and every seconds send out the next event
     if event_counter.counter <= 1 {
         update.send(MatchmakingUpdate(20));
     } else if event_counter.counter == 2 {
@@ -341,9 +325,9 @@ fn update_fake_matchmake_server(
     } else if event_counter.counter == 4 {
         match_found.send(MatchFound);
     } else if event_counter.counter == 5 {
-        players_found.send(PlayersFoundUpdate(1));
+        players_found.send(PlayersFoundUpdate(10));
     } else if event_counter.counter == 6 {
-        players_found.send(PlayersFoundUpdate(5));
+        players_found.send(PlayersFoundUpdate(25));
     } else if event_counter.counter == 7 {
         filled.send(LobbyFilled);
     } else {
@@ -354,52 +338,83 @@ fn update_fake_matchmake_server(
 
 fn matchmaking_started_listener(
     mut event: EventReader<MatchmakingStarted>,
-    // TODO: figure out how to query for the Text component so we can change it
-    //mut query: Query<(&mut BackgroundColor, &ButtonTargetState), (With<Text, Text>)>,
+    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
 ) {
     for _ev in event.read() {
-        // TODO: change textbox contents
-        debug!("matchmaking started.");
+        for mut text in &mut query {
+            text.sections[0].value = format!("CONNECTING");
+        }
+        debug!("matchmaking started. connecting.");
     }
 }
 
-fn matchmaking_update_listener(mut event: EventReader<MatchmakingUpdate>) {
+fn matchmaking_update_listener(
+    mut event: EventReader<MatchmakingUpdate>,
+    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
+) {
     for ev in event.read() {
-        // TODO: change textbox contents
         let e = ev.0;
+        for mut text in &mut query {
+            text.sections[0].value = format!("SEARCHING FOR A MATCH <{:?}MS PING", e);
+        }
         debug!("matchmaking updated. searching for ping <{:?}ms", e);
     }
 }
 
-fn match_found_listener(mut event: EventReader<MatchFound>) {
+fn match_found_listener(
+    mut event: EventReader<MatchFound>,
+    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
+) {
     for _ev in event.read() {
-        // TODO: change textbox contents
-        debug!("match found");
+        for mut text in &mut query {
+            text.sections[0].value = format!("CONNECTING");
+        }
+        debug!("match found. connecting");
     }
 }
 
-fn players_found_listener(mut event: EventReader<PlayersFoundUpdate>) {
+fn players_found_listener(
+    mut event: EventReader<PlayersFoundUpdate>,
+    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
+) {
+    // TODO: hardcoded for now, make this dynamic later
+    let max_num_players = 30;
     for ev in event.read() {
-        // TODO: change textbox contents
         let num = ev.0;
+        for mut text in &mut query {
+            // TODO: special cases like plural/singular/zero
+            text.sections[0].value =
+                format!("LOOKING FOR {:?} MORE PLAYERS", max_num_players - num);
+        }
         debug!("found players. ({:?})", num);
     }
 }
 
-fn lobby_filled_listener(mut event: EventReader<LobbyFilled>) {
+fn lobby_filled_listener(
+    mut event: EventReader<LobbyFilled>,
+    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
+) {
     for _ev in event.read() {
-        // TODO: change textbox contents
-        debug!("lobby filled");
+        for mut text in &mut query {
+            // TODO: special cases like plural/singular/zero
+            text.sections[0].value = format!("WAITING. LOADING LEVEL");
+        }
     }
+    debug!("lobby filled. waiting. loading level");
 }
 
 fn level_loaded_listener(
     mut next_state: ResMut<NextState<AppState>>,
     mut event: EventReader<LevelLoaded>,
+    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
 ) {
     for _ev in event.read() {
-        // TODO: change textbox contents
-        debug!("level loaded, switching to loading screen");
-        //next_state.set(AppState::LoadingScreen);
+        for mut text in &mut query {
+            // TODO: special cases like plural/singular/zero
+            text.sections[0].value = format!("LAUNCHING");
+            debug!("level loaded. launching. switching to loading screen");
+            // TODO: launching should be on its own countdown(usually 8 seconds)
+            next_state.set(AppState::LoadingScreen);
+        }
     }
 }
