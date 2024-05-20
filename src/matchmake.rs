@@ -29,6 +29,9 @@ struct LobbyFilled;
 #[derive(Event)]
 struct LevelLoaded;
 
+#[derive(Event)]
+struct Launching(u32);
+
 // Matchmake screen
 
 pub struct MatchmakeScreenPlugin;
@@ -218,6 +221,7 @@ impl Plugin for MatchmakeInProgressScreenPlugin {
                 players_found_listener,
                 lobby_filled_listener,
                 level_loaded_listener,
+                launching_listener,
             )
                 .run_if(in_state(DeployScreen(MatchMakeInProgress))),
         )
@@ -234,6 +238,7 @@ impl Plugin for MatchmakeInProgressScreenPlugin {
         .add_event::<MatchFound>()
         .add_event::<PlayersFoundUpdate>()
         .add_event::<LobbyFilled>()
+        .add_event::<Launching>()
         .add_event::<LevelLoaded>()
         // TODO: research how to have multiple fixed time
         // schedules and not just one
@@ -283,7 +288,7 @@ fn start_matchmake_in_progress_screen(
 }
 
 fn update_matchmake_in_progress_screen() {
-    debug!("updating matchmake in progress screen");
+    //debug!("updating matchmake in progress screen");
 }
 
 fn bye_matchmake_in_progress_screen(
@@ -310,6 +315,7 @@ fn update_fake_matchmake_server(
     mut players_found: EventWriter<PlayersFoundUpdate>, // total amount of players found
     mut filled: EventWriter<LobbyFilled>,
     mut loaded: EventWriter<LevelLoaded>,
+    mut launching: EventWriter<Launching>,
 ) {
     debug!(
         "fake matchmake server update. counter: {:?}, fixed time: {:?}",
@@ -329,9 +335,19 @@ fn update_fake_matchmake_server(
     } else if event_counter.counter == 6 {
         players_found.send(PlayersFoundUpdate(25));
     } else if event_counter.counter == 7 {
+        players_found.send(PlayersFoundUpdate(29));
+    } else if event_counter.counter == 8 {
+        players_found.send(PlayersFoundUpdate(30));
+    } else if event_counter.counter == 9 {
         filled.send(LobbyFilled);
-    } else {
+    } else if event_counter.counter == 10 {
         loaded.send(LevelLoaded);
+    } else if event_counter.counter == 11 {
+        launching.send(Launching(8));
+    } else if event_counter.counter == 12 {
+        launching.send(Launching(4));
+    } else {
+        launching.send(Launching(0));
     }
     event_counter.counter += 1;
 }
@@ -343,8 +359,8 @@ fn matchmaking_started_listener(
     for _ev in event.read() {
         for mut text in &mut query {
             text.sections[0].value = format!("CONNECTING");
+            debug!("matchmaking started. connecting.");
         }
-        debug!("matchmaking started. connecting.");
     }
 }
 
@@ -356,8 +372,8 @@ fn matchmaking_update_listener(
         let e = ev.0;
         for mut text in &mut query {
             text.sections[0].value = format!("SEARCHING FOR A MATCH <{:?}MS PING", e);
+            debug!("matchmaking updated. searching for ping <{:?}ms", e);
         }
-        debug!("matchmaking updated. searching for ping <{:?}ms", e);
     }
 }
 
@@ -368,8 +384,8 @@ fn match_found_listener(
     for _ev in event.read() {
         for mut text in &mut query {
             text.sections[0].value = format!("CONNECTING");
+            debug!("match found. connecting");
         }
-        debug!("match found. connecting");
     }
 }
 
@@ -381,12 +397,19 @@ fn players_found_listener(
     let max_num_players = 30;
     for ev in event.read() {
         let num = ev.0;
+        let remaining_players = max_num_players - num;
         for mut text in &mut query {
-            // TODO: special cases like plural/singular/zero
-            text.sections[0].value =
-                format!("LOOKING FOR {:?} MORE PLAYERS", max_num_players - num);
+            let player_string = if remaining_players == 1 {
+                String::from("PLAYER")
+            } else {
+                String::from("PLAYERS")
+            };
+            text.sections[0].value = format!(
+                "LOOKING FOR {:?} MORE {:}",
+                remaining_players, player_string
+            );
+            debug!("found players. ({:?})", num);
         }
-        debug!("found players. ({:?})", num);
     }
 }
 
@@ -396,25 +419,37 @@ fn lobby_filled_listener(
 ) {
     for _ev in event.read() {
         for mut text in &mut query {
-            // TODO: special cases like plural/singular/zero
             text.sections[0].value = format!("WAITING. LOADING LEVEL");
+            debug!("lobby filled. waiting. loading level");
         }
     }
-    debug!("lobby filled. waiting. loading level");
 }
 
 fn level_loaded_listener(
-    mut next_state: ResMut<NextState<AppState>>,
     mut event: EventReader<LevelLoaded>,
     mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
 ) {
     for _ev in event.read() {
         for mut text in &mut query {
-            // TODO: special cases like plural/singular/zero
             text.sections[0].value = format!("LAUNCHING");
-            debug!("level loaded. launching. switching to loading screen");
-            // TODO: launching should be on its own countdown(usually 8 seconds)
-            next_state.set(AppState::LoadingScreen);
+            debug!("level loaded. start launching.");
+        }
+    }
+}
+
+fn launching_listener(
+    mut next_state: ResMut<NextState<AppState>>,
+    mut event: EventReader<Launching>,
+    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
+) {
+    for ev in event.read() {
+        for mut text in &mut query {
+            let countdown = ev.0;
+            text.sections[0].value = format!("LAUNCHING {:?}", countdown);
+            debug!("launch countdown.");
+            if countdown == 0 {
+                next_state.set(AppState::LoadingScreen);
+            }
         }
     }
 }
