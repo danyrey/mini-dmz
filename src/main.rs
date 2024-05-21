@@ -14,6 +14,7 @@ mod deploy;
 mod loading_screen;
 mod matchmake;
 mod mission_objective_screen;
+mod raid;
 mod start_screen;
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, States)]
