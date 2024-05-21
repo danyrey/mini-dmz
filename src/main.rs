@@ -5,6 +5,7 @@ use choose_location::ChooseLocationScreenPlugin;
 use loading_screen::MatchLoadingScreenPlugin;
 use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
 use mission_objective_screen::MissionObjectivesScreenPlugin;
+use raid::RaidPlugin;
 use start_screen::StartScreenPlugin;
 
 mod active_duty_confirmation;
@@ -80,6 +81,7 @@ fn main() {
             MatchmakeScreenPlugin,
             MatchmakeInProgressScreenPlugin,
             MatchLoadingScreenPlugin,
+            RaidPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, bevy::window::close_on_esc)
