@@ -1,10 +1,7 @@
 // loading screen for loading into a match
 // TODO: maybe rename this for later when we have other types of loading screens
 
-use crate::{
-    AppState::{self, LoadingScreen, Match},
-    Raid,
-};
+use crate::AppState::{self, LoadingScreen, Raid};
 use bevy::prelude::*;
 
 #[derive(Event)]
@@ -32,7 +29,7 @@ fn start_matchmake_screen(mut _commands: Commands) {
 
 fn update_matchmake_screen(mut next_state: ResMut<NextState<AppState>>) {
     debug!("updating loading screen");
-    next_state.set(Match(Raid::Infil));
+    next_state.set(Raid);
 }
 
 fn bye_matchmake_screen(mut _commands: Commands) {

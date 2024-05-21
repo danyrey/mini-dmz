@@ -4,7 +4,7 @@
 
 use bevy::prelude::*;
 
-use crate::AppState;
+use crate::AppState::{self, Raid};
 
 // Events
 
@@ -15,12 +15,9 @@ pub struct RaidPlugin;
 
 impl Plugin for RaidPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(AppState::Match(crate::Raid::Infil)), start_raid)
-            .add_systems(
-                Update,
-                (update_raid).run_if(in_state(AppState::Match(crate::Raid::Infil))),
-            )
-            .add_systems(OnExit(AppState::Match(crate::Raid::Infil)), bye_raid);
+        app.add_systems(OnEnter(Raid), start_raid)
+            .add_systems(Update, (update_raid).run_if(in_state(Raid)))
+            .add_systems(OnExit(Raid), bye_raid);
     }
 }
 

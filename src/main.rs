@@ -25,16 +25,7 @@ enum AppState {
     MissionObjectives(MissionObjectives),
     DeployScreen(DeployScreen),
     LoadingScreen,
-    Match(Raid),
-}
-
-#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, States)]
-enum Raid {
-    #[default]
-    Infil,
-    InProgress,
-    Exfil,
-    Summary,
+    Raid,
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, States)]
