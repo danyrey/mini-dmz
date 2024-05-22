@@ -31,9 +31,7 @@ struct InfilComplete;
 // Resources
 
 #[derive(Default, Resource)]
-struct InfilCountdown {
-    counter: u32,
-}
+struct InfilCountdown(u32);
 
 #[derive(Default, Resource)]
 struct LiftoffCountdown(u32);
@@ -67,7 +65,7 @@ impl Plugin for RaidPlugin {
 
 fn start_raid(mut commands: Commands) {
     debug!("starting raid called");
-    commands.insert_resource(InfilCountdown { counter: 31 });
+    commands.insert_resource(InfilCountdown(31));
     commands.insert_resource(LiftoffCountdown(34));
 }
 
@@ -84,10 +82,10 @@ fn infil_countdown(
     mut event: EventWriter<InfilCounter>, // new ping we are currently searching for
 ) {
     debug!("infil countdown system called");
-    if infil_countdown.counter > 0 {
-        infil_countdown.counter -= 1;
-        event.send(InfilCounter(infil_countdown.counter));
-        debug!("infil countdown event send : {:?}", infil_countdown.counter);
+    if infil_countdown.0 > 0 {
+        infil_countdown.0 -= 1;
+        event.send(InfilCounter(infil_countdown.0));
+        debug!("infil countdown event send : {:?}", infil_countdown.0);
     }
 }
 fn infil_countdown_listener(
