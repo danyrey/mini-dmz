@@ -1,6 +1,6 @@
-// TODO: implement initial countdown on infil
 // TODO: basic timelimited raid
 // TODO: very basic exfil mechanic
+// just use a button for calling exfil for now
 
 use bevy::prelude::*;
 
@@ -14,12 +14,31 @@ struct InfilCounter(u32);
 #[derive(Event)]
 struct InfilComplete;
 
+// TODO: Potential events for Exfil procedure
+// ExfilCalled // trigger the flare and sound fx
+// ExfilEnteredAO // trigger spawning of helicopter
+// ExfilSpawned // trigger radio in of pilot
+// ExfilApproached
+// ExfilDescented
+// ExfilLandingHovered
+// ExfilTouchedDown
+// ExfilFullyBoarded
+// ExfilTakeOffHovered
+// ExfilClimbed
+// ExfilCruised
+// ExfilExfilled
+
 // Resources
 
 #[derive(Default, Resource)]
 struct InfilCountdown {
     counter: u32,
 }
+
+#[derive(Default, Resource)]
+struct LiftoffCountdown(u32);
+
+// TODO: counters for all other phases of exfil
 
 // Plugin
 
@@ -49,6 +68,7 @@ impl Plugin for RaidPlugin {
 fn start_raid(mut commands: Commands) {
     debug!("starting raid called");
     commands.insert_resource(InfilCountdown { counter: 31 });
+    commands.insert_resource(LiftoffCountdown(34));
 }
 
 fn update_raid(mut _next_state: ResMut<NextState<AppState>>) {
