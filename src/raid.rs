@@ -1,3 +1,5 @@
+// TODO: idea: put all related resources/events/systems into their own plugins like Infil, Exfil,
+// Raid and declare a Raid PluginGroup that is added to the main.rs
 // TODO: basic timelimited raid
 // TODO: very basic exfil mechanic
 // just use a button for calling exfil for now
@@ -29,6 +31,8 @@ struct InfilComplete;
 // ExfilExfilled
 
 // Resources
+
+// TODO: add simple ui "exfil button" for triggering the exfil procedure
 
 #[derive(Default, Resource)]
 struct InfilCountdown(u32);
@@ -104,6 +108,6 @@ fn infil_countdown_listener(
 
 fn infil_countdown_complete_listener(mut events: EventReader<InfilComplete>) {
     for _ in events.read() {
-        todo!("'activate' controls so player can move now. match is in progress now")
+        debug!("'activate' controls so player can move now. match is in progress now")
     }
 }
