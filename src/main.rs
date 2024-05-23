@@ -2,6 +2,7 @@ use active_duty_confirmation::ActiveDutyConfirmationScreenPlugin;
 use active_missions::ActiveMissionsScreenPlugin;
 use bevy::prelude::*;
 use choose_location::ChooseLocationScreenPlugin;
+use exfil::ExfilPlugin;
 use loading_screen::MatchLoadingScreenPlugin;
 use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
 use mission_objective_screen::MissionObjectivesScreenPlugin;
@@ -12,6 +13,7 @@ mod active_duty_confirmation;
 mod active_missions;
 mod choose_location;
 mod deploy;
+mod exfil;
 mod loading_screen;
 mod matchmake;
 mod mission_objective_screen;
@@ -73,6 +75,7 @@ fn main() {
             MatchmakeInProgressScreenPlugin,
             MatchLoadingScreenPlugin,
             RaidPlugin,
+            ExfilPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, bevy::window::close_on_esc)
