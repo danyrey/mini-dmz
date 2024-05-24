@@ -197,13 +197,20 @@ fn bye_matchmake_screen(mut commands: Commands, menu_data: Res<MatchmakeMenuData
 
 pub struct MatchmakeInProgressScreenPlugin;
 
+// Components
+
 #[derive(Component, Debug)]
 struct MessageTextMarker;
+
+// Resources
 
 #[derive(Resource)]
 struct MatchmakeInProgressMenuData {
     matchmake_messagebox_entity: Entity,
 }
+
+#[derive(Resource, Default)]
+struct EventCounter(u32);
 
 impl Plugin for MatchmakeInProgressScreenPlugin {
     fn build(&self, app: &mut App) {
@@ -242,6 +249,7 @@ impl Plugin for MatchmakeInProgressScreenPlugin {
         .add_event::<LevelLoaded>()
         // TODO: research how to have multiple fixed time
         // schedules and not just one
+        .insert_resource(EventCounter(0))
         .insert_resource(Time::<Fixed>::from_seconds(1.0));
     }
 }
@@ -249,8 +257,10 @@ impl Plugin for MatchmakeInProgressScreenPlugin {
 fn start_matchmake_in_progress_screen(
     mut commands: Commands,
     mut matchmake_started_event: EventWriter<MatchmakingStarted>,
+    mut event_counter: ResMut<EventCounter>,
 ) {
     debug!("starting matchmake in progress screen");
+    event_counter.0 = 0;
     let matchmake_messagebox_entity = commands
         .spawn(NodeBundle {
             style: Style {
@@ -302,13 +312,8 @@ fn bye_matchmake_in_progress_screen(
     commands.remove_resource::<MatchmakeInProgressMenuData>();
 }
 
-#[derive(Default)]
-struct EventCounter {
-    counter: u32,
-}
-
 fn update_fake_matchmake_server(
-    mut event_counter: Local<EventCounter>,
+    mut event_counter: ResMut<EventCounter>,
     time_fixed: Res<Time<Fixed>>,
     mut update: EventWriter<MatchmakingUpdate>, // new ping we are currently searching for
     mut match_found: EventWriter<MatchFound>,
@@ -319,37 +324,37 @@ fn update_fake_matchmake_server(
 ) {
     debug!(
         "fake matchmake server update. counter: {:?}, fixed time: {:?}",
-        event_counter.counter,
+        event_counter.0,
         time_fixed.elapsed()
     );
-    if event_counter.counter <= 1 {
+    if event_counter.0 <= 1 {
         update.send(MatchmakingUpdate(20));
-    } else if event_counter.counter == 2 {
+    } else if event_counter.0 == 2 {
         update.send(MatchmakingUpdate(32));
-    } else if event_counter.counter == 3 {
+    } else if event_counter.0 == 3 {
         update.send(MatchmakingUpdate(52));
-    } else if event_counter.counter == 4 {
+    } else if event_counter.0 == 4 {
         match_found.send(MatchFound);
-    } else if event_counter.counter == 5 {
+    } else if event_counter.0 == 5 {
         players_found.send(PlayersFoundUpdate(10));
-    } else if event_counter.counter == 6 {
+    } else if event_counter.0 == 6 {
         players_found.send(PlayersFoundUpdate(25));
-    } else if event_counter.counter == 7 {
+    } else if event_counter.0 == 7 {
         players_found.send(PlayersFoundUpdate(29));
-    } else if event_counter.counter == 8 {
+    } else if event_counter.0 == 8 {
         players_found.send(PlayersFoundUpdate(30));
-    } else if event_counter.counter == 9 {
+    } else if event_counter.0 == 9 {
         filled.send(LobbyFilled);
-    } else if event_counter.counter == 10 {
+    } else if event_counter.0 == 10 {
         loaded.send(LevelLoaded);
-    } else if event_counter.counter == 11 {
+    } else if event_counter.0 == 11 {
         launching.send(Launching(8));
-    } else if event_counter.counter == 12 {
+    } else if event_counter.0 == 12 {
         launching.send(Launching(4));
     } else {
         launching.send(Launching(0));
     }
-    event_counter.counter += 1;
+    event_counter.0 += 1;
 }
 
 fn matchmaking_started_listener(
