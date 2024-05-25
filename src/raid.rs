@@ -1,12 +1,15 @@
 // TODO: idea: put all related resources/events/systems into their own plugins like Infil, Exfil,
 // Raid and declare a Raid PluginGroup that is added to the main.rs
 // TODO: basic timelimited raid
-// TODO: very basic exfil mechanic
-// just use a button for calling exfil for now
 
 use bevy::prelude::*;
 
 use crate::AppState::{self, Raid};
+
+// Components
+
+#[derive(Component)]
+struct FirstPersonCamera;
 
 // Events
 
@@ -15,20 +18,6 @@ struct InfilCounter(u32);
 
 #[derive(Event)]
 struct InfilComplete;
-
-// TODO: Potential events for Exfil procedure
-// ExfilCalled // trigger the flare and sound fx
-// ExfilEnteredAO // trigger spawning of helicopter
-// ExfilSpawned // trigger radio in of pilot
-// ExfilApproached
-// ExfilDescented
-// ExfilLandingHovered
-// ExfilTouchedDown
-// ExfilFullyBoarded
-// ExfilTakeOffHovered
-// ExfilClimbed
-// ExfilCruised
-// ExfilExfilled
 
 // Resources
 
@@ -71,14 +60,24 @@ fn start_raid(mut commands: Commands) {
     debug!("starting raid called");
     commands.insert_resource(InfilCountdown(31));
     commands.insert_resource(LiftoffCountdown(34));
+    // camera
+    commands
+        .spawn(Camera3dBundle {
+            transform: Transform::from_xyz(-2.5, 4.5, 9.0).looking_at(Vec3::ZERO, Vec3::Y),
+            ..default()
+        })
+        .insert(FirstPersonCamera);
 }
 
 fn update_raid(mut _next_state: ResMut<NextState<AppState>>) {
     debug!("updating raid called");
 }
 
-fn bye_raid(mut _commands: Commands) {
+fn bye_raid(mut commands: Commands, query: Query<Entity, With<FirstPersonCamera>>) {
     debug!("exiting raid called");
+    for entity in &query {
+        commands.entity(entity).despawn_recursive();
+    }
 }
 
 fn infil_countdown(
