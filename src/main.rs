@@ -14,6 +14,7 @@ mod active_missions;
 mod choose_location;
 mod deploy;
 mod exfil;
+mod fake_level;
 mod loading_screen;
 mod matchmake;
 mod mission_objective_screen;
