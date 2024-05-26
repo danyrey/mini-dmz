@@ -9,6 +9,7 @@ use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
 use mission_objective_screen::MissionObjectivesScreenPlugin;
 use raid::RaidPlugin;
 use start_screen::StartScreenPlugin;
+use template_plugin::TemplatePlugin;
 
 mod active_duty_confirmation;
 mod active_missions;
@@ -21,6 +22,7 @@ mod matchmake;
 mod mission_objective_screen;
 mod raid;
 mod start_screen;
+mod template_plugin;
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, States)]
 enum AppState {
@@ -79,6 +81,7 @@ fn main() {
             FakeLevelPlugin,
             RaidPlugin,
             ExfilPlugin,
+            TemplatePlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, bevy::window::close_on_esc)
