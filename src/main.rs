@@ -1,6 +1,7 @@
 use active_duty_confirmation::ActiveDutyConfirmationScreenPlugin;
 use active_missions::ActiveMissionsScreenPlugin;
 use bevy::prelude::*;
+use camera_look::CameraLookPlugin;
 use choose_location::ChooseLocationScreenPlugin;
 use exfil::ExfilPlugin;
 use fake_level::FakeLevelPlugin;
@@ -13,6 +14,7 @@ use template_plugin::TemplatePlugin;
 
 mod active_duty_confirmation;
 mod active_missions;
+mod camera_look;
 mod choose_location;
 mod deploy;
 mod exfil;
@@ -81,6 +83,7 @@ fn main() {
             FakeLevelPlugin,
             RaidPlugin,
             ExfilPlugin,
+            CameraLookPlugin,
             TemplatePlugin,
         ))
         .init_state::<AppState>()

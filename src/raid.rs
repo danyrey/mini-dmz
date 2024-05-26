@@ -9,7 +9,7 @@ use crate::AppState::{self, Raid};
 // Components
 
 #[derive(Component)]
-struct FirstPersonCamera;
+pub struct FirstPersonCamera;
 
 // Events
 
