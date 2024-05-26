@@ -8,23 +8,23 @@ pub struct FakeLevelPlugin;
 
 impl Plugin for FakeLevelPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Raid), start_matchmake_screen)
-            .add_systems(
-                Update,
-                (update_matchmake_screen).run_if(in_state(AppState::Raid)),
-            )
-            .add_systems(OnExit(AppState::Raid), bye_matchmake_screen);
+        app.add_systems(OnEnter(Raid), start_fake_level)
+            .add_systems(Update, (update_fake_level).run_if(in_state(AppState::Raid)))
+            .add_systems(OnExit(AppState::Raid), bye_fake_level);
     }
 }
 
-fn start_matchmake_screen(mut _commands: Commands) {
+fn start_fake_level(mut _commands: Commands) {
     // TODO: some cubes and planes
+    debug!("starting fake level");
 }
-fn update_matchmake_screen() {
+fn update_fake_level() {
     // TODO: maybe just render them near any cameras
     // TODO: maybe put code here that moves the scene near cameras to maintain a reference for
     // movement
+    debug!("updating fake level");
 }
-fn bye_matchmake_screen(mut _commands: Commands) {
+fn bye_fake_level(mut _commands: Commands) {
     // TODO: cleanup scene
+    debug!("stopping fake level");
 }

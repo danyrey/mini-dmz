@@ -3,6 +3,7 @@ use active_missions::ActiveMissionsScreenPlugin;
 use bevy::prelude::*;
 use choose_location::ChooseLocationScreenPlugin;
 use exfil::ExfilPlugin;
+use fake_level::FakeLevelPlugin;
 use loading_screen::MatchLoadingScreenPlugin;
 use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
 use mission_objective_screen::MissionObjectivesScreenPlugin;
@@ -75,6 +76,7 @@ fn main() {
             MatchmakeScreenPlugin,
             MatchmakeInProgressScreenPlugin,
             MatchLoadingScreenPlugin,
+            FakeLevelPlugin,
             RaidPlugin,
             ExfilPlugin,
         ))
