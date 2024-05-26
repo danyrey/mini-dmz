@@ -4,6 +4,7 @@ use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
 
+// Plugin
 pub struct FakeLevelPlugin;
 
 impl Plugin for FakeLevelPlugin {
@@ -13,6 +14,12 @@ impl Plugin for FakeLevelPlugin {
             .add_systems(OnExit(AppState::Raid), bye_fake_level);
     }
 }
+
+// Components
+
+// Resources
+
+// Events
 
 fn start_fake_level(mut _commands: Commands) {
     // TODO: some cubes and planes
