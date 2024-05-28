@@ -2,7 +2,7 @@
 // Raid and declare a Raid PluginGroup that is added to the main.rs
 // TODO: basic timelimited raid
 
-use bevy::prelude::*;
+use bevy::{math::bounding::Aabb3d, prelude::*};
 
 use crate::AppState::{self, Raid};
 
@@ -10,6 +10,9 @@ use crate::AppState::{self, Raid};
 
 #[derive(Component)]
 pub struct FirstPersonCamera;
+
+#[derive(Component)]
+pub struct Volume(pub Aabb3d);
 
 // Events
 
@@ -67,6 +70,18 @@ fn start_raid(mut commands: Commands) {
             ..default()
         })
         .insert(Name::new("FirstPersonCamera"))
+        .insert(Volume(Aabb3d {
+            min: Vec3 {
+                x: -0.5,
+                y: 0.0,
+                z: -0.5,
+            },
+            max: Vec3 {
+                x: 0.5,
+                y: 1.0,
+                z: 0.5,
+            },
+        }))
         .insert(FirstPersonCamera);
 }
 
