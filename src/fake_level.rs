@@ -1,6 +1,7 @@
 use bevy::app::Plugin;
 use bevy::math::bounding::Aabb3d;
 
+use crate::exfil::ExfilArea;
 use crate::raid::Volume;
 use crate::AppState;
 use crate::AppState::Raid;
@@ -68,6 +69,7 @@ fn start_fake_level(
                 z: 0.5,
             },
         }))
+        .insert(ExfilArea)
         .insert(Name::new("Cuboid"))
         .insert(FakeLevelStuff);
     // light

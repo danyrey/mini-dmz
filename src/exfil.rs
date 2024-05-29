@@ -4,6 +4,7 @@
 use bevy::prelude::*;
 
 use crate::{
+    raid::Volume,
     AppState::{self, Raid, StartScreen},
     ButtonTargetState,
 };
@@ -11,7 +12,9 @@ use crate::{
 // Events
 
 // TODO: Potential events for Exfil procedure
-// ExfilCalled // trigger the flare and sound fx
+// ExfilAreaEntered // trigger for showing the prompt
+// ExfilAreaExited // trigger for hiding the prompt again
+// ExfilCalled // trigger the flare and sound fx and hide prompt while exfil is in progress
 // ExfilEnteredAO // trigger spawning of helicopter
 // ExfilSpawned // trigger radio in of pilot
 // ExfilApproached
@@ -23,6 +26,7 @@ use crate::{
 // ExfilClimbed
 // ExfilCruised
 // ExfilExfilled
+// ExfilCooldownComplete // after x amount of time smoke and prompt show up again
 
 // Resources
 
@@ -49,6 +53,13 @@ impl Plugin for ExfilPlugin {
             .add_systems(OnExit(Raid), bye_exfil);
     }
 }
+
+// Components
+#[derive(Component, Default)]
+struct Intersects(bool);
+
+#[derive(Component)]
+pub struct ExfilArea;
 
 // Systems
 
@@ -136,4 +147,10 @@ fn bye_exfil(mut commands: Commands, menu_data: Res<ExfilUIData>) {
     commands
         .entity(menu_data.exfil_button_entity)
         .despawn_recursive();
+}
+
+fn exfil_area_collision_detection(/*
+    mut query: Query<(volume, &mut intersects), (Volume, With<Intersects>)>,
+*/) {
+    todo!("collision detection not implemented yet")
 }
