@@ -71,8 +71,12 @@ impl Plugin for ExfilPlugin {
 
 // Components
 
+// TODO: work out how to use this "id" to address the correct exfil in case of multiple exfils
 #[derive(Component)]
-pub struct ExfilArea;
+pub struct ExfilArea(pub String);
+
+#[derive(Component)]
+struct ExfilButton;
 
 #[derive(Component, Debug, Default)]
 pub struct InsideExfilArea(bool);
@@ -94,6 +98,7 @@ fn start_exfil(mut commands: Commands) {
                 align_items: AlignItems::Center,
                 ..default()
             },
+            visibility: Visibility::Hidden,
             ..default()
         })
         .with_children(|parent| {
@@ -113,7 +118,7 @@ fn start_exfil(mut commands: Commands) {
                 })
                 .with_children(|parent| {
                     parent.spawn(TextBundle::from_section(
-                        "FIXME: EXFIL",
+                        "EXFIL",
                         TextStyle {
                             font_size: 40.0,
                             color: Color::rgb(0.9, 0.9, 0.9),
@@ -131,7 +136,8 @@ fn start_exfil(mut commands: Commands) {
 
     commands
         .entity(exfil_button_entity)
-        .insert(Name::new("Exfil Button"));
+        .insert(Name::new("Exfil Button"))
+        .insert(ExfilButton);
 }
 
 fn update_exfil(
@@ -182,15 +188,29 @@ fn exfil_area_event_handling(
     }
 }
 
-fn exfil_area_entered(mut entered: EventReader<ExfilAreaEntered>) {
+fn exfil_area_entered(
+    mut commands: Commands,
+    mut entered: EventReader<ExfilAreaEntered>,
+    query: Query<Entity, (With<ExfilButton>, With<Visibility>)>,
+) {
     for _event in entered.read() {
         debug!("entered exfil zone");
+        if let Ok(entity) = query.get_single() {
+            commands.entity(entity).insert(Visibility::Visible);
+        }
     }
 }
 
-fn exfil_area_exited(mut exited: EventReader<ExfilAreaExited>) {
+fn exfil_area_exited(
+    mut commands: Commands,
+    mut exited: EventReader<ExfilAreaExited>,
+    query: Query<Entity, (With<ExfilButton>, With<Visibility>)>,
+) {
     for _event in exited.read() {
         debug!("exited exfil zone");
+        if let Ok(entity) = query.get_single() {
+            commands.entity(entity).insert(Visibility::Hidden);
+        }
     }
 }
 

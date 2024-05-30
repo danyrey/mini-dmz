@@ -69,7 +69,7 @@ fn start_fake_level(
                 z: 0.5,
             },
         }))
-        .insert(ExfilArea)
+        .insert(ExfilArea(String::from("Exfil1")))
         .insert(Name::new("Cuboid"))
         .insert(FakeLevelStuff);
     // light
