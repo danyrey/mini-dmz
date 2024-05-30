@@ -10,9 +10,13 @@ use crate::{
 
 // Events
 
+#[derive(Event)]
+pub struct ExfilAreaEntered; // trigger for showing the prompt
+
+#[derive(Event)]
+pub struct ExfilAreaExited; // trigger for hiding the prompt again
+
 // TODO: Potential events for Exfil procedure
-// ExfilAreaEntered // trigger for showing the prompt
-// ExfilAreaExited // trigger for hiding the prompt again
 // ExfilCalled // trigger the flare and sound fx and hide prompt while exfil is in progress
 // ExfilEnteredAO // trigger spawning of helicopter
 // ExfilSpawned // trigger radio in of pilot
@@ -50,9 +54,18 @@ impl Plugin for ExfilPlugin {
         app.add_systems(OnEnter(Raid), start_exfil)
             .add_systems(
                 Update,
-                ((update_exfil, exfil_area_collision_detection)).run_if(in_state(Raid)),
+                ((
+                    update_exfil,
+                    exfil_area_collision_detection,
+                    exfil_area_event_handling,
+                    exfil_area_entered,
+                    exfil_area_exited,
+                ))
+                    .run_if(in_state(Raid)),
             )
-            .add_systems(OnExit(Raid), bye_exfil);
+            .add_systems(OnExit(Raid), bye_exfil)
+            .add_event::<ExfilAreaEntered>()
+            .add_event::<ExfilAreaExited>();
     }
 }
 
@@ -60,6 +73,9 @@ impl Plugin for ExfilPlugin {
 
 #[derive(Component)]
 pub struct ExfilArea;
+
+#[derive(Component, Debug, Default)]
+pub struct InsideExfilArea(bool);
 
 #[derive(Component)]
 pub struct Operator;
@@ -152,17 +168,61 @@ fn bye_exfil(mut commands: Commands, menu_data: Res<ExfilUIData>) {
         .despawn_recursive();
 }
 
-fn exfil_area_collision_detection(
-    exfil_query: Query<&GlobalTransform, With<ExfilArea>>,
-    operator_query: Query<&GlobalTransform, With<Operator>>,
+fn exfil_area_event_handling(
+    query: Query<&InsideExfilArea, Changed<InsideExfilArea>>,
+    mut entered: EventWriter<ExfilAreaEntered>,
+    mut exited: EventWriter<ExfilAreaExited>,
 ) {
+    for inside in query.iter() {
+        if inside.0 {
+            entered.send(ExfilAreaEntered);
+        } else {
+            exited.send(ExfilAreaExited);
+        }
+    }
+}
+
+fn exfil_area_entered(mut entered: EventReader<ExfilAreaEntered>) {
+    for _event in entered.read() {
+        debug!("entered exfil zone");
+    }
+}
+
+fn exfil_area_exited(mut exited: EventReader<ExfilAreaExited>) {
+    for _event in exited.read() {
+        debug!("exited exfil zone");
+    }
+}
+
+fn exfil_area_collision_detection(
+    mut commands: Commands,
+    exfil_query: Query<&GlobalTransform, With<ExfilArea>>,
+    mut operator_query: Query<
+        (Entity, &GlobalTransform, Option<&mut InsideExfilArea>),
+        With<Operator>,
+    >,
+) {
+    // TODO: make it a resource maybe
+    let min_distance = 5.0;
+
     for exfil_transform in exfil_query.iter() {
-        for operator_transform in operator_query.iter() {
+        for (entity, operator_transform, inside) in operator_query.iter_mut() {
             let distance = exfil_transform
                 .translation()
                 .distance(operator_transform.translation());
-            // TODO: do someting under a certain distance
-            debug!("distance: {:?}", distance);
+
+            let mut i = InsideExfilArea(default());
+
+            i.0 = distance < min_distance;
+
+            if let Some(mut ins) = inside {
+                // needed otherwise it is detected as a change even for the same value
+                if ins.0 != i.0 {
+                    ins.0 = i.0;
+                }
+            } else {
+                commands.entity(entity).insert(i);
+            }
         }
     }
 }
