@@ -4,14 +4,17 @@
 
 use bevy::{math::bounding::Aabb3d, prelude::*};
 
-use crate::AppState::{self, Raid};
+use crate::{
+    exfil::Operator,
+    AppState::{self, Raid},
+};
 
 // Components
 
 #[derive(Component)]
 pub struct FirstPersonCamera;
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Volume(pub Aabb3d);
 
 // Events
@@ -82,6 +85,7 @@ fn start_raid(mut commands: Commands) {
                 z: 0.5,
             },
         }))
+        .insert(Operator)
         .insert(FirstPersonCamera);
 }
 

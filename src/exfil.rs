@@ -4,7 +4,6 @@
 use bevy::prelude::*;
 
 use crate::{
-    raid::Volume,
     AppState::{self, Raid, StartScreen},
     ButtonTargetState,
 };
@@ -49,17 +48,21 @@ pub struct ExfilPlugin;
 impl Plugin for ExfilPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(Raid), start_exfil)
-            .add_systems(Update, (update_exfil).run_if(in_state(Raid)))
+            .add_systems(
+                Update,
+                ((update_exfil, exfil_area_collision_detection)).run_if(in_state(Raid)),
+            )
             .add_systems(OnExit(Raid), bye_exfil);
     }
 }
 
 // Components
-#[derive(Component, Default)]
-struct Intersects(bool);
 
 #[derive(Component)]
 pub struct ExfilArea;
+
+#[derive(Component)]
+pub struct Operator;
 
 // Systems
 
@@ -149,8 +152,17 @@ fn bye_exfil(mut commands: Commands, menu_data: Res<ExfilUIData>) {
         .despawn_recursive();
 }
 
-fn exfil_area_collision_detection(/*
-    mut query: Query<(volume, &mut intersects), (Volume, With<Intersects>)>,
-*/) {
-    todo!("collision detection not implemented yet")
+fn exfil_area_collision_detection(
+    exfil_query: Query<&GlobalTransform, With<ExfilArea>>,
+    operator_query: Query<&GlobalTransform, With<Operator>>,
+) {
+    for exfil_transform in exfil_query.iter() {
+        for operator_transform in operator_query.iter() {
+            let distance = exfil_transform
+                .translation()
+                .distance(operator_transform.translation());
+            // TODO: do someting under a certain distance
+            debug!("distance: {:?}", distance);
+        }
+    }
 }
