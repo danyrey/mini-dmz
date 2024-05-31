@@ -46,7 +46,7 @@ fn start_fake_level(
         })
         .insert(Name::new("Disc"))
         .insert(FakeLevelStuff);
-    // cube
+    // cube 1
     commands
         .spawn(PbrBundle {
             mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
@@ -70,7 +70,33 @@ fn start_fake_level(
             },
         }))
         .insert(ExfilArea(String::from("Exfil1")))
-        .insert(Name::new("Cuboid"))
+        .insert(Name::new("Exfil1"))
+        .insert(FakeLevelStuff);
+    // cube 2
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::GOLD,
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(10.0, 0.5, 10.0),
+            ..default()
+        })
+        .insert(Volume(Aabb3d {
+            min: Vec3 {
+                x: 9.5,
+                y: 0.0,
+                z: 9.5,
+            },
+            max: Vec3 {
+                x: 10.5,
+                y: 1.0,
+                z: 10.5,
+            },
+        }))
+        .insert(ExfilArea(String::from("Exfil2")))
+        .insert(Name::new("Exfil2"))
         .insert(FakeLevelStuff);
     // light
     commands
