@@ -1,6 +1,3 @@
-// TODO: very basic exfil mechanic
-// just use a button for calling exfil for now
-
 use bevy::prelude::*;
 
 use crate::{
@@ -10,11 +7,19 @@ use crate::{
 
 // Events
 
+// trigger for showing the prompt
 #[derive(Event)]
-pub struct ExfilAreaEntered; // trigger for showing the prompt
+pub struct ExfilAreaEntered {
+    pub operator_entity: Entity,
+    pub exfil_area: ExfilArea,
+}
 
+// trigger for hiding the prompt again
 #[derive(Event)]
-pub struct ExfilAreaExited; // trigger for hiding the prompt again
+pub struct ExfilAreaExited {
+    pub operator_entity: Entity,
+    pub exfil_area: ExfilArea,
+}
 
 // TODO: Potential events for Exfil procedure
 // ExfilCalled // trigger the flare and sound fx and hide prompt while exfil is in progress
@@ -33,7 +38,6 @@ pub struct ExfilAreaExited; // trigger for hiding the prompt again
 
 // Resources
 
-// TODO: add simple ui "exfil button" for triggering the exfil procedure
 #[derive(Resource)]
 struct ExfilUIData {
     exfil_button_entity: Entity,
@@ -57,7 +61,6 @@ impl Plugin for ExfilPlugin {
                 ((
                     update_exfil,
                     exfil_area_collision_detection,
-                    exfil_area_event_handling,
                     exfil_area_entered,
                     exfil_area_exited,
                 ))
@@ -71,15 +74,15 @@ impl Plugin for ExfilPlugin {
 
 // Components
 
-// TODO: work out how to use this "id" to address the correct exfil in case of multiple exfils
-#[derive(Component)]
+#[derive(Component, Clone, Debug, Default)]
 pub struct ExfilArea(pub String);
 
 #[derive(Component)]
 struct ExfilButton;
 
-#[derive(Component, Debug, Default)]
-pub struct InsideExfilArea(bool);
+// potential issues: overlapping/multiple exfils might be an issue or not
+#[derive(Component, Clone, Debug, Default)]
+pub struct InsideExfilArea(ExfilArea);
 
 #[derive(Component)]
 pub struct Operator;
@@ -107,9 +110,7 @@ fn start_exfil(mut commands: Commands) {
                     style: Style {
                         width: Val::Px(150.),
                         height: Val::Px(110.),
-                        // horizontally center child text
                         justify_content: JustifyContent::Center,
-                        // vertically center child text
                         align_items: AlignItems::Center,
                         ..default()
                     },
@@ -174,28 +175,18 @@ fn bye_exfil(mut commands: Commands, menu_data: Res<ExfilUIData>) {
         .despawn_recursive();
 }
 
-fn exfil_area_event_handling(
-    query: Query<&InsideExfilArea, Changed<InsideExfilArea>>,
-    mut entered: EventWriter<ExfilAreaEntered>,
-    mut exited: EventWriter<ExfilAreaExited>,
-) {
-    for inside in query.iter() {
-        if inside.0 {
-            entered.send(ExfilAreaEntered);
-        } else {
-            exited.send(ExfilAreaExited);
-        }
-    }
-}
-
 fn exfil_area_entered(
     mut commands: Commands,
     mut entered: EventReader<ExfilAreaEntered>,
     query: Query<Entity, (With<ExfilButton>, With<Visibility>)>,
 ) {
-    for _event in entered.read() {
+    for event in entered.read() {
         debug!("entered exfil zone");
-        if let Ok(entity) = query.get_single() {
+        for entity in query.iter() {
+            debug!(
+                "operator({:?}) entered exfil zone({:?})",
+                event.operator_entity, event.exfil_area
+            );
             commands.entity(entity).insert(Visibility::Visible);
         }
     }
@@ -206,9 +197,13 @@ fn exfil_area_exited(
     mut exited: EventReader<ExfilAreaExited>,
     query: Query<Entity, (With<ExfilButton>, With<Visibility>)>,
 ) {
-    for _event in exited.read() {
+    for event in exited.read() {
         debug!("exited exfil zone");
-        if let Ok(entity) = query.get_single() {
+        for entity in query.iter() {
+            debug!(
+                "operator({:?}) exited exfil zone({:?})",
+                event.operator_entity, event.exfil_area
+            );
             commands.entity(entity).insert(Visibility::Hidden);
         }
     }
@@ -216,32 +211,55 @@ fn exfil_area_exited(
 
 fn exfil_area_collision_detection(
     mut commands: Commands,
-    exfil_query: Query<&GlobalTransform, With<ExfilArea>>,
+    exfil_query: Query<(Entity, &GlobalTransform, &ExfilArea), With<ExfilArea>>,
     mut operator_query: Query<
         (Entity, &GlobalTransform, Option<&mut InsideExfilArea>),
         With<Operator>,
     >,
+    mut entered: EventWriter<ExfilAreaEntered>,
+    mut exited: EventWriter<ExfilAreaExited>,
 ) {
     // TODO: make it a resource maybe
     let min_distance = 5.0;
 
-    for exfil_transform in exfil_query.iter() {
-        for (entity, operator_transform, inside) in operator_query.iter_mut() {
+    for (operator_entity, operator_transform, operator_exfil_area) in operator_query.iter_mut() {
+        let mut any_exfil_area: Option<ExfilArea> = None;
+
+        for (_exfil_entity, exfil_transform, exfil_area) in exfil_query.iter() {
             let distance = exfil_transform
                 .translation()
                 .distance(operator_transform.translation());
 
-            let mut i = InsideExfilArea(default());
+            if distance < min_distance {
+                any_exfil_area = Some(exfil_area.clone());
+            }
+        }
 
-            i.0 = distance < min_distance;
-
-            if let Some(mut ins) = inside {
-                // needed otherwise it is detected as a change even for the same value
-                if ins.0 != i.0 {
-                    ins.0 = i.0;
+        if let Some(area) = any_exfil_area {
+            if let Some(mut component_inside) = operator_exfil_area {
+                if !area.0.eq(&(component_inside.0).0) {
+                    component_inside.0 = area.clone();
+                    entered.send(ExfilAreaEntered {
+                        operator_entity,
+                        exfil_area: area.clone(),
+                    });
                 }
             } else {
-                commands.entity(entity).insert(i);
+                commands
+                    .entity(operator_entity)
+                    .insert(InsideExfilArea(area.clone()));
+                entered.send(ExfilAreaEntered {
+                    operator_entity,
+                    exfil_area: area.clone(),
+                });
+            }
+        } else {
+            if let Some(component) = operator_exfil_area {
+                commands.entity(operator_entity).remove::<InsideExfilArea>();
+                exited.send(ExfilAreaExited {
+                    operator_entity,
+                    exfil_area: component.0.clone(),
+                });
             }
         }
     }

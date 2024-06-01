@@ -1,8 +1,6 @@
 use bevy::app::Plugin;
-use bevy::math::bounding::Aabb3d;
 
 use crate::exfil::ExfilArea;
-use crate::raid::Volume;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
@@ -57,18 +55,6 @@ fn start_fake_level(
             transform: Transform::from_xyz(0.0, 0.5, 0.0),
             ..default()
         })
-        .insert(Volume(Aabb3d {
-            min: Vec3 {
-                x: -0.5,
-                y: 0.0,
-                z: -0.5,
-            },
-            max: Vec3 {
-                x: 0.5,
-                y: 1.0,
-                z: 0.5,
-            },
-        }))
         .insert(ExfilArea(String::from("Exfil1")))
         .insert(Name::new("Exfil1"))
         .insert(FakeLevelStuff);
@@ -83,18 +69,6 @@ fn start_fake_level(
             transform: Transform::from_xyz(10.0, 0.5, 10.0),
             ..default()
         })
-        .insert(Volume(Aabb3d {
-            min: Vec3 {
-                x: 9.5,
-                y: 0.0,
-                z: 9.5,
-            },
-            max: Vec3 {
-                x: 10.5,
-                y: 1.0,
-                z: 10.5,
-            },
-        }))
         .insert(ExfilArea(String::from("Exfil2")))
         .insert(Name::new("Exfil2"))
         .insert(FakeLevelStuff);
