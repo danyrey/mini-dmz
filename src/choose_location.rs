@@ -3,9 +3,8 @@ use crate::DeployScreen::*;
 use crate::{AppState, ButtonTargetState};
 use bevy::prelude::*;
 
-// TODO: four simple buttons as standins for the selectable maps
 // TODO: click on a button saves the selection somehow and advances to missions
-//
+
 pub struct ChooseLocationScreenPlugin;
 
 impl Plugin for ChooseLocationScreenPlugin {
@@ -25,12 +24,11 @@ impl Plugin for ChooseLocationScreenPlugin {
     }
 }
 
-// TODO: hardcoding the levels for now, maybe later make this more dynamic
 #[derive(Resource)]
 struct ChooseLocationMenuData {
     vondel_button_entity: Entity,
     ashika_island_button_entity: Entity,
-    al_mazrah_objectives_button_entity: Entity,
+    al_mazrah_button_entity: Entity,
     building_21_button_entity: Entity,
 }
 
@@ -43,7 +41,6 @@ fn start_choose_location_screen(mut commands: Commands) {
     let vondel_button_entity = commands
         .spawn(NodeBundle {
             style: Style {
-                // center button
                 width: Val::Percent(30.),
                 height: Val::Percent(120.),
                 justify_content: JustifyContent::Center,
@@ -58,9 +55,7 @@ fn start_choose_location_screen(mut commands: Commands) {
                     style: Style {
                         width: Val::Px(150.),
                         height: Val::Px(110.),
-                        // horizontally center child text
                         justify_content: JustifyContent::Center,
-                        // vertically center child text
                         align_items: AlignItems::Center,
                         ..default()
                     },
@@ -81,18 +76,139 @@ fn start_choose_location_screen(mut commands: Commands) {
         })
         .id();
 
-    // TODO: add the others
+    let ashika_island_button_entity = commands
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(60.),
+                height: Val::Percent(120.),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            ..default()
+        })
+        .with_children(|parent| {
+            parent
+                .spawn(ButtonBundle {
+                    style: Style {
+                        width: Val::Px(150.),
+                        height: Val::Px(110.),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    background_color: NORMAL_BUTTON.into(),
+                    ..default()
+                })
+                .with_children(|parent| {
+                    parent.spawn(TextBundle::from_section(
+                        "Ashika Island",
+                        TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..default()
+                        },
+                    ));
+                })
+                .insert(ButtonTargetState(DeployScreen(ActiveMissions)));
+        })
+        .id();
+
+    let al_mazrah_button_entity = commands
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(90.),
+                height: Val::Percent(120.),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            ..default()
+        })
+        .with_children(|parent| {
+            parent
+                .spawn(ButtonBundle {
+                    style: Style {
+                        width: Val::Px(150.),
+                        height: Val::Px(110.),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    background_color: NORMAL_BUTTON.into(),
+                    ..default()
+                })
+                .with_children(|parent| {
+                    parent.spawn(TextBundle::from_section(
+                        "Al Mazrah",
+                        TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..default()
+                        },
+                    ));
+                })
+                .insert(ButtonTargetState(DeployScreen(ActiveMissions)));
+        })
+        .id();
+
+    let building_21_button_entity = commands
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(120.),
+                height: Val::Percent(120.),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            ..default()
+        })
+        .with_children(|parent| {
+            parent
+                .spawn(ButtonBundle {
+                    style: Style {
+                        width: Val::Px(150.),
+                        height: Val::Px(110.),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    background_color: NORMAL_BUTTON.into(),
+                    ..default()
+                })
+                .with_children(|parent| {
+                    parent.spawn(TextBundle::from_section(
+                        "Building 21",
+                        TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..default()
+                        },
+                    ));
+                })
+                .insert(ButtonTargetState(DeployScreen(ActiveMissions)));
+        })
+        .id();
 
     commands.insert_resource(ChooseLocationMenuData {
         vondel_button_entity,
-        ashika_island_button_entity: vondel_button_entity,
-        al_mazrah_objectives_button_entity: vondel_button_entity,
-        building_21_button_entity: vondel_button_entity,
+        ashika_island_button_entity,
+        al_mazrah_button_entity,
+        building_21_button_entity,
     });
 
     commands
         .entity(vondel_button_entity)
         .insert(Name::new("Vondel Button"));
+    commands
+        .entity(ashika_island_button_entity)
+        .insert(Name::new("Ashika Button"));
+    commands
+        .entity(al_mazrah_button_entity)
+        .insert(Name::new("Al Mazrah Button"));
+    commands
+        .entity(building_21_button_entity)
+        .insert(Name::new("B21 Button"));
 }
 
 fn update_choose_location_screen(
@@ -126,5 +242,14 @@ fn bye_choose_location_screen(mut commands: Commands, menu_data: Res<ChooseLocat
     debug!("exiting choose location screen");
     commands
         .entity(menu_data.vondel_button_entity)
+        .despawn_recursive();
+    commands
+        .entity(menu_data.ashika_island_button_entity)
+        .despawn_recursive();
+    commands
+        .entity(menu_data.al_mazrah_button_entity)
+        .despawn_recursive();
+    commands
+        .entity(menu_data.building_21_button_entity)
         .despawn_recursive();
 }
