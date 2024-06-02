@@ -26,10 +26,7 @@ impl Plugin for ChooseLocationScreenPlugin {
 
 #[derive(Resource)]
 struct ChooseLocationMenuData {
-    vondel_button_entity: Entity,
-    ashika_island_button_entity: Entity,
-    al_mazrah_button_entity: Entity,
-    building_21_button_entity: Entity,
+    location_layout: Entity,
 }
 
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
@@ -38,177 +35,88 @@ const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 
 fn start_choose_location_screen(mut commands: Commands) {
     debug!("starting choose location screen");
-    let vondel_button_entity = commands
+
+    // Layout
+    // Top-level grid (app frame)
+    let location_layout = commands
         .spawn(NodeBundle {
             style: Style {
-                width: Val::Percent(30.),
-                height: Val::Percent(120.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
+                display: Display::Grid,
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                grid_template_columns: vec![GridTrack::auto()],
+                grid_template_rows: vec![
+                    GridTrack::auto(),
+                    GridTrack::flex(1.0),
+                    GridTrack::px(20.),
+                ],
                 ..default()
             },
             ..default()
         })
-        .with_children(|parent| {
-            parent
-                .spawn(ButtonBundle {
+        .insert(Name::new("Main Layout"))
+        .with_children(|builder| {
+            // Header
+            builder
+                .spawn(NodeBundle {
                     style: Style {
-                        width: Val::Px(150.),
-                        height: Val::Px(110.),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
+                        display: Display::Grid,
+                        justify_items: JustifyItems::Center,
+                        padding: UiRect::all(Val::Px(12.0)),
                         ..default()
                     },
-                    background_color: NORMAL_BUTTON.into(),
                     ..default()
                 })
-                .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
+                .insert(Name::new("Header"))
+                .with_children(|builder| {
+                    spawn_nested_text_bundle(builder, 40.0, "CHOOSE LOCATION");
+                    spawn_nested_text_bundle(
+                        builder,
+                        10.0,
+                        "Select your deployment location into the DMZ",
+                    );
+                });
+            // Main
+            builder
+                .spawn(NodeBundle {
+                    style: Style {
+                        display: Display::Grid,
+                        justify_items: JustifyItems::Center,
+                        padding: UiRect::all(Val::Px(12.0)),
+                        grid_template_columns: RepeatedGridTrack::flex(4, 1.0),
+                        ..default()
+                    },
+                    ..default()
+                })
+                .insert(Name::new("Main"))
+                .with_children(|builder| {
+                    spawn_location_button_bundle(
+                        builder,
                         "Vondel",
-                        TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..default()
-                        },
-                    ));
-                })
-                .insert(ButtonTargetState(DeployScreen(ActiveMissions)));
-        })
-        .id();
-
-    let ashika_island_button_entity = commands
-        .spawn(NodeBundle {
-            style: Style {
-                width: Val::Percent(60.),
-                height: Val::Percent(120.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            ..default()
-        })
-        .with_children(|parent| {
-            parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(150.),
-                        height: Val::Px(110.),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: NORMAL_BUTTON.into(),
-                    ..default()
-                })
-                .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
+                        ButtonTargetState(DeployScreen(ActiveMissions)),
+                    );
+                    spawn_location_button_bundle(
+                        builder,
                         "Ashika Island",
-                        TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..default()
-                        },
-                    ));
-                })
-                .insert(ButtonTargetState(DeployScreen(ActiveMissions)));
-        })
-        .id();
-
-    let al_mazrah_button_entity = commands
-        .spawn(NodeBundle {
-            style: Style {
-                width: Val::Percent(90.),
-                height: Val::Percent(120.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            ..default()
-        })
-        .with_children(|parent| {
-            parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(150.),
-                        height: Val::Px(110.),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: NORMAL_BUTTON.into(),
-                    ..default()
-                })
-                .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
+                        ButtonTargetState(DeployScreen(ActiveMissions)),
+                    );
+                    spawn_location_button_bundle(
+                        builder,
                         "Al Mazrah",
-                        TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..default()
-                        },
-                    ));
-                })
-                .insert(ButtonTargetState(DeployScreen(ActiveMissions)));
-        })
-        .id();
-
-    let building_21_button_entity = commands
-        .spawn(NodeBundle {
-            style: Style {
-                width: Val::Percent(120.),
-                height: Val::Percent(120.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            ..default()
-        })
-        .with_children(|parent| {
-            parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(150.),
-                        height: Val::Px(110.),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: NORMAL_BUTTON.into(),
-                    ..default()
-                })
-                .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
+                        ButtonTargetState(DeployScreen(ActiveMissions)),
+                    );
+                    spawn_location_button_bundle(
+                        builder,
                         "Building 21",
-                        TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..default()
-                        },
-                    ));
-                })
-                .insert(ButtonTargetState(DeployScreen(ActiveMissions)));
+                        ButtonTargetState(DeployScreen(ActiveMissions)),
+                    );
+                });
+            // Footer : TODO: if needed
         })
         .id();
 
-    commands.insert_resource(ChooseLocationMenuData {
-        vondel_button_entity,
-        ashika_island_button_entity,
-        al_mazrah_button_entity,
-        building_21_button_entity,
-    });
-
-    commands
-        .entity(vondel_button_entity)
-        .insert(Name::new("Vondel Button"));
-    commands
-        .entity(ashika_island_button_entity)
-        .insert(Name::new("Ashika Button"));
-    commands
-        .entity(al_mazrah_button_entity)
-        .insert(Name::new("Al Mazrah Button"));
-    commands
-        .entity(building_21_button_entity)
-        .insert(Name::new("B21 Button"));
+    // insert resource
+    commands.insert_resource(ChooseLocationMenuData { location_layout });
 }
 
 fn update_choose_location_screen(
@@ -241,15 +149,61 @@ fn update_choose_location_screen(
 fn bye_choose_location_screen(mut commands: Commands, menu_data: Res<ChooseLocationMenuData>) {
     debug!("exiting choose location screen");
     commands
-        .entity(menu_data.vondel_button_entity)
+        .entity(menu_data.location_layout)
         .despawn_recursive();
-    commands
-        .entity(menu_data.ashika_island_button_entity)
-        .despawn_recursive();
-    commands
-        .entity(menu_data.al_mazrah_button_entity)
-        .despawn_recursive();
-    commands
-        .entity(menu_data.building_21_button_entity)
-        .despawn_recursive();
+}
+
+fn spawn_nested_text_bundle(builder: &mut ChildBuilder, font_size: f32, text: &str) {
+    builder.spawn(TextBundle::from_section(
+        text,
+        TextStyle {
+            font_size,
+            color: Color::rgb(0.9, 0.9, 0.9),
+            ..default()
+        },
+    ));
+}
+
+fn spawn_location_button_bundle(
+    builder: &mut ChildBuilder,
+    button_text: &str,
+    button_target_state: ButtonTargetState,
+) {
+    builder
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(100.),
+                height: Val::Percent(100.),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            ..default()
+        })
+        .insert(Name::new("TODO")) // TODO: figure out how to pass in button_text
+        .with_children(|parent| {
+            parent
+                .spawn(ButtonBundle {
+                    style: Style {
+                        width: Val::Px(150.),
+                        height: Val::Px(110.),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    background_color: NORMAL_BUTTON.into(),
+                    ..default()
+                })
+                .with_children(|parent| {
+                    parent.spawn(TextBundle::from_section(
+                        button_text,
+                        TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..default()
+                        },
+                    ));
+                })
+                .insert(button_target_state);
+        });
 }
