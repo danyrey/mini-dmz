@@ -90,24 +90,32 @@ fn start_choose_location_screen(mut commands: Commands) {
                 })
                 .insert(Name::new("Main"))
                 .with_children(|builder| {
+                    let vondel_name = Name::new("Vondel");
                     spawn_location_button_bundle(
                         builder,
-                        "Vondel",
+                        vondel_name.clone(),
+                        vondel_name.as_str(),
                         ButtonTargetState(DeployScreen(ActiveMissions)),
                     );
+                    let ashika_island_name = Name::new("Ashika Island");
                     spawn_location_button_bundle(
                         builder,
-                        "Ashika Island",
+                        ashika_island_name.clone(),
+                        ashika_island_name.as_str(),
                         ButtonTargetState(DeployScreen(ActiveMissions)),
                     );
+                    let al_mazrah_name = Name::new("Al Mazrah");
                     spawn_location_button_bundle(
                         builder,
-                        "Al Mazrah",
+                        al_mazrah_name.clone(),
+                        al_mazrah_name.as_str(),
                         ButtonTargetState(DeployScreen(ActiveMissions)),
                     );
+                    let building_21_name = Name::new("Building 21");
                     spawn_location_button_bundle(
                         builder,
-                        "Building 21",
+                        building_21_name.clone(),
+                        building_21_name.as_str(),
                         ButtonTargetState(DeployScreen(ActiveMissions)),
                     );
                 });
@@ -166,6 +174,7 @@ fn spawn_nested_text_bundle(builder: &mut ChildBuilder, font_size: f32, text: &s
 
 fn spawn_location_button_bundle(
     builder: &mut ChildBuilder,
+    button_name_component: Name,
     button_text: &str,
     button_target_state: ButtonTargetState,
 ) {
@@ -180,7 +189,7 @@ fn spawn_location_button_bundle(
             },
             ..default()
         })
-        .insert(Name::new("TODO")) // TODO: figure out how to pass in button_text
+        .insert(button_name_component)
         .with_children(|parent| {
             parent
                 .spawn(ButtonBundle {
