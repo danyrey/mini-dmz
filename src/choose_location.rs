@@ -3,8 +3,12 @@ use crate::DeployScreen::*;
 use crate::{AppState, ButtonTargetState};
 use bevy::prelude::*;
 
-// TODO: click on a button saves the selection somehow and advances to missions
+// Constants
+const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
+const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
+const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 
+// Plugin
 pub struct ChooseLocationScreenPlugin;
 
 impl Plugin for ChooseLocationScreenPlugin {
@@ -24,15 +28,21 @@ impl Plugin for ChooseLocationScreenPlugin {
     }
 }
 
+// Components
+
+// Resources
 #[derive(Resource)]
 struct ChooseLocationMenuData {
     location_layout: Entity,
 }
 
-const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
-const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
-const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
+// TODO: make this visible in inspector
+#[derive(Resource)]
+pub struct ChosenLocation(String);
 
+// Events
+
+// Systems
 fn start_choose_location_screen(mut commands: Commands) {
     debug!("starting choose location screen");
 
@@ -119,7 +129,6 @@ fn start_choose_location_screen(mut commands: Commands) {
                         ButtonTargetState(DeployScreen(ActiveMissions)),
                     );
                 });
-            // Footer : TODO: if needed
         })
         .id();
 
@@ -128,18 +137,25 @@ fn start_choose_location_screen(mut commands: Commands) {
 }
 
 fn update_choose_location_screen(
+    mut commands: Commands,
     mut next_state: ResMut<NextState<AppState>>,
     mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor, &ButtonTargetState),
-        (Changed<Interaction>, With<Button>),
+        (
+            &Interaction,
+            &mut BackgroundColor,
+            &ButtonTargetState,
+            &Name,
+        ),
+        (Changed<Interaction>, (With<Button>, With<Name>)),
     >,
 ) {
     debug!("updating choose location screen");
-    for (interaction, mut color, target_state) in &mut interaction_query {
+    for (interaction, mut color, target_state, name) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
                 debug!("button pressed, target_state: {:?}", target_state);
                 *color = PRESSED_BUTTON.into();
+                commands.insert_resource(ChosenLocation(name.to_string().clone()));
                 next_state.set(target_state.0.clone());
             }
             Interaction::Hovered => {
@@ -154,13 +170,19 @@ fn update_choose_location_screen(
     }
 }
 
-fn bye_choose_location_screen(mut commands: Commands, menu_data: Res<ChooseLocationMenuData>) {
+fn bye_choose_location_screen(
+    mut commands: Commands,
+    menu_data: Res<ChooseLocationMenuData>,
+    chosen_location: Res<ChosenLocation>,
+) {
     debug!("exiting choose location screen");
+    debug!("chosen location: {}", chosen_location.0);
     commands
         .entity(menu_data.location_layout)
         .despawn_recursive();
 }
 
+// helper functions
 fn spawn_nested_text_bundle(builder: &mut ChildBuilder, font_size: f32, text: &str) {
     builder.spawn(TextBundle::from_section(
         text,
@@ -189,7 +211,7 @@ fn spawn_location_button_bundle(
             },
             ..default()
         })
-        .insert(button_name_component)
+        .insert(button_name_component.clone())
         .with_children(|parent| {
             parent
                 .spawn(ButtonBundle {
@@ -203,6 +225,7 @@ fn spawn_location_button_bundle(
                     background_color: NORMAL_BUTTON.into(),
                     ..default()
                 })
+                .insert(button_name_component)
                 .with_children(|parent| {
                     parent.spawn(TextBundle::from_section(
                         button_text,
