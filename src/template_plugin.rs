@@ -27,6 +27,7 @@ impl Plugin for TemplatePlugin {
 
 // Events
 
+// Systems
 fn start_template_system(mut _commands: Commands) {
     debug!("starting {}", NAME);
 }
@@ -36,3 +37,5 @@ fn update_template_system() {
 fn bye_template_system(mut _commands: Commands) {
     debug!("stopping {}", NAME);
 }
+
+// helper functions
