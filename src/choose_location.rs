@@ -38,7 +38,7 @@ struct ChooseLocationMenuData {
 
 // TODO: make this visible in inspector
 #[derive(Resource)]
-pub struct ChosenLocation(String);
+pub struct ChosenLocation(pub String);
 
 // Events
 

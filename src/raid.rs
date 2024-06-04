@@ -5,6 +5,7 @@
 use bevy::{math::bounding::Aabb3d, prelude::*};
 
 use crate::{
+    choose_location::ChosenLocation,
     exfil::Operator,
     AppState::{self, Raid},
 };
@@ -66,6 +67,8 @@ fn start_raid(mut commands: Commands) {
     debug!("starting raid called");
     commands.insert_resource(InfilCountdown(31));
     commands.insert_resource(LiftoffCountdown(34));
+    // chosen location cleanup
+    commands.remove_resource::<ChosenLocation>();
     // camera
     commands
         .spawn(Camera3dBundle {
