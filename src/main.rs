@@ -5,6 +5,7 @@ use camera_look::CameraLookPlugin;
 use camera_move::CameraMovePlugin;
 use choose_location::ChooseLocationScreenPlugin;
 use exfil::ExfilPlugin;
+use exfil_timers::ExfilTimersPlugin;
 use fake_level::FakeLevelPlugin;
 use loading_screen::MatchLoadingScreenPlugin;
 use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
@@ -20,6 +21,7 @@ mod camera_move;
 mod choose_location;
 mod deploy;
 mod exfil;
+mod exfil_timers;
 mod fake_level;
 mod loading_screen;
 mod matchmake;
@@ -82,13 +84,11 @@ fn main() {
             MatchmakeScreenPlugin,
             MatchmakeInProgressScreenPlugin,
             MatchLoadingScreenPlugin,
-            FakeLevelPlugin,
-            RaidPlugin,
-            ExfilPlugin,
             CameraLookPlugin,
             CameraMovePlugin,
             TemplatePlugin,
         ))
+        .add_plugins((RaidPlugin, FakeLevelPlugin, ExfilPlugin, ExfilTimersPlugin))
         .init_state::<AppState>()
         .add_systems(Update, bevy::window::close_on_esc)
         .add_systems(Startup, setup)
