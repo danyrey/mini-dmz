@@ -4,10 +4,13 @@
 // TODO: more research for corner cases. make screenshots for when not the whole team is not ready.
 // TODO: messages during matchmaking need to be displayed until we can advance to loading screen
 
+use std::time::Duration;
+
 use crate::AppState::DeployScreen;
 use crate::DeployScreen::*;
 use crate::{AppState, ButtonTargetState};
 use bevy::prelude::*;
+use bevy::time::common_conditions::on_timer;
 
 // Events
 
@@ -234,7 +237,9 @@ impl Plugin for MatchmakeInProgressScreenPlugin {
         )
         .add_systems(
             FixedUpdate,
-            (update_fake_matchmake_server).run_if(in_state(DeployScreen(MatchMakeInProgress))),
+            (update_fake_matchmake_server)
+                .run_if(in_state(DeployScreen(MatchMakeInProgress)))
+                .run_if(on_timer(Duration::from_secs(1))),
         )
         .add_systems(
             OnExit(DeployScreen(MatchMakeInProgress)),
@@ -247,10 +252,7 @@ impl Plugin for MatchmakeInProgressScreenPlugin {
         .add_event::<LobbyFilled>()
         .add_event::<Launching>()
         .add_event::<LevelLoaded>()
-        // TODO: research how to have multiple fixed time
-        // schedules and not just one
-        .insert_resource(EventCounter(0))
-        .insert_resource(Time::<Fixed>::from_seconds(1.0));
+        .insert_resource(EventCounter(0));
     }
 }
 
