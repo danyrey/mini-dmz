@@ -10,6 +10,7 @@ use fake_level::FakeLevelPlugin;
 use loading_screen::MatchLoadingScreenPlugin;
 use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
 use mission_objective_screen::MissionObjectivesScreenPlugin;
+use out_of_bounds::OutOfBoundsPlugin;
 use raid::RaidPlugin;
 use start_screen::StartScreenPlugin;
 use template_plugin::TemplatePlugin;
@@ -26,6 +27,7 @@ mod fake_level;
 mod loading_screen;
 mod matchmake;
 mod mission_objective_screen;
+mod out_of_bounds;
 mod raid;
 mod start_screen;
 mod template_plugin;
@@ -86,6 +88,7 @@ fn main() {
             MatchLoadingScreenPlugin,
             CameraLookPlugin,
             CameraMovePlugin,
+            OutOfBoundsPlugin,
             TemplatePlugin,
         ))
         .add_plugins((RaidPlugin, FakeLevelPlugin, ExfilPlugin, ExfilTimersPlugin))
