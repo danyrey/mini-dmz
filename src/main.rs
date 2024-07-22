@@ -7,6 +7,7 @@ use choose_location::ChooseLocationScreenPlugin;
 use exfil::ExfilPlugin;
 use exfil_timers::ExfilTimersPlugin;
 use fake_level::FakeLevelPlugin;
+use health_plugin::HealthPlugin;
 use loading_screen::MatchLoadingScreenPlugin;
 use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
 use mission_objective_screen::MissionObjectivesScreenPlugin;
@@ -24,6 +25,7 @@ mod deploy;
 mod exfil;
 mod exfil_timers;
 mod fake_level;
+mod health_plugin;
 mod loading_screen;
 mod matchmake;
 mod mission_objective_screen;
@@ -89,6 +91,7 @@ fn main() {
             CameraLookPlugin,
             CameraMovePlugin,
             OutOfBoundsPlugin,
+            HealthPlugin,
             TemplatePlugin,
         ))
         .add_plugins((RaidPlugin, FakeLevelPlugin, ExfilPlugin, ExfilTimersPlugin))
