@@ -1,5 +1,6 @@
 use active_duty_confirmation::ActiveDutyConfirmationScreenPlugin;
 use active_missions::ActiveMissionsScreenPlugin;
+use armor::ArmorPlugin;
 use bevy::prelude::*;
 use camera_look::CameraLookPlugin;
 use camera_move::CameraMovePlugin;
@@ -7,7 +8,7 @@ use choose_location::ChooseLocationScreenPlugin;
 use exfil::ExfilPlugin;
 use exfil_timers::ExfilTimersPlugin;
 use fake_level::FakeLevelPlugin;
-use health_plugin::HealthPlugin;
+use health::HealthPlugin;
 use loading_screen::MatchLoadingScreenPlugin;
 use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
 use mission_objective_screen::MissionObjectivesScreenPlugin;
@@ -18,14 +19,16 @@ use template_plugin::TemplatePlugin;
 
 mod active_duty_confirmation;
 mod active_missions;
+mod armor;
 mod camera_look;
 mod camera_move;
 mod choose_location;
+mod damage;
 mod deploy;
 mod exfil;
 mod exfil_timers;
 mod fake_level;
-mod health_plugin;
+mod health;
 mod loading_screen;
 mod matchmake;
 mod mission_objective_screen;
@@ -92,6 +95,7 @@ fn main() {
             CameraMovePlugin,
             OutOfBoundsPlugin,
             HealthPlugin,
+            ArmorPlugin,
             TemplatePlugin,
         ))
         .add_plugins((RaidPlugin, FakeLevelPlugin, ExfilPlugin, ExfilTimersPlugin))
