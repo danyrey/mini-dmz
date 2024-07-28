@@ -5,6 +5,7 @@ use bevy::prelude::*;
 use camera_look::CameraLookPlugin;
 use camera_move::CameraMovePlugin;
 use choose_location::ChooseLocationScreenPlugin;
+use damage::DamagePlugin;
 use exfil::ExfilPlugin;
 use exfil_timers::ExfilTimersPlugin;
 use fake_level::FakeLevelPlugin;
@@ -98,7 +99,13 @@ fn main() {
             ArmorPlugin,
             TemplatePlugin,
         ))
-        .add_plugins((RaidPlugin, FakeLevelPlugin, ExfilPlugin, ExfilTimersPlugin))
+        .add_plugins((
+            RaidPlugin,
+            FakeLevelPlugin,
+            ExfilPlugin,
+            ExfilTimersPlugin,
+            DamagePlugin,
+        ))
         .init_state::<AppState>()
         .add_systems(Update, bevy::window::close_on_esc)
         .add_systems(Startup, setup)
