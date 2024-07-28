@@ -26,16 +26,18 @@ impl Plugin for DamagePlugin {
 
 // Components
 #[derive(Debug)]
-enum CollisionVolume {
+pub enum CollisionVolume {
     Aabb(Aabb3d),
     Sphere(BoundingSphere),
 }
 
+/// component that deals the damage
 #[derive(Component, Debug)]
-struct HitBox(CollisionVolume);
+pub struct HitBox(pub CollisionVolume);
 
+/// component that receives the damage(hurt)
 #[derive(Component, Debug)]
-struct HurtBox(CollisionVolume);
+pub struct HurtBox(pub CollisionVolume);
 
 // Resources
 
@@ -59,13 +61,21 @@ fn start_damage_system(mut _commands: Commands) {
 
 fn update_damage_system(
     // TODO: query the components to which to decide damage events
-    _hitbox_query: Query<(Entity, &GlobalTransform, &HitBox)>,
-    _hurtbox_query: Query<(Entity, &GlobalTransform, &HurtBox)>,
+    mut hitbox_query: Query<(Entity, &GlobalTransform, &HitBox)>,
+    mut hurtbox_query: Query<(Entity, &GlobalTransform, &HurtBox)>,
     mut _health: EventWriter<HealthDamageReceived>,
     mut _armor: EventWriter<ArmorDamageReceived>,
 ) {
     debug!("updating {}", NAME);
     // TODO: check for colliding hurt/hitbox combinations
+    for (_hit_entity, _hit_transform, _hitbox) in hitbox_query.iter_mut() {
+        for (_hurt_entity, _hurt_transform, _hurtbox) in hurtbox_query.iter_mut() {
+            // dont hit yourself if overlap occours
+            if _hit_entity != _hurt_entity {
+                // TODO: check for overlap and produce event
+            }
+        }
+    }
 }
 
 fn bye_damage_system(mut _commands: Commands) {

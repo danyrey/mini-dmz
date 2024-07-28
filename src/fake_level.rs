@@ -1,5 +1,9 @@
 use bevy::app::Plugin;
+use bevy::math::bounding::BoundingSphere;
+use bevy::math::primitives::Sphere as MSphere;
 
+use crate::damage::CollisionVolume::Sphere;
+use crate::damage::HurtBox;
 use crate::exfil::ExfilArea;
 use crate::AppState;
 use crate::AppState::Raid;
@@ -71,6 +75,10 @@ fn start_fake_level(
         })
         .insert(ExfilArea(String::from("Exfil2")))
         .insert(Name::new("Exfil2"))
+        .insert(HurtBox(Sphere(BoundingSphere {
+            center: Vec3::new(10.0, 0.5, 10.0),
+            sphere: MSphere::new(1.0),
+        })))
         .insert(FakeLevelStuff);
     // light
     commands
