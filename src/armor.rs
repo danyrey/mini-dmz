@@ -30,7 +30,7 @@ impl Plugin for ArmorPlugin {
 
 // Components
 #[derive(Component)]
-pub struct Armor(u8);
+pub struct Armor(pub i32);
 
 impl Default for Armor {
     fn default() -> Self {
@@ -92,7 +92,7 @@ mod tests {
         // Add `DamageReceived` event
         app.add_event::<ArmorDamageReceived>();
 
-        // Add our two systems
+        // Add event listener
         app.add_systems(Update, damage_received_listener);
 
         // Setup test entities

@@ -28,7 +28,7 @@ impl Plugin for HealthPlugin {
 
 // Components
 #[derive(Component)]
-pub struct Health(u8);
+pub struct Health(pub i32);
 
 impl Default for Health {
     fn default() -> Self {
