@@ -1,5 +1,6 @@
 use crate::damage::HurtBox;
 use crate::exfil::ExfilArea;
+use crate::loot::{ItemType, LootName, LootType, Price, Stackable};
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::app::Plugin;
@@ -83,6 +84,90 @@ fn start_fake_level(
                 z: 11.0,
             },
         }))
+        .insert(FakeLevelStuff);
+    // enemy cube 1
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Cuboid::new(0.5, 2.0, 0.5)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::RED,
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(5.0, 1.0, 5.0),
+            ..default()
+        })
+        .insert(Name::new("Enemy"))
+        .insert(HurtBox(bevy::math::bounding::Aabb3d {
+            min: Vec3 {
+                x: 4.75,
+                y: 0.0,
+                z: 4.75,
+            },
+            max: Vec3 {
+                x: 5.25,
+                y: 2.0,
+                z: 5.25,
+            },
+        }))
+        .insert(FakeLevelStuff);
+    // loot cube 1
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Cuboid::new(0.2, 0.2, 0.2)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::GREEN,
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(5.0, 0.1, -2.0),
+            ..default()
+        })
+        .insert(Name::new("Loot1"))
+        .insert(LootName(String::from("Wrench")))
+        .insert(LootType::Item(ItemType::Item))
+        .insert(Price(100))
+        .insert(Stackable {
+            max_stack: 3,
+            current_stack: 1,
+        })
+        .insert(FakeLevelStuff);
+    // loot cube 2
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Cuboid::new(0.2, 0.2, 0.2)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::GREEN,
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(4.0, 0.1, -2.0),
+            ..default()
+        })
+        .insert(Name::new("Loot2"))
+        .insert(FakeLevelStuff);
+    // loot cube 3
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Cuboid::new(0.2, 0.2, 0.2)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::GREEN,
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(3.0, 0.1, -2.0),
+            ..default()
+        })
+        .insert(Name::new("Loot2"))
+        .insert(FakeLevelStuff);
+    // loot cube 4
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Cuboid::new(0.2, 0.2, 0.2)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::GREEN,
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(2.0, 0.1, -2.0),
+            ..default()
+        })
+        .insert(Name::new("Loot4"))
         .insert(FakeLevelStuff);
     // light
     commands

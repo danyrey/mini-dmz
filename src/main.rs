@@ -2,6 +2,7 @@ use active_duty_confirmation::ActiveDutyConfirmationScreenPlugin;
 use active_missions::ActiveMissionsScreenPlugin;
 use armor::ArmorPlugin;
 use bevy::prelude::*;
+use cache::CachePlugin;
 use camera_look::CameraLookPlugin;
 use camera_move::CameraMovePlugin;
 use choose_location::ChooseLocationScreenPlugin;
@@ -11,6 +12,7 @@ use exfil_timers::ExfilTimersPlugin;
 use fake_level::FakeLevelPlugin;
 use health::HealthPlugin;
 use loading_screen::MatchLoadingScreenPlugin;
+use loot::LootPlugin;
 use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
 use mission_objective_screen::MissionObjectivesScreenPlugin;
 use out_of_bounds::OutOfBoundsPlugin;
@@ -21,6 +23,7 @@ use template_plugin::TemplatePlugin;
 mod active_duty_confirmation;
 mod active_missions;
 mod armor;
+mod cache;
 mod camera_look;
 mod camera_move;
 mod choose_location;
@@ -31,8 +34,10 @@ mod exfil_timers;
 mod fake_level;
 mod health;
 mod loading_screen;
+mod loot;
 mod matchmake;
 mod mission_objective_screen;
+mod operator_controller;
 mod out_of_bounds;
 mod raid;
 mod start_screen;
@@ -105,6 +110,8 @@ fn main() {
             ExfilPlugin,
             ExfilTimersPlugin,
             DamagePlugin,
+            LootPlugin,
+            CachePlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, bevy::window::close_on_esc)
