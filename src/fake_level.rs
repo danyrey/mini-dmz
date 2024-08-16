@@ -1,6 +1,6 @@
 use crate::damage::HurtBox;
 use crate::exfil::ExfilArea;
-use crate::loot::{ItemType, LootName, LootType, Price, Stackable};
+use crate::loot::{Durability, ItemType, LootName, LootType, Price, Rarity, Stackable};
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::app::Plugin;
@@ -142,7 +142,11 @@ fn start_fake_level(
             ..default()
         })
         .insert(Name::new("Loot2"))
-        .insert(FakeLevelStuff);
+        .insert(LootName(String::from("Durable Gaskmask")))
+        .insert(LootType::CombatDefense)
+        .insert(Rarity::Rare)
+        .insert(FakeLevelStuff)
+        .insert(Durability::default());
     // loot cube 3
     commands
         .spawn(PbrBundle {

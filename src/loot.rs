@@ -1,4 +1,5 @@
 use bevy::app::Plugin;
+use bevy_inspector_egui::prelude::*;
 
 use crate::AppState;
 use crate::AppState::Raid;
@@ -12,7 +13,8 @@ pub struct LootPlugin;
 
 impl Plugin for LootPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Raid), start_loot_system)
+        app.register_type::<Durability>()
+            .add_systems(OnEnter(Raid), start_loot_system)
             .add_systems(
                 Update,
                 (update_loot_system).run_if(in_state(AppState::Raid)),
@@ -93,6 +95,33 @@ pub enum Uses {
     Worn,
 }
 
+/// items like gasmaks have only a certain amount like 100% that depletes over usage
+/// shows a percentage on UI
+//#[derive(Component)]
+#[derive(Component, Reflect, InspectorOptions)]
+#[reflect(Component, InspectorOptions)]
+pub struct Durability {
+    pub max: u8,
+    pub current: u8,
+}
+
+impl Default for Durability {
+    fn default() -> Self {
+        Durability {
+            max: 100,
+            current: 100,
+        }
+    }
+}
+
+impl Durability {
+    fn percent(&self) -> u8 {
+        let max: u32 = self.max.into();
+        let current: u32 = self.current.into();
+        (current * 100 / max).try_into().unwrap()
+    }
+}
+
 // Resources
 
 // Events
@@ -115,6 +144,38 @@ fn bye_loot_system(mut _commands: Commands) {
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
+
+    #[test]
+    fn should_calculate_durabilities() {
+        // given
+        let full = Durability {
+            max: 100,
+            current: 100,
+        };
+        let half = Durability {
+            max: 100,
+            current: 50,
+        };
+        let quarter = Durability {
+            max: 100,
+            current: 25,
+        };
+        let zero = Durability {
+            max: 100,
+            current: 0,
+        };
+        // when
+        let full_durability = full.percent();
+        let half_durability = half.percent();
+        let quarter_durability = quarter.percent();
+        let zero_durability = zero.percent();
+
+        // then
+        assert_eq!(100, full_durability);
+        assert_eq!(50, half_durability);
+        assert_eq!(25, quarter_durability);
+        assert_eq!(0, zero_durability);
+    }
 
     #[test]
     fn should_test_something() {
