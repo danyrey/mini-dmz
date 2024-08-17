@@ -1,6 +1,6 @@
 use crate::damage::HurtBox;
 use crate::exfil::ExfilArea;
-use crate::loot::{Durability, ItemType, LootName, LootType, Price, Rarity, Stackable};
+use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::app::Plugin;
@@ -122,6 +122,7 @@ fn start_fake_level(
             ..default()
         })
         .insert(Name::new("Loot1"))
+        .insert(Loot)
         .insert(LootName(String::from("Wrench")))
         .insert(LootType::Item(ItemType::Item))
         .insert(Price(100))
@@ -142,6 +143,7 @@ fn start_fake_level(
             ..default()
         })
         .insert(Name::new("Loot2"))
+        .insert(Loot)
         .insert(LootName(String::from("Durable Gaskmask")))
         .insert(LootType::CombatDefense)
         .insert(Rarity::Rare)
@@ -159,6 +161,7 @@ fn start_fake_level(
             ..default()
         })
         .insert(Name::new("Loot2"))
+        .insert(Loot)
         .insert(FakeLevelStuff);
     // loot cube 4
     commands
@@ -172,6 +175,7 @@ fn start_fake_level(
             ..default()
         })
         .insert(Name::new("Loot4"))
+        .insert(Loot)
         .insert(FakeLevelStuff);
     // light
     commands

@@ -26,6 +26,9 @@ impl Plugin for LootPlugin {
 // Components
 
 #[derive(Component)]
+pub struct Loot;
+
+#[derive(Component)]
 pub struct LootName(pub String);
 
 // TODO: fix some of the research language conflicts: is Gasmask a CircleDefense or Item???
