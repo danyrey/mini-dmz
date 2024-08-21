@@ -5,19 +5,19 @@ use crate::AppState::Raid;
 use bevy::prelude::*;
 
 // Constants
-const NAME: &str = "template";
+const NAME: &str = "loadout";
 
 // Plugin
-pub struct TemplatePlugin;
+pub struct LoadoutPlugin;
 
-impl Plugin for TemplatePlugin {
+impl Plugin for LoadoutPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Raid), start_template_system)
+        app.add_systems(OnEnter(Raid), start_loadout_system)
             .add_systems(
                 Update,
-                (update_template_system).run_if(in_state(AppState::Raid)),
+                (update_loadout_system).run_if(in_state(AppState::Raid)),
             )
-            .add_systems(OnExit(AppState::Raid), bye_template_system);
+            .add_systems(OnExit(AppState::Raid), bye_loadout_system);
     }
 }
 
@@ -26,15 +26,28 @@ impl Plugin for TemplatePlugin {
 // Resources
 
 // Events
+/// command for equiping loot
+#[derive(Event, Debug, PartialEq)]
+pub struct EquipLoot {
+    pub equipping_entity: Entity,
+    pub loot: Entity,
+}
+
+/// event when lot was equiped
+#[derive(Event, Debug, PartialEq)]
+pub struct EquipedLoot {
+    pub equipping_entity: Entity,
+    pub loot: Entity,
+}
 
 // Systems
-fn start_template_system(mut _commands: Commands) {
+fn start_loadout_system(mut _commands: Commands) {
     debug!("starting {}", NAME);
 }
-fn update_template_system() {
+fn update_loadout_system() {
     debug!("updating {}", NAME);
 }
-fn bye_template_system(mut _commands: Commands) {
+fn bye_loadout_system(mut _commands: Commands) {
     debug!("stopping {}", NAME);
 }
 
@@ -45,7 +58,6 @@ fn bye_template_system(mut _commands: Commands) {
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
-    use std::borrow::BorrowMut;
 
     #[test]
     fn should_test_something() {

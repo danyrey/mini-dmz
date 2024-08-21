@@ -1,6 +1,7 @@
 use bevy::app::Plugin;
 use bevy_inspector_egui::prelude::*;
 
+use crate::exfil::Operator;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
@@ -27,6 +28,10 @@ impl Plugin for LootPlugin {
 
 #[derive(Component)]
 pub struct Loot;
+
+/// marker template for tagging loot entities that are in proximity to any operator
+#[derive(Component)]
+pub struct Proximity;
 
 #[derive(Component)]
 pub struct LootName(pub String);
@@ -128,14 +133,47 @@ impl Durability {
 // Resources
 
 // Events
+#[derive(Event, Debug, PartialEq)]
+pub struct DroppedLoot {
+    pub dropping_entity: Entity,
+    pub dropped_position: Vec3,
+    pub loot: Entity,
+}
+
+#[derive(Event)]
+pub struct LootPickupAvailable {
+    pub operator_entity: Entity,
+    pub loot_entity: Entity,
+}
+
+#[derive(Event)]
+pub struct LootPickupUnavailable {
+    pub operator_entity: Entity,
+    pub loot_entity: Entity,
+}
 
 // Systems
 fn start_loot_system(mut _commands: Commands) {
     debug!("starting {}", NAME);
 }
+
 fn update_loot_system() {
     debug!("updating {}", NAME);
 }
+
+// TODO: how to keep track in we enter or leave proximity?
+fn loot_proximity_detection(
+    mut loot_query: Query<(Entity, &GlobalTransform, &Loot), With<Loot>>,
+    operator_query: Query<(Entity, &GlobalTransform), With<Operator>>,
+    mut loot_available: EventWriter<LootPickupAvailable>,
+    mut loot_unavailable: EventWriter<LootPickupUnavailable>,
+) {
+    // proximity distance hardcoded for now
+    let min_distance = 2.0;
+    // TODO: nest loop over all operators and loot items and mark loot items in proximity with marker component
+    // TODO: send out events depending and addage or removal of said marker templates
+}
+
 fn bye_loot_system(mut _commands: Commands) {
     debug!("stopping {}", NAME);
 }
@@ -181,7 +219,7 @@ mod tests {
     }
 
     #[test]
-    fn should_test_something() {
+    fn should_test_loot_proximity() {
         // given
         let mut app = App::new();
 

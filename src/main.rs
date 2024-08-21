@@ -36,6 +36,7 @@ mod fake_level;
 mod health;
 mod inventory;
 mod loading_screen;
+mod loadout;
 mod loot;
 mod matchmake;
 mod mission_objective_screen;
