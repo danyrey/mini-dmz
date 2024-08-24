@@ -1,6 +1,9 @@
+use std::collections::HashSet;
+use std::ops::Range;
+use std::usize;
+
 use bevy::app::Plugin;
 
-use crate::loot::ItemType;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
@@ -65,7 +68,6 @@ fn start_inventory_system(mut _commands: Commands) {
     debug!("starting {}", NAME);
 }
 
-// TODO: system currently unbounded, could stow unlimited loot. needs to respect slot limits!
 fn stow_loot_system(
     mut commands: Commands,
     mut command: EventReader<StowLoot>,
@@ -85,17 +87,24 @@ fn stow_loot_system(
         let inventory_item_count = inventory_items.len();
         let item_slots: usize = inventories.get(inventory).map_or(0, |r| r.0.into());
 
-        let mut target_slot: u8 = 0;
-
-        if inventory_item_count != 0 {
-            todo!();
-        }
-
         if inventory_item_count < item_slots {
-            // TODO: find next free, 0 for now
-            let item_slot = ItemSlot(target_slot);
+            let mut target_slot: u8 = 0;
+            if inventory_item_count != 0 {
+                let range: Range<usize> = Range {
+                    start: 0,
+                    end: inventory_item_count + 1,
+                };
+                let mut set: HashSet<usize> = range.into_iter().collect();
+                inventory_items.iter().for_each(|i| {
+                    set.remove(&i.0.into());
+                });
+                let x: Vec<&usize> = set.iter().collect();
+                if let Some(target) = x.first() {
+                    target_slot = **target as u8;
+                }
+            }
             commands.entity(c.stowing_entity).add_child(c.loot);
-            commands.entity(c.loot).insert(item_slot);
+            commands.entity(c.loot).insert(ItemSlot(target_slot));
             event.send(StowedLoot {
                 stowing_entity: c.stowing_entity,
                 loot: c.loot,
@@ -295,7 +304,7 @@ mod tests {
         assert_eq!(item_slot.unwrap().0, 0);
     }
 
-    //#[test]
+    #[test]
     fn should_stow_loot_in_the_second_slot_of_two() {
         // given
         let mut app = App::new();
@@ -319,7 +328,6 @@ mod tests {
         assert!(inventory_children.is_some());
 
         // when
-        // TODO: check that proper ItemSlot component was assigned to loot item within inventory
         app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
             stowing_entity: inventory_entity,
             loot: loot_from_ground,
