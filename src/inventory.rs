@@ -83,11 +83,17 @@ fn stow_loot_system(
             .map(|ii| ii.1)
             .collect();
         let inventory_item_count = inventory_items.len();
-        let max: usize = inventories.get(inventory).map_or(0, |r| r.0.into());
+        let item_slots: usize = inventories.get(inventory).map_or(0, |r| r.0.into());
 
-        if inventory_item_count < max {
+        let mut target_slot: u8 = 0;
+
+        if inventory_item_count != 0 {
+            todo!();
+        }
+
+        if inventory_item_count < item_slots {
             // TODO: find next free, 0 for now
-            let item_slot = ItemSlot(0);
+            let item_slot = ItemSlot(target_slot);
             commands.entity(c.stowing_entity).add_child(c.loot);
             commands.entity(c.loot).insert(item_slot);
             event.send(StowedLoot {
@@ -257,5 +263,77 @@ mod tests {
         stowed_loot_reader.read(stowed_loot_events).next(); // skip
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next();
         assert_eq!(None, actual_stowed_loot);
+    }
+
+    #[test]
+    fn should_stow_loot_in_the_only_empty_slot() {
+        // given
+        let mut app = App::new();
+        app.add_event::<StowLoot>();
+        app.add_event::<StowedLoot>();
+        app.add_systems(Update, stow_loot_system);
+        let loot_entity = app.world.spawn(Loot).id();
+        let mut inventory = app.world.spawn(Inventory);
+        inventory.insert(ItemSlots(1));
+        let inventory_entity = inventory.id();
+        let inventory_children = app.world.get::<Children>(inventory_entity);
+        assert!(inventory_children.is_none());
+
+        // when
+        // TODO: check that proper ItemSlot component was assigned to loot item within inventory
+        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
+            stowing_entity: inventory_entity,
+            loot: loot_entity,
+        });
+        app.update();
+
+        // then
+        let stowed_loot_events = app.world.resource::<Events<StowedLoot>>();
+        let mut stowed_loot_reader = stowed_loot_events.get_reader();
+        let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
+        let item_slot = app.world.get::<ItemSlot>(actual_stowed_loot.loot);
+        assert_eq!(item_slot.unwrap().0, 0);
+    }
+
+    //#[test]
+    fn should_stow_loot_in_the_second_slot_of_two() {
+        // given
+        let mut app = App::new();
+        app.add_event::<StowLoot>();
+        app.add_event::<StowedLoot>();
+        app.add_systems(Update, stow_loot_system);
+        let loot_in_inventory = app.world.spawn(Loot).id();
+        let loot_from_ground = app.world.spawn(Loot).id();
+        let mut inventory = app.world.spawn(Inventory);
+        inventory.insert(ItemSlots(2));
+        let inventory_entity = inventory.id();
+
+        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
+            stowing_entity: inventory_entity,
+            loot: loot_in_inventory,
+        });
+        app.update();
+        app.update();
+
+        let inventory_children = app.world.get::<Children>(inventory_entity);
+        assert!(inventory_children.is_some());
+
+        // when
+        // TODO: check that proper ItemSlot component was assigned to loot item within inventory
+        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
+            stowing_entity: inventory_entity,
+            loot: loot_from_ground,
+        });
+        app.update();
+
+        let inventory_children = app.world.get::<Children>(inventory_entity);
+        assert!(inventory_children.is_some());
+
+        // then
+        let stowed_loot_events = app.world.resource::<Events<StowedLoot>>();
+        let mut stowed_loot_reader = stowed_loot_events.get_reader();
+        let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
+        let item_slot = app.world.get::<ItemSlot>(actual_stowed_loot.loot);
+        assert_eq!(item_slot.unwrap().0, 1);
     }
 }
