@@ -12,6 +12,7 @@ use exfil_timers::ExfilTimersPlugin;
 use fake_level::FakeLevelPlugin;
 use health::HealthPlugin;
 use inventory::InventoryPlugin;
+use inventory_testing::InventoryTestingPlugin;
 use loading_screen::MatchLoadingScreenPlugin;
 use loot::LootPlugin;
 use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
@@ -35,6 +36,7 @@ mod exfil_timers;
 mod fake_level;
 mod health;
 mod inventory;
+mod inventory_testing;
 mod loading_screen;
 mod loadout;
 mod loot;
@@ -116,6 +118,7 @@ fn main() {
             LootPlugin,
             CachePlugin,
             InventoryPlugin,
+            InventoryTestingPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, bevy::window::close_on_esc)

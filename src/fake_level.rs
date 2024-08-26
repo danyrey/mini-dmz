@@ -1,6 +1,6 @@
 use crate::damage::HurtBox;
 use crate::exfil::ExfilArea;
-use crate::inventory::ItemSlots;
+use crate::inventory::{Inventory, ItemSlots};
 use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
 use crate::AppState;
 use crate::AppState::Raid;
@@ -123,6 +123,7 @@ fn start_fake_level(
             ..default()
         })
         .insert(Name::new("Inventory1"))
+        .insert(Inventory)
         .insert(ItemSlots(3))
         .insert(FakeLevelStuff);
     // loot cube 1
