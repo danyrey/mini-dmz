@@ -1,6 +1,6 @@
 use crate::damage::HurtBox;
 use crate::exfil::ExfilArea;
-use crate::inventory::{Inventory, ItemSlots};
+use crate::inventory::{Inventory, ItemSlots, WeaponSlots};
 use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
 use crate::AppState;
 use crate::AppState::Raid;
@@ -125,6 +125,7 @@ fn start_fake_level(
         .insert(Name::new("Inventory1"))
         .insert(Inventory)
         .insert(ItemSlots(3))
+        .insert(WeaponSlots(1))
         .insert(FakeLevelStuff);
     // loot cube 1
     commands
@@ -161,7 +162,8 @@ fn start_fake_level(
         .insert(Name::new("Loot2"))
         .insert(Loot)
         .insert(LootName(String::from("Durable Gaskmask")))
-        .insert(LootType::CombatDefense)
+        //.insert(LootType::CombatDefense)
+        .insert(LootType::Item(ItemType::Item))
         .insert(Rarity::Rare)
         .insert(FakeLevelStuff)
         .insert(Durability::default());
@@ -170,14 +172,16 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: meshes.add(Cuboid::new(0.2, 0.2, 0.2)),
             material: materials.add(StandardMaterial {
-                base_color: Color::GREEN,
+                base_color: Color::DARK_GREEN,
                 ..Default::default()
             }),
             transform: Transform::from_xyz(3.0, 0.1, -2.0),
             ..default()
         })
-        .insert(Name::new("Loot2"))
+        .insert(Name::new("Loot3"))
         .insert(Loot)
+        .insert(LootName(String::from("M4")))
+        .insert(LootType::Weapon)
         .insert(FakeLevelStuff);
     // loot cube 4
     commands
@@ -191,6 +195,7 @@ fn start_fake_level(
             ..default()
         })
         .insert(Name::new("Loot4"))
+        .insert(LootType::Item(ItemType::Item))
         .insert(Loot)
         .insert(FakeLevelStuff);
     // light

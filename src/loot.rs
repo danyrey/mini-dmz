@@ -45,7 +45,7 @@ pub struct LootName(pub String);
 // that the personal exfil is in fact meant to be used inside the gas!).
 // also the loot type is more like a type/category and the actual item is an implementation
 // of that type/category: LastStand = type, implementations = self revive, battlerage self revive
-#[derive(Component)]
+#[derive(Component, Clone, Debug, PartialEq)]
 pub enum LootType {
     Item(ItemType),
     Weapon,
@@ -63,6 +63,7 @@ pub enum LootType {
     Key,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum ItemType {
     Equipment, // example: vests
     Item,
