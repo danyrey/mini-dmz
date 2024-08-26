@@ -4,6 +4,7 @@ use std::usize;
 
 use bevy::app::Plugin;
 
+use crate::loot::Loot;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
@@ -72,7 +73,7 @@ fn stow_loot_system(
     mut commands: Commands,
     mut command: EventReader<StowLoot>,
     inventories: Query<&ItemSlots, With<Inventory>>,
-    inventory_items: Query<(&Parent, &ItemSlot)>,
+    inventory_items: Query<(&Parent, &ItemSlot), With<Loot>>,
     mut event: EventWriter<StowedLoot>,
 ) {
     debug!("updating stow listener");
@@ -103,6 +104,8 @@ fn stow_loot_system(
                     target_slot = **target as u8;
                 }
             }
+            commands.entity(c.loot).remove::<GlobalTransform>();
+            commands.entity(c.loot).remove::<Transform>();
             commands.entity(c.stowing_entity).add_child(c.loot);
             commands.entity(c.loot).insert(ItemSlot(target_slot));
             event.send(StowedLoot {
@@ -112,6 +115,7 @@ fn stow_loot_system(
         }
     }
 }
+
 fn bye_inventory_system(mut _commands: Commands) {
     debug!("stopping {}", NAME);
 }
