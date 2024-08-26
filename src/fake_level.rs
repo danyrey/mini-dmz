@@ -1,5 +1,6 @@
 use crate::damage::HurtBox;
 use crate::exfil::ExfilArea;
+use crate::inventory::ItemSlots;
 use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
 use crate::AppState;
 use crate::AppState::Raid;
@@ -109,6 +110,20 @@ fn start_fake_level(
                 z: 5.25,
             },
         }))
+        .insert(FakeLevelStuff);
+    // inventory cube
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Cuboid::new(0.5, 0.5, 0.5)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::BLUE,
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(5.0, 0.25, -4.0),
+            ..default()
+        })
+        .insert(Name::new("Inventory1"))
+        .insert(ItemSlots(3))
         .insert(FakeLevelStuff);
     // loot cube 1
     commands
