@@ -71,9 +71,9 @@ fn start_inventory_system(mut _commands: Commands) {
 fn stow_loot_system(
     mut commands: Commands,
     mut command: EventReader<StowLoot>,
-    mut event: EventWriter<StowedLoot>,
     inventories: Query<&ItemSlots, With<Inventory>>,
     inventory_items: Query<(&Parent, &ItemSlot)>,
+    mut event: EventWriter<StowedLoot>,
 ) {
     debug!("updating stow listener");
     for c in command.read() {
