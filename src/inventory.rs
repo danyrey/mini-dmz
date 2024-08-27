@@ -3,6 +3,7 @@ use std::ops::Range;
 use std::usize;
 
 use bevy::app::Plugin;
+use bevy_inspector_egui::prelude::*;
 
 use crate::loot::ItemType::Item;
 use crate::loot::{Loot, LootType};
@@ -18,7 +19,11 @@ pub struct InventoryPlugin;
 
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<StowLoot>()
+        app.register_type::<ItemSlot>()
+            .register_type::<ItemSlots>()
+            .register_type::<WeaponSlot>()
+            .register_type::<WeaponSlots>()
+            .add_event::<StowLoot>()
             .add_event::<StowedLoot>()
             .add_systems(OnEnter(Raid), start_inventory_system)
             .add_systems(Update, (stow_loot_system).run_if(in_state(AppState::Raid)))
@@ -32,19 +37,23 @@ impl Plugin for InventoryPlugin {
 pub struct Inventory;
 
 /// number of item slots
-#[derive(Component)]
+#[derive(Component, Reflect, InspectorOptions)]
+#[reflect(Component, InspectorOptions)]
 pub struct ItemSlots(pub u8);
 
 /// position within the item slots
-#[derive(Component)]
+#[derive(Component, Reflect, InspectorOptions)]
+#[reflect(Component, InspectorOptions)]
 pub struct ItemSlot(pub u8);
 
 /// number of weapon slots
-#[derive(Component)]
+#[derive(Component, Reflect, InspectorOptions)]
+#[reflect(Component, InspectorOptions)]
 pub struct WeaponSlots(pub u8);
 
 /// position within the weapon slots
-#[derive(Component)]
+#[derive(Component, Reflect, InspectorOptions)]
+#[reflect(Component, InspectorOptions)]
 pub struct WeaponSlot(pub u8);
 
 // Resources
