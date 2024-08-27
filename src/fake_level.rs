@@ -2,6 +2,7 @@ use crate::damage::HurtBox;
 use crate::exfil::ExfilArea;
 use crate::inventory::{Inventory, ItemSlots, WeaponSlots};
 use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
+use crate::raid::Enemy;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::app::Plugin;
@@ -97,7 +98,8 @@ fn start_fake_level(
             transform: Transform::from_xyz(5.0, 1.0, 5.0),
             ..default()
         })
-        .insert(Name::new("Enemy"))
+        .insert(Enemy)
+        .insert(Name::new("Enemy1"))
         .insert(HurtBox(bevy::math::bounding::Aabb3d {
             min: Vec3 {
                 x: 4.75,
@@ -110,6 +112,20 @@ fn start_fake_level(
                 z: 5.25,
             },
         }))
+        .insert(FakeLevelStuff);
+    // capsule 1
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Capsule3d::new(0.25, 1.5)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::ORANGE_RED,
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(6.0, 1.0, 6.0),
+            ..default()
+        })
+        .insert(Enemy)
+        .insert(Name::new("Enemy2"))
         .insert(FakeLevelStuff);
     // inventory cube
     commands
@@ -211,12 +227,29 @@ fn start_fake_level(
         .insert(FakeLevelStuff);
 }
 
-fn update_fake_level() {
+fn update_fake_level(
+    mut gizmos: Gizmos,
+    query: Query<(&GlobalTransform, &Transform), With<Enemy>>,
+) {
     // TODO: maybe just render them near any cameras
     // TODO: maybe put code here that moves the scene near cameras to maintain a reference for
     // movement
     debug!("updating fake level");
+    for (global_transform, transform) in query.iter() {
+        debug!(
+            "rendering gizmo for {:?}, {:?}",
+            global_transform.to_scale_rotation_translation(),
+            transform,
+        );
+        gizmos.ray(
+            global_transform.to_scale_rotation_translation().2,
+            //-Vec3::Z,
+            (global_transform.to_scale_rotation_translation().1 * Vec3::Z).xyz() * -1.0,
+            Color::RED,
+        );
+    }
 }
+
 fn bye_fake_level(mut commands: Commands, query: Query<Entity, With<FakeLevelStuff>>) {
     debug!("stopping fake level");
     for entity in &query {

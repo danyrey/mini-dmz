@@ -15,6 +15,9 @@ use crate::{
 #[derive(Component)]
 pub struct FirstPersonCamera;
 
+#[derive(Component)]
+pub struct Enemy;
+
 #[derive(Component, Debug)]
 pub struct Volume(pub Aabb3d);
 
