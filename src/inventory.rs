@@ -5,7 +5,6 @@ use std::usize;
 use bevy::app::Plugin;
 use bevy_inspector_egui::prelude::*;
 
-use crate::loot::ItemType::Item;
 use crate::loot::{Loot, LootType};
 use crate::AppState;
 use crate::AppState::Raid;
@@ -92,85 +91,137 @@ fn stow_loot_system(
     debug!("updating stow listener");
 
     for c in command.read() {
-        // TODO: currently no distinction between child types : items vs weapons
-
         let inventory = c.stowing_entity;
-        if c.loot_type == LootType::Item(Item) {
-            let inventory_items: Vec<&ItemSlot> = inventory_items
-                .iter()
-                .filter(|ii| inventory == ii.0.get())
-                .map(|ii| ii.1)
-                .collect();
-            let inventory_item_count = inventory_items.len();
-            let item_slots: usize = inventories_with_items
-                .get(inventory)
-                .map_or(0, |r| r.0.into());
 
-            if inventory_item_count < item_slots {
-                let mut target_slot: u8 = 0;
-                if inventory_item_count != 0 {
-                    let range: Range<usize> = Range {
-                        start: 0,
-                        end: inventory_item_count + 1,
-                    };
-                    let mut set: HashSet<usize> = range.into_iter().collect();
-                    inventory_items.iter().for_each(|i| {
-                        set.remove(&i.0.into());
-                    });
-                    let x: Vec<&usize> = set.iter().collect();
-                    if let Some(target) = x.first() {
-                        target_slot = **target as u8;
-                    }
+        let inventory_items: Vec<&ItemSlot> = inventory_items
+            .iter()
+            .filter(|ii| inventory == ii.0.get())
+            .map(|ii| ii.1)
+            .collect();
+        let item_slots: usize = inventories_with_items
+            .get(inventory)
+            .map_or(0, |r| r.0.into());
+
+        let weapons: Vec<&WeaponSlot> = inventory_weapons
+            .iter()
+            .filter(|ii| inventory == ii.0.get())
+            .map(|ii| ii.1)
+            .collect();
+        let weapon_slots: usize = inventories_with_weapons
+            .get(inventory)
+            .map_or(0, |r| r.0.into());
+
+        match c.loot_type {
+            LootType::Item(_)
+            | LootType::Ammo
+            | LootType::Lethal
+            | LootType::Tactical
+            | LootType::CombatDefense
+            | LootType::FieldUpgrade
+            | LootType::KillStreak
+            | LootType::CircleDefense
+            | LootType::RadiationProtection
+            | LootType::LastStand
+            | LootType::Intel
+            | LootType::Cash
+            | LootType::Key => {
+                if let Some(slot) = calc_stow_item_slot(&inventory_items, item_slots) {
+                    stow_item(&mut commands, c.loot, c.stowing_entity, slot, &mut event);
                 }
-
-                commands.entity(c.loot).remove::<GlobalTransform>();
-                commands.entity(c.loot).remove::<Transform>();
-                commands.entity(c.stowing_entity).add_child(c.loot);
-                commands.entity(c.loot).insert(ItemSlot(target_slot));
-                event.send(StowedLoot {
-                    stowing_entity: c.stowing_entity,
-                    loot: c.loot,
-                });
             }
-        } else if c.loot_type == LootType::Weapon {
-            let weapons: Vec<&WeaponSlot> = inventory_weapons
-                .iter()
-                .filter(|ii| inventory == ii.0.get())
-                .map(|ii| ii.1)
-                .collect();
-            let inventory_weapons_count = weapons.len();
-            let weapon_slots: usize = inventories_with_weapons
-                .get(inventory)
-                .map_or(0, |r| r.0.into());
-
-            if inventory_weapons_count < weapon_slots {
-                let mut target_slot: u8 = 0;
-                if inventory_weapons_count != 0 {
-                    let range: Range<usize> = Range {
-                        start: 0,
-                        end: inventory_weapons_count + 1,
-                    };
-                    let mut set: HashSet<usize> = range.into_iter().collect();
-                    weapons.iter().for_each(|i| {
-                        set.remove(&i.0.into());
-                    });
-                    let x: Vec<&usize> = set.iter().collect();
-                    if let Some(target) = x.first() {
-                        target_slot = **target as u8;
-                    }
+            LootType::Weapon => {
+                if let Some(slot) = calc_stow_weapon_slot(&weapons, weapon_slots) {
+                    stow_weapon(&mut commands, c.loot, c.stowing_entity, slot, &mut event);
                 }
-
-                commands.entity(c.loot).remove::<GlobalTransform>();
-                commands.entity(c.loot).remove::<Transform>();
-                commands.entity(c.stowing_entity).add_child(c.loot);
-                commands.entity(c.loot).insert(WeaponSlot(target_slot));
-                event.send(StowedLoot {
-                    stowing_entity: c.stowing_entity,
-                    loot: c.loot,
-                });
             }
         }
     }
+}
+
+fn calc_stow_item_slot(items: &Vec<&ItemSlot>, item_slots: usize) -> Option<u8> {
+    if items.len() < item_slots {
+        let item_count = items.len();
+        let mut target_slot: u8 = 0;
+        if item_count < item_slots {
+            if item_count != 0 {
+                let range: Range<usize> = Range {
+                    start: 0,
+                    end: item_count + 1,
+                };
+                let mut set: HashSet<usize> = range.into_iter().collect();
+                items.iter().for_each(|i| {
+                    set.remove(&i.0.into());
+                });
+                let x: Vec<&usize> = set.iter().collect();
+                if let Some(target) = x.first() {
+                    target_slot = **target as u8;
+                }
+            }
+        }
+        Some(target_slot)
+    } else {
+        None
+    }
+}
+
+fn calc_stow_weapon_slot(weapons: &Vec<&WeaponSlot>, weapon_slots: usize) -> Option<u8> {
+    if weapons.len() < weapon_slots {
+        let weapon_count = weapons.len();
+        let mut target_slot: u8 = 0;
+        if weapon_count < weapon_slots {
+            if weapon_count != 0 {
+                let range: Range<usize> = Range {
+                    start: 0,
+                    end: weapon_count + 1,
+                };
+                let mut set: HashSet<usize> = range.into_iter().collect();
+                weapons.iter().for_each(|i| {
+                    set.remove(&i.0.into());
+                });
+                let x: Vec<&usize> = set.iter().collect();
+                if let Some(target) = x.first() {
+                    target_slot = **target as u8;
+                }
+            }
+        }
+        Some(target_slot)
+    } else {
+        None
+    }
+}
+
+fn stow_item(
+    commands: &mut Commands,
+    loot: Entity,
+    stowing_entity: Entity,
+    slot: u8,
+    event: &mut EventWriter<StowedLoot>,
+) {
+    commands.entity(loot).remove::<GlobalTransform>();
+    commands.entity(loot).remove::<Transform>();
+    commands.entity(stowing_entity).add_child(loot);
+    commands.entity(loot).insert(ItemSlot(slot));
+    event.send(StowedLoot {
+        stowing_entity,
+        loot,
+    });
+}
+
+fn stow_weapon(
+    commands: &mut Commands,
+    loot: Entity,
+    stowing_entity: Entity,
+    slot: u8,
+    event: &mut EventWriter<StowedLoot>,
+) {
+    commands.entity(loot).remove::<GlobalTransform>();
+    commands.entity(loot).remove::<Transform>();
+    commands.entity(stowing_entity).add_child(loot);
+    commands.entity(loot).insert(WeaponSlot(slot));
+    event.send(StowedLoot {
+        stowing_entity,
+        loot,
+    });
 }
 
 fn bye_inventory_system(mut _commands: Commands) {

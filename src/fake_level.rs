@@ -162,8 +162,7 @@ fn start_fake_level(
         .insert(Name::new("Loot2"))
         .insert(Loot)
         .insert(LootName(String::from("Durable Gaskmask")))
-        //.insert(LootType::CombatDefense)
-        .insert(LootType::Item(ItemType::Item))
+        .insert(LootType::CombatDefense)
         .insert(Rarity::Rare)
         .insert(FakeLevelStuff)
         .insert(Durability::default());
