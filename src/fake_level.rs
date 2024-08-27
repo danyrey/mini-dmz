@@ -113,7 +113,7 @@ fn start_fake_level(
             },
         }))
         .insert(FakeLevelStuff);
-    // capsule 1
+    // enemy 2 capsule
     commands
         .spawn(PbrBundle {
             mesh: meshes.add(Capsule3d::new(0.25, 1.5)),
@@ -121,7 +121,7 @@ fn start_fake_level(
                 base_color: Color::ORANGE_RED,
                 ..Default::default()
             }),
-            transform: Transform::from_xyz(6.0, 1.0, 6.0),
+            transform: Transform::from_xyz(6.0, 1.0, 6.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
             ..default()
         })
         .insert(Enemy)
@@ -227,23 +227,12 @@ fn start_fake_level(
         .insert(FakeLevelStuff);
 }
 
-fn update_fake_level(
-    mut gizmos: Gizmos,
-    query: Query<(&GlobalTransform, &Transform), With<Enemy>>,
-) {
-    // TODO: maybe just render them near any cameras
-    // TODO: maybe put code here that moves the scene near cameras to maintain a reference for
-    // movement
+// renders some fake level exclusive gizmos
+fn update_fake_level(mut gizmos: Gizmos, query: Query<&GlobalTransform, With<Enemy>>) {
     debug!("updating fake level");
-    for (global_transform, transform) in query.iter() {
-        debug!(
-            "rendering gizmo for {:?}, {:?}",
-            global_transform.to_scale_rotation_translation(),
-            transform,
-        );
+    for global_transform in query.iter() {
         gizmos.ray(
-            global_transform.to_scale_rotation_translation().2,
-            //-Vec3::Z,
+            global_transform.to_scale_rotation_translation().2 + Vec3::new(0.0, 0.75, 0.0),
             (global_transform.to_scale_rotation_translation().1 * Vec3::Z).xyz() * -1.0,
             Color::RED,
         );
