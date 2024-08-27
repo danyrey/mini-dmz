@@ -20,8 +20,7 @@ impl Plugin for StartScreenPlugin {
 
 #[derive(Resource)]
 struct MenuData {
-    deploy_button_entity: Entity,
-    mission_objective_button_entity: Entity,
+    start_screen_layout: Entity,
 }
 
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
@@ -30,92 +29,78 @@ const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 
 fn start_start_screen(mut commands: Commands) {
     debug!("starting start screen");
-    let deploy_button_entity = commands
+
+    // Layout
+    // Top-level grid (app frame)
+    let start_screen_layout = commands
         .spawn(NodeBundle {
             style: Style {
-                // center button
-                width: Val::Percent(30.),
-                height: Val::Percent(120.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
+                display: Display::Grid,
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                grid_template_columns: vec![GridTrack::auto()],
+                grid_template_rows: vec![
+                    GridTrack::auto(),
+                    GridTrack::flex(1.0),
+                    GridTrack::px(20.),
+                ],
                 ..default()
             },
             ..default()
         })
-        .with_children(|parent| {
-            parent
-                .spawn(ButtonBundle {
+        .insert(Name::new("Main Layout"))
+        .with_children(|builder| {
+            // Header
+            builder
+                .spawn(NodeBundle {
                     style: Style {
-                        width: Val::Px(150.),
-                        height: Val::Px(110.),
-                        // horizontally center child text
-                        justify_content: JustifyContent::Center,
-                        // vertically center child text
-                        align_items: AlignItems::Center,
+                        display: Display::Grid,
+                        justify_items: JustifyItems::Center,
+                        padding: UiRect::all(Val::Px(12.0)),
                         ..default()
                     },
-                    background_color: NORMAL_BUTTON.into(),
                     ..default()
                 })
-                .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "Deploy",
-                        TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..default()
-                        },
-                    ));
+                .insert(Name::new("Header"))
+                .with_children(|builder| {
+                    spawn_nested_text_bundle(builder, 40.0, "LOBBY");
+                    spawn_nested_text_bundle(builder, 10.0, "");
+                });
+            // Main
+            builder
+                .spawn(NodeBundle {
+                    style: Style {
+                        display: Display::Grid,
+                        justify_items: JustifyItems::Center,
+                        padding: UiRect::all(Val::Px(12.0)),
+                        grid_template_columns: RepeatedGridTrack::flex(4, 1.0),
+                        ..default()
+                    },
+                    ..default()
                 })
-                // TODO: instead of hardcoding ChooseLocation it would be nice to just say DeployScreen and let the default kick in
-                .insert(ButtonTargetState(DeployScreen(ChooseLocation)));
+                .insert(Name::new("Main"))
+                .with_children(|builder| {
+                    let deploy_name = Name::new("DEPLOY");
+                    spawn_button_bundle(
+                        builder,
+                        deploy_name.clone(),
+                        deploy_name.as_str(),
+                        ButtonTargetState(DeployScreen(ChooseLocation)),
+                    );
+                    let mission_objectives_name = Name::new("MISSION OBJECTIVES");
+                    spawn_button_bundle(
+                        builder,
+                        mission_objectives_name.clone(),
+                        mission_objectives_name.as_str(),
+                        ButtonTargetState(MissionObjectives(Start)),
+                    );
+                });
         })
         .id();
 
-    let mission_objective_button_entity = commands
-        .spawn(NodeBundle {
-            style: Style {
-                // center button
-                width: Val::Percent(80.),
-                height: Val::Percent(120.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            ..default()
-        })
-        .with_children(|parent| {
-            parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(220.),
-                        height: Val::Px(110.),
-                        // horizontally center child text
-                        justify_content: JustifyContent::Center,
-                        // vertically center child text
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: NORMAL_BUTTON.into(),
-                    ..default()
-                })
-                .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "Mission Objectives",
-                        TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..default()
-                        },
-                    ));
-                })
-                .insert(ButtonTargetState(MissionObjectives(Start)));
-        })
-        .id();
-
+    // insert resource
     commands.insert_resource(MenuData {
-        deploy_button_entity,
-        mission_objective_button_entity,
+        start_screen_layout,
     });
 }
 
@@ -149,11 +134,65 @@ fn update_start_screen(
 fn bye_start_screen(mut commands: Commands, menu_data: Res<MenuData>) {
     debug!("bye start screen!");
     commands
-        .entity(menu_data.deploy_button_entity)
-        .despawn_recursive();
-    commands
-        .entity(menu_data.mission_objective_button_entity)
+        .entity(menu_data.start_screen_layout)
         .despawn_recursive();
 }
 
+// helper functions
+fn spawn_nested_text_bundle(builder: &mut ChildBuilder, font_size: f32, text: &str) {
+    builder.spawn(TextBundle::from_section(
+        text,
+        TextStyle {
+            font_size,
+            color: Color::rgb(0.9, 0.9, 0.9),
+            ..default()
+        },
+    ));
+}
+
+fn spawn_button_bundle(
+    builder: &mut ChildBuilder,
+    button_name_component: Name,
+    button_text: &str,
+    button_target_state: ButtonTargetState,
+) {
+    builder
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(100.),
+                height: Val::Percent(100.),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            ..default()
+        })
+        .insert(button_name_component.clone())
+        .with_children(|parent| {
+            parent
+                .spawn(ButtonBundle {
+                    style: Style {
+                        width: Val::Px(150.),
+                        height: Val::Px(110.),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    background_color: NORMAL_BUTTON.into(),
+                    ..default()
+                })
+                .insert(button_name_component)
+                .with_children(|parent| {
+                    parent.spawn(TextBundle::from_section(
+                        button_text,
+                        TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..default()
+                        },
+                    ));
+                })
+                .insert(button_target_state);
+        });
+}
 // --- Start Screen STOP
