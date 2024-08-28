@@ -2,7 +2,7 @@ use crate::damage::HurtBox;
 use crate::exfil::ExfilArea;
 use crate::inventory::{Inventory, ItemSlots, WeaponSlots};
 use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
-use crate::raid::Enemy;
+use crate::raid::{Enemy, FirstPersonCamera};
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::app::Plugin;
@@ -14,7 +14,11 @@ pub struct FakeLevelPlugin;
 impl Plugin for FakeLevelPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(Raid), start_fake_level)
-            .add_systems(Update, (update_fake_level).run_if(in_state(AppState::Raid)))
+            .add_systems(
+                Update,
+                (update_fake_level, update_inventory_to_follow_camera)
+                    .run_if(in_state(AppState::Raid)),
+            )
             .add_systems(OnExit(AppState::Raid), bye_fake_level);
     }
 }
@@ -237,6 +241,17 @@ fn update_fake_level(mut gizmos: Gizmos, query: Query<&GlobalTransform, With<Ene
             Color::RED,
         );
     }
+}
+
+fn update_inventory_to_follow_camera(
+    camera_query: Query<&Transform, With<FirstPersonCamera>>,
+    mut inventory_query: Query<&mut Transform, (With<Inventory>, Without<FirstPersonCamera>)>,
+) {
+    let transform = camera_query.single();
+    let offset = Vec3::new(1.0, -2.0, 4.0);
+    let new_transform = transform.with_translation(transform.translation + offset);
+    let mut inventory_transform = inventory_query.single_mut();
+    inventory_transform.translation = new_transform.translation;
 }
 
 fn bye_fake_level(mut commands: Commands, query: Query<Entity, With<FakeLevelStuff>>) {

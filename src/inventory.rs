@@ -253,6 +253,9 @@ fn drop_loot_system(
                     commands.entity(c.loot).remove_parent();
                     commands.entity(c.loot).remove::<ItemSlot>();
                     commands.entity(c.loot).insert(transform.clone());
+                    commands
+                        .entity(c.loot)
+                        .insert(GlobalTransform::from(transform.clone()));
                     event.send(DroppedLoot {
                         dropping_entity: inventory.get(),
                         dropped_position: transform.translation,
@@ -269,6 +272,9 @@ fn drop_loot_system(
                     commands.entity(c.loot).remove_parent();
                     commands.entity(c.loot).remove::<WeaponSlot>();
                     commands.entity(c.loot).insert(transform.clone());
+                    commands
+                        .entity(c.loot)
+                        .insert(GlobalTransform::from(transform.clone()));
                     event.send(DroppedLoot {
                         dropping_entity: inventory.get(),
                         dropped_position: transform.translation,
@@ -779,6 +785,12 @@ mod tests {
             inventory_position,
             dropped_item_transform.unwrap().translation
         );
+        let dropped_item_global_transform = app.world.get::<GlobalTransform>(loot_in_inventory);
+        assert!(dropped_item_global_transform.is_some());
+        assert_eq!(
+            inventory_position,
+            dropped_item_global_transform.unwrap().translation()
+        );
         // check if dropped item event was sent
         let dropped_loot_events = app.world.resource::<Events<DroppedLoot>>();
         let mut dropped_loot_reader = dropped_loot_events.get_reader();
@@ -821,11 +833,17 @@ mod tests {
         let inventory_children = app.world.get::<Children>(inventory_entity);
         assert!(inventory_children.is_none());
         // check if item is on ground at position of dropping entity
-        let dropped_item_transform = app.world.get::<Transform>(loot_in_inventory);
-        assert!(dropped_item_transform.is_some());
+        let dropped_weapon_transform = app.world.get::<Transform>(loot_in_inventory);
+        assert!(dropped_weapon_transform.is_some());
         assert_eq!(
             inventory_position,
-            dropped_item_transform.unwrap().translation
+            dropped_weapon_transform.unwrap().translation
+        );
+        let dropped_weapon_global_transform = app.world.get::<GlobalTransform>(loot_in_inventory);
+        assert!(dropped_weapon_global_transform.is_some());
+        assert_eq!(
+            inventory_position,
+            dropped_weapon_global_transform.unwrap().translation()
         );
         // check if dropped item event was sent
         let dropped_loot_events = app.world.resource::<Events<DroppedLoot>>();

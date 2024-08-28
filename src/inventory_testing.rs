@@ -1,7 +1,7 @@
 use bevy::app::Plugin;
 
-use crate::inventory::{ItemSlot, ItemSlots, StowLoot};
-use crate::loot::{ItemType, Loot, LootType};
+use crate::inventory::{DropLoot, ItemSlot, ItemSlots, StowLoot, WeaponSlot, WeaponSlots};
+use crate::loot::{Loot, LootType};
 use crate::AppState::Raid;
 use bevy::prelude::*;
 
@@ -13,7 +13,7 @@ pub struct InventoryTestingPlugin;
 
 impl Plugin for InventoryTestingPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (update_inventory_testing).run_if(in_state(Raid)));
+        app.add_systems(Update, (stowing, dropping).run_if(in_state(Raid)));
     }
 }
 
@@ -25,13 +25,13 @@ impl Plugin for InventoryTestingPlugin {
 
 // Systems
 
-fn update_inventory_testing(
+fn stowing(
     key_input: Res<ButtonInput<KeyCode>>,
     inventory_query: Query<Entity, With<ItemSlots>>,
-    loot_query: Query<(Entity, &LootType), (With<Loot>, Without<ItemSlot>)>,
+    loot_query: Query<(Entity, &LootType), (With<Loot>, Without<ItemSlot>)>, // TODO?: weapons
     mut stow_command: EventWriter<StowLoot>,
 ) {
-    debug!("updating {}", NAME);
+    debug!("stowing {}", NAME);
 
     if let Ok(stowing_entity) = inventory_query.get_single() {
         debug!("have inventory");
@@ -43,6 +43,47 @@ fn update_inventory_testing(
                     stowing_entity,
                     loot,
                     loot_type: loot_type.clone(),
+                });
+            }
+            break;
+        }
+    }
+}
+
+fn dropping(
+    key_input: Res<ButtonInput<KeyCode>>,
+    inventory_with_items_query: Query<Entity, With<ItemSlots>>,
+    inventory_with_weapons_query: Query<Entity, With<WeaponSlots>>,
+    inventory_items_query: Query<Entity, (With<Loot>, With<ItemSlot>)>,
+    inventory_weapons_query: Query<Entity, (With<Loot>, With<WeaponSlot>)>,
+    mut drop_command: EventWriter<DropLoot>,
+) {
+    debug!("dropping {}", NAME);
+
+    if let Ok(dropping_entity) = inventory_with_items_query.get_single() {
+        debug!("have inventory");
+        for loot in &inventory_items_query {
+            debug!("have item loot");
+            if key_input.just_released(KeyCode::KeyG) {
+                debug!("dropping inventory ...");
+                drop_command.send(DropLoot {
+                    dropping_entity,
+                    loot,
+                });
+            }
+            break;
+        }
+    }
+
+    if let Ok(dropping_entity) = inventory_with_weapons_query.get_single() {
+        debug!("have inventory");
+        for loot in &inventory_weapons_query {
+            debug!("have weapon loot");
+            if key_input.just_released(KeyCode::KeyH) {
+                debug!("dropping inventory ...");
+                drop_command.send(DropLoot {
+                    dropping_entity,
+                    loot,
                 });
             }
             break;
