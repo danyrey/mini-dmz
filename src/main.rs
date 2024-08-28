@@ -50,11 +50,11 @@ mod template_plugin;
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, States)]
 enum AppState {
+    #[default]
     StartScreen,
     MissionObjectives(MissionObjectives),
     DeployScreen(DeployScreen),
     LoadingScreen,
-    #[default]
     Raid,
 }
 

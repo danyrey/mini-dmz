@@ -25,9 +25,7 @@ impl Plugin for ActiveDutyConfirmationScreenPlugin {
 
 #[derive(Resource)]
 struct ActiveDutyConfirmationMenuData {
-    confirm_button_entity: Entity,
-    edit_button_entity: Entity,
-    back_button_entity: Entity,
+    location_layout: Entity,
 }
 
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
@@ -36,144 +34,88 @@ const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 
 fn start_active_duty_confirmation_screen(mut commands: Commands) {
     debug!("starting active duty confirmation screen");
-    let confirm_button_entity = commands
+
+    // Layout
+    // Top-level grid (app frame)
+    let location_layout = commands
         .spawn(NodeBundle {
             style: Style {
-                // center button
-                width: Val::Percent(30.),
-                height: Val::Percent(120.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
+                display: Display::Grid,
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                grid_template_columns: vec![GridTrack::auto()],
+                grid_template_rows: vec![
+                    GridTrack::auto(),
+                    GridTrack::flex(1.0),
+                    GridTrack::px(20.),
+                ],
                 ..default()
             },
             ..default()
         })
-        .with_children(|parent| {
-            parent
-                .spawn(ButtonBundle {
+        .insert(Name::new("Main Layout"))
+        .with_children(|builder| {
+            // Header
+            builder
+                .spawn(NodeBundle {
                     style: Style {
-                        width: Val::Px(150.),
-                        height: Val::Px(110.),
-                        // horizontally center child text
-                        justify_content: JustifyContent::Center,
-                        // vertically center child text
-                        align_items: AlignItems::Center,
+                        display: Display::Grid,
+                        justify_items: JustifyItems::Center,
+                        padding: UiRect::all(Val::Px(12.0)),
                         ..default()
                     },
-                    background_color: NORMAL_BUTTON.into(),
                     ..default()
                 })
-                .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "CONFIRM",
-                        TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..default()
-                        },
-                    ));
+                .insert(Name::new("Header"))
+                .with_children(|builder| {
+                    spawn_nested_text_bundle(builder, 40.0, "ACTIVE DUTY CONFIRMATION");
+                    spawn_nested_text_bundle(
+                        builder,
+                        10.0,
+                        "This is the operator and gear that you will enter the DMZ with",
+                    );
+                });
+            // Main
+            builder
+                .spawn(NodeBundle {
+                    style: Style {
+                        display: Display::Grid,
+                        justify_items: JustifyItems::Center,
+                        padding: UiRect::all(Val::Px(12.0)),
+                        grid_template_columns: RepeatedGridTrack::flex(4, 1.0),
+                        ..default()
+                    },
+                    ..default()
                 })
-                .insert(ButtonTargetState(DeployScreen(MatchMake)));
+                .insert(Name::new("Main"))
+                .with_children(|builder| {
+                    let confirm_name = Name::new("CONFIRM");
+                    button_bundle(
+                        builder,
+                        confirm_name.clone(),
+                        confirm_name.as_str(),
+                        ButtonTargetState(DeployScreen(MatchMake)),
+                    );
+                    let edit_name = Name::new("EDIT");
+                    button_bundle(
+                        builder,
+                        edit_name.clone(),
+                        edit_name.as_str(),
+                        ButtonTargetState(DeployScreen(EditLoadout)),
+                    );
+                    let back_name = Name::new("BACK");
+                    button_bundle(
+                        builder,
+                        back_name.clone(),
+                        back_name.as_str(),
+                        ButtonTargetState(DeployScreen(ActiveMissions)),
+                    );
+                });
         })
         .id();
 
-    let edit_button_entity = commands
-        .spawn(NodeBundle {
-            style: Style {
-                // center button
-                width: Val::Percent(50.),
-                height: Val::Percent(120.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            ..default()
-        })
-        .with_children(|parent| {
-            parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(150.),
-                        height: Val::Px(110.),
-                        // horizontally center child text
-                        justify_content: JustifyContent::Center,
-                        // vertically center child text
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: NORMAL_BUTTON.into(),
-                    ..default()
-                })
-                .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "EDIT",
-                        TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..default()
-                        },
-                    ));
-                })
-                .insert(ButtonTargetState(DeployScreen(EditLoadout)));
-        })
-        .id();
-
-    let back_button_entity = commands
-        .spawn(NodeBundle {
-            style: Style {
-                // center button
-                width: Val::Percent(80.),
-                height: Val::Percent(120.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            ..default()
-        })
-        .with_children(|parent| {
-            parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(150.),
-                        height: Val::Px(110.),
-                        // horizontally center child text
-                        justify_content: JustifyContent::Center,
-                        // vertically center child text
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: NORMAL_BUTTON.into(),
-                    ..default()
-                })
-                .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "BACK",
-                        TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..default()
-                        },
-                    ));
-                })
-                .insert(ButtonTargetState(DeployScreen(ActiveMissions)));
-        })
-        .id();
-
-    commands.insert_resource(ActiveDutyConfirmationMenuData {
-        confirm_button_entity,
-        edit_button_entity,
-        back_button_entity,
-    });
-
-    commands
-        .entity(confirm_button_entity)
-        .insert(Name::new("Confirm Button"));
-    commands
-        .entity(edit_button_entity)
-        .insert(Name::new("Edit Button"));
-    commands
-        .entity(back_button_entity)
-        .insert(Name::new("Back Button"));
+    // insert resource
+    commands.insert_resource(ActiveDutyConfirmationMenuData { location_layout });
 }
 
 fn update_active_duty_confirmation_screen(
@@ -209,12 +151,64 @@ fn bye_active_duty_confirmation_screen(
 ) {
     debug!("exiting active duty confirmation screen");
     commands
-        .entity(menu_data.confirm_button_entity)
+        .entity(menu_data.location_layout)
         .despawn_recursive();
-    commands
-        .entity(menu_data.edit_button_entity)
-        .despawn_recursive();
-    commands
-        .entity(menu_data.back_button_entity)
-        .despawn_recursive();
+}
+
+// helper functions
+fn spawn_nested_text_bundle(builder: &mut ChildBuilder, font_size: f32, text: &str) {
+    builder.spawn(TextBundle::from_section(
+        text,
+        TextStyle {
+            font_size,
+            color: Color::rgb(0.9, 0.9, 0.9),
+            ..default()
+        },
+    ));
+}
+
+fn button_bundle(
+    builder: &mut ChildBuilder,
+    button_name_component: Name,
+    button_text: &str,
+    button_target_state: ButtonTargetState,
+) {
+    builder
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(100.),
+                height: Val::Percent(100.),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            ..default()
+        })
+        .insert(button_name_component.clone())
+        .with_children(|parent| {
+            parent
+                .spawn(ButtonBundle {
+                    style: Style {
+                        width: Val::Px(150.),
+                        height: Val::Px(110.),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    background_color: NORMAL_BUTTON.into(),
+                    ..default()
+                })
+                .insert(button_name_component)
+                .with_children(|parent| {
+                    parent.spawn(TextBundle::from_section(
+                        button_text,
+                        TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..default()
+                        },
+                    ));
+                })
+                .insert(button_target_state);
+        });
 }
