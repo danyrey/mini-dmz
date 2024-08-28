@@ -13,7 +13,7 @@ use crate::{
 // Components
 
 #[derive(Component)]
-pub struct FirstPersonCamera;
+pub struct FreeLookCamera;
 
 #[derive(Component)]
 pub struct Enemy;
@@ -92,14 +92,14 @@ fn start_raid(mut commands: Commands) {
             },
         }))
         .insert(Operator)
-        .insert(FirstPersonCamera);
+        .insert(FreeLookCamera);
 }
 
 fn update_raid(mut _next_state: ResMut<NextState<AppState>>) {
     debug!("updating raid called");
 }
 
-fn bye_raid(mut commands: Commands, query: Query<Entity, With<FirstPersonCamera>>) {
+fn bye_raid(mut commands: Commands, query: Query<Entity, With<FreeLookCamera>>) {
     debug!("exiting raid called");
     for entity in &query {
         commands.entity(entity).despawn_recursive();

@@ -2,7 +2,7 @@ use crate::damage::HurtBox;
 use crate::exfil::ExfilArea;
 use crate::inventory::{Inventory, ItemSlots, WeaponSlots};
 use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
-use crate::raid::{Enemy, FirstPersonCamera};
+use crate::raid::{Enemy, FreeLookCamera};
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::app::Plugin;
@@ -244,8 +244,8 @@ fn update_fake_level(mut gizmos: Gizmos, query: Query<&GlobalTransform, With<Ene
 }
 
 fn update_inventory_to_follow_camera(
-    camera_query: Query<&Transform, With<FirstPersonCamera>>,
-    mut inventory_query: Query<&mut Transform, (With<Inventory>, Without<FirstPersonCamera>)>,
+    camera_query: Query<&Transform, With<FreeLookCamera>>,
+    mut inventory_query: Query<&mut Transform, (With<Inventory>, Without<FreeLookCamera>)>,
 ) {
     let transform = camera_query.single();
     let offset = Vec3::new(1.0, -2.0, 4.0);

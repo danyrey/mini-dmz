@@ -1,6 +1,6 @@
 use bevy::app::Plugin;
 
-use crate::raid::FirstPersonCamera;
+use crate::raid::FreeLookCamera;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
@@ -37,7 +37,7 @@ fn start_camera_move(mut _commands: Commands) {
 fn update_camera_move(
     time: Res<Time>,
     key_input: Res<ButtonInput<KeyCode>>,
-    mut query: Query<&mut Transform, With<FirstPersonCamera>>,
+    mut query: Query<&mut Transform, With<FreeLookCamera>>,
 ) {
     debug!("updating {}", NAME);
     let dt = time.delta_seconds();

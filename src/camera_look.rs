@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use bevy::app::Plugin;
 use bevy::input::mouse::MouseMotion;
 
-use crate::raid::FirstPersonCamera;
+use crate::raid::FreeLookCamera;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
@@ -40,7 +40,7 @@ fn start_camera_look(mut _commands: Commands) {
 
 fn update_camera_look(
     mut mouse_events: EventReader<MouseMotion>,
-    mut query: Query<&mut Transform, With<FirstPersonCamera>>,
+    mut query: Query<&mut Transform, With<FreeLookCamera>>,
 ) {
     debug!("updating {}", NAME);
     if let Ok(mut transform) = query.get_single_mut() {
