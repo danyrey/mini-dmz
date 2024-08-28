@@ -5,7 +5,7 @@ use std::usize;
 use bevy::app::Plugin;
 use bevy_inspector_egui::prelude::*;
 
-use crate::loot::{Loot, LootType};
+use crate::loot::{DroppedLoot, Loot, LootType};
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
@@ -24,8 +24,12 @@ impl Plugin for InventoryPlugin {
             .register_type::<WeaponSlots>()
             .add_event::<StowLoot>()
             .add_event::<StowedLoot>()
+            .add_event::<DropLoot>()
             .add_systems(OnEnter(Raid), start_inventory_system)
-            .add_systems(Update, (stow_loot_system).run_if(in_state(AppState::Raid)))
+            .add_systems(
+                Update,
+                (stow_loot_system, drop_loot_system).run_if(in_state(AppState::Raid)),
+            )
             .add_systems(OnExit(AppState::Raid), bye_inventory_system);
     }
 }
@@ -71,6 +75,12 @@ pub struct StowLoot {
 #[derive(Event, Debug, PartialEq)]
 pub struct StowedLoot {
     pub stowing_entity: Entity,
+    pub loot: Entity,
+}
+
+#[derive(Event, Debug, PartialEq)]
+pub struct DropLoot {
+    pub dropping_entity: Entity,
     pub loot: Entity,
 }
 
@@ -222,6 +232,52 @@ fn stow_weapon(
         stowing_entity,
         loot,
     });
+}
+
+fn drop_loot_system(
+    mut commands: Commands,
+    mut command: EventReader<DropLoot>,
+    inventories_with_items: Query<&Transform, (With<Inventory>, With<ItemSlots>)>,
+    inventory_items: Query<(&Parent, &ItemSlot), With<Loot>>,
+    inventories_with_weapons: Query<&Transform, (With<Inventory>, With<WeaponSlots>)>,
+    inventory_weapons: Query<(&Parent, &WeaponSlot), With<Loot>>,
+    mut event: EventWriter<DroppedLoot>,
+) {
+    debug!("dropping loot with {}", NAME);
+    for c in command.read() {
+        // drop item ...
+        if let Ok((inventory, _item_slot)) = inventory_items.get(c.loot) {
+            // check if the correct inventory was addressed in command
+            if inventory.get() == c.dropping_entity {
+                if let Ok(transform) = inventories_with_items.get(inventory.get()) {
+                    commands.entity(c.loot).remove_parent();
+                    commands.entity(c.loot).remove::<ItemSlot>();
+                    commands.entity(c.loot).insert(transform.clone());
+                    event.send(DroppedLoot {
+                        dropping_entity: inventory.get(),
+                        dropped_position: transform.translation,
+                        loot: c.loot,
+                    });
+                };
+            }
+        }
+
+        // ... or drop weapon
+        if let Ok((inventory, _weapon_slot)) = inventory_weapons.get(c.loot) {
+            if inventory.get() == c.dropping_entity {
+                if let Ok(transform) = inventories_with_weapons.get(inventory.get()) {
+                    commands.entity(c.loot).remove_parent();
+                    commands.entity(c.loot).remove::<WeaponSlot>();
+                    commands.entity(c.loot).insert(transform.clone());
+                    event.send(DroppedLoot {
+                        dropping_entity: inventory.get(),
+                        dropped_position: transform.translation,
+                        loot: c.loot,
+                    });
+                };
+            }
+        }
+    }
 }
 
 fn bye_inventory_system(mut _commands: Commands) {
@@ -688,5 +744,101 @@ mod tests {
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
         let item_slot = app.world.get::<WeaponSlot>(actual_stowed_loot.loot);
         assert_eq!(item_slot.unwrap().0, 1);
+    }
+
+    #[test]
+    fn should_drop_item_loot() {
+        // given
+        let mut app = App::new();
+        app.add_event::<DropLoot>();
+        app.add_event::<DroppedLoot>();
+        app.add_systems(Update, drop_loot_system);
+        let loot_in_inventory = app.world.spawn(Loot).insert(ItemSlot(0)).id();
+        let mut inventory = app.world.spawn(Inventory);
+        inventory.add_child(loot_in_inventory);
+        inventory.insert(ItemSlots(1));
+        let inventory_position = Vec3::new(1.0, 2.0, 3.0);
+        inventory.insert(Transform::from_translation(inventory_position));
+        let inventory_entity = inventory.id();
+
+        // when
+        app.world.resource_mut::<Events<DropLoot>>().send(DropLoot {
+            dropping_entity: inventory_entity,
+            loot: loot_in_inventory,
+        });
+        app.update();
+
+        // then
+        // check if item is no longer in inventory
+        let inventory_children = app.world.get::<Children>(inventory_entity);
+        assert!(inventory_children.is_none());
+        // check if item is on ground at position of dropping entity
+        let dropped_item_transform = app.world.get::<Transform>(loot_in_inventory);
+        assert!(dropped_item_transform.is_some());
+        assert_eq!(
+            inventory_position,
+            dropped_item_transform.unwrap().translation
+        );
+        // check if dropped item event was sent
+        let dropped_loot_events = app.world.resource::<Events<DroppedLoot>>();
+        let mut dropped_loot_reader = dropped_loot_events.get_reader();
+        let actual_dropped_loot = dropped_loot_reader
+            .read(dropped_loot_events)
+            .next()
+            .unwrap();
+        let expected_dropped_loot = DroppedLoot {
+            dropping_entity: inventory_entity,
+            dropped_position: inventory_position,
+            loot: loot_in_inventory,
+        };
+        assert_eq!(&expected_dropped_loot, actual_dropped_loot);
+    }
+
+    #[test]
+    fn should_drop_weapon_loot() {
+        // given
+        let mut app = App::new();
+        app.add_event::<DropLoot>();
+        app.add_event::<DroppedLoot>();
+        app.add_systems(Update, drop_loot_system);
+        let loot_in_inventory = app.world.spawn(Loot).insert(WeaponSlot(0)).id();
+        let mut inventory = app.world.spawn(Inventory);
+        inventory.add_child(loot_in_inventory);
+        inventory.insert(WeaponSlots(1));
+        let inventory_position = Vec3::new(1.0, 2.0, 3.0);
+        inventory.insert(Transform::from_translation(inventory_position));
+        let inventory_entity = inventory.id();
+
+        // when
+        app.world.resource_mut::<Events<DropLoot>>().send(DropLoot {
+            dropping_entity: inventory_entity,
+            loot: loot_in_inventory,
+        });
+        app.update();
+
+        // then
+        // check if item is no longer in inventory
+        let inventory_children = app.world.get::<Children>(inventory_entity);
+        assert!(inventory_children.is_none());
+        // check if item is on ground at position of dropping entity
+        let dropped_item_transform = app.world.get::<Transform>(loot_in_inventory);
+        assert!(dropped_item_transform.is_some());
+        assert_eq!(
+            inventory_position,
+            dropped_item_transform.unwrap().translation
+        );
+        // check if dropped item event was sent
+        let dropped_loot_events = app.world.resource::<Events<DroppedLoot>>();
+        let mut dropped_loot_reader = dropped_loot_events.get_reader();
+        let actual_dropped_loot = dropped_loot_reader
+            .read(dropped_loot_events)
+            .next()
+            .unwrap();
+        let expected_dropped_loot = DroppedLoot {
+            dropping_entity: inventory_entity,
+            dropped_position: inventory_position,
+            loot: loot_in_inventory,
+        };
+        assert_eq!(&expected_dropped_loot, actual_dropped_loot);
     }
 }

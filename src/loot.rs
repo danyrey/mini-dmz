@@ -15,6 +15,7 @@ pub struct LootPlugin;
 impl Plugin for LootPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Durability>()
+            .add_event::<DroppedLoot>()
             .add_systems(OnEnter(Raid), start_loot_system)
             .add_systems(
                 Update,
