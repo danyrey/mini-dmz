@@ -10,6 +10,7 @@ use damage::DamagePlugin;
 use exfil::ExfilPlugin;
 use exfil_timers::ExfilTimersPlugin;
 use fake_level::FakeLevelPlugin;
+use first_person_controller::FirstPersonControllerPlugin;
 use health::HealthPlugin;
 use inventory::InventoryPlugin;
 use inventory_testing::InventoryTestingPlugin;
@@ -34,6 +35,7 @@ mod deploy;
 mod exfil;
 mod exfil_timers;
 mod fake_level;
+mod first_person_controller;
 mod health;
 mod inventory;
 mod inventory_testing;
@@ -111,6 +113,7 @@ fn main() {
         ))
         .add_plugins((
             RaidPlugin,
+            FirstPersonControllerPlugin,
             FakeLevelPlugin,
             ExfilPlugin,
             ExfilTimersPlugin,

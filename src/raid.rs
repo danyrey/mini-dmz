@@ -13,6 +13,9 @@ use crate::{
 // Components
 
 #[derive(Component)]
+pub struct FirstPersonCamera;
+
+#[derive(Component)]
 pub struct FreeLookCamera;
 
 #[derive(Component)]
