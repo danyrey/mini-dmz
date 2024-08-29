@@ -241,7 +241,7 @@ fn add_inventory_to_operators(
                     base_color: Color::OLIVE,
                     ..Default::default()
                 }),
-                transform: Transform::from_xyz(0.0, 1.5, -0.25),
+                transform: Transform::from_xyz(0.0, 1.5, 0.25),
                 ..default()
             })
             .insert(Name::new("OperatorBackpack"))
