@@ -72,25 +72,27 @@ fn start_raid(mut commands: Commands) {
     // chosen location cleanup
     commands.remove_resource::<ChosenLocation>();
     // camera
-    commands
-        .spawn(Camera3dBundle {
-            transform: Transform::from_xyz(-2.5, 4.5, 9.0).looking_at(Vec3::ZERO, Vec3::Y),
-            ..default()
-        })
-        .insert(Name::new("FreeLookCamera"))
-        .insert(Volume(Aabb3d {
-            min: Vec3 {
-                x: -0.5,
-                y: 0.0,
-                z: -0.5,
-            },
-            max: Vec3 {
-                x: 0.5,
-                y: 1.0,
-                z: 0.5,
-            },
-        }))
-        .insert(FreeLookCamera);
+    /*
+        commands
+            .spawn(Camera3dBundle {
+                transform: Transform::from_xyz(-2.5, 4.5, 9.0).looking_at(Vec3::ZERO, Vec3::Y),
+                ..default()
+            })
+            .insert(Name::new("FreeLookCamera"))
+            .insert(Volume(Aabb3d {
+                min: Vec3 {
+                    x: -0.5,
+                    y: 0.0,
+                    z: -0.5,
+                },
+                max: Vec3 {
+                    x: 0.5,
+                    y: 1.0,
+                    z: 0.5,
+                },
+            }))
+            .insert(FreeLookCamera);
+    */
 }
 
 fn update_raid(mut _next_state: ResMut<NextState<AppState>>) {

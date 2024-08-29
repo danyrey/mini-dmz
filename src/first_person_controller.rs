@@ -1,9 +1,9 @@
 use bevy::app::Plugin;
 
+use crate::exfil::Operator;
 use crate::raid::Volume;
 use crate::AppState;
 use crate::AppState::Raid;
-use crate::{exfil::Operator, raid::FreeLookCamera};
 use bevy::{math::bounding::Aabb3d, prelude::*};
 
 // Constants
@@ -45,7 +45,8 @@ fn start_first_person_controller_system(
         //.insert(FreeLookCamera)
         .insert(Name::new("FirstPersonCamera"))
         .insert(Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 1.75, -0.3).looking_at(Vec3::ZERO, Vec3::Y),
+            transform: Transform::from_xyz(0.0, 1.75, -0.3)
+                .looking_at(Vec3::new(0.0, 1.75, -1.0), Vec3::Y),
             ..default()
         })
         .id();
@@ -61,7 +62,6 @@ fn start_first_person_controller_system(
             ..default()
         })
         .id();
-    // TODO: maybe backpack/inventory too?
 
     let transform = Transform::from_xyz(0.0, 0.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y);
     commands
@@ -102,7 +102,7 @@ mod tests {
     #[test]
     fn should_test_something() {
         // given
-        let mut app = App::new();
+        //let mut app = App::new();
 
         // when
         //app.add_event::<HealthDamageReceived>();
