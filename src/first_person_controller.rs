@@ -185,8 +185,14 @@ fn update_camera_look_pitch(
     }
 }
 
-fn bye_first_person_controller_system(mut _commands: Commands) {
+fn bye_first_person_controller_system(
+    mut commands: Commands,
+    query: Query<Entity, With<PlayerControlled>>,
+) {
     debug!("stopping {}", NAME);
+    for entity in &query {
+        commands.entity(entity).despawn_recursive();
+    }
 }
 
 // helper functions
