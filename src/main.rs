@@ -3,8 +3,8 @@ use active_missions::ActiveMissionsScreenPlugin;
 use armor::ArmorPlugin;
 use bevy::prelude::*;
 use cache::CachePlugin;
-use camera_look::CameraLookPlugin;
-use camera_move::CameraMovePlugin;
+//use camera_look::CameraLookPlugin;
+//use camera_move::CameraMovePlugin;
 use choose_location::ChooseLocationScreenPlugin;
 use damage::DamagePlugin;
 use exfil::ExfilPlugin;
@@ -104,8 +104,8 @@ fn main() {
             MatchmakeScreenPlugin,
             MatchmakeInProgressScreenPlugin,
             MatchLoadingScreenPlugin,
-            CameraLookPlugin,
-            CameraMovePlugin,
+            //CameraLookPlugin,
+            //CameraMovePlugin,
             OutOfBoundsPlugin,
             HealthPlugin,
             ArmorPlugin,

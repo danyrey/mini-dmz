@@ -1,5 +1,8 @@
+// TODO: how to make sure every operator has a backpack attached to it
+//  TODO: transfer from the active loadout screen should be done
+//  * transfer from state from one appstate to another: active dute layout -> ...load in -> raid
 use crate::damage::HurtBox;
-use crate::exfil::ExfilArea;
+use crate::exfil::{ExfilArea, Operator};
 use crate::inventory::{Inventory, ItemSlots, WeaponSlots};
 use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
 use crate::raid::{Enemy, FreeLookCamera};
@@ -16,7 +19,11 @@ impl Plugin for FakeLevelPlugin {
         app.add_systems(OnEnter(Raid), start_fake_level)
             .add_systems(
                 Update,
-                (update_fake_level, update_inventory_to_follow_camera)
+                (
+                    update_fake_level,
+                    add_inventory_to_operators,
+                    //update_inventory_to_follow_camera,
+                )
                     .run_if(in_state(AppState::Raid)),
             )
             .add_systems(OnExit(AppState::Raid), bye_fake_level);
@@ -131,22 +138,6 @@ fn start_fake_level(
         .insert(Enemy)
         .insert(Name::new("Enemy2"))
         .insert(FakeLevelStuff);
-    // inventory cube
-    commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(0.5, 0.5, 0.5)),
-            material: materials.add(StandardMaterial {
-                base_color: Color::BLUE,
-                ..Default::default()
-            }),
-            transform: Transform::from_xyz(5.0, 0.25, -4.0),
-            ..default()
-        })
-        .insert(Name::new("Inventory1"))
-        .insert(Inventory)
-        .insert(ItemSlots(3))
-        .insert(WeaponSlots(1))
-        .insert(FakeLevelStuff);
     // loot cube 1
     commands
         .spawn(PbrBundle {
@@ -229,6 +220,37 @@ fn start_fake_level(
         })
         .insert(Name::new("PointyLight"))
         .insert(FakeLevelStuff);
+}
+
+/// semi init procedure: add inventory cube to Operator entities.
+// TODO: not sure if this is an idiomatic way to do post setup stuff but it works
+fn add_inventory_to_operators(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    query: Query<Entity, Added<Operator>>,
+) {
+    debug!("adding inventory to new operators");
+    for added in query.iter() {
+        debug!("found one added operator: {:?}", added);
+        // backpack/inventory cube
+        commands
+            .spawn(PbrBundle {
+                mesh: meshes.add(Cuboid::new(0.4, 0.5, 0.25)),
+                material: materials.add(StandardMaterial {
+                    base_color: Color::OLIVE,
+                    ..Default::default()
+                }),
+                transform: Transform::from_xyz(0.0, 1.5, -0.25),
+                ..default()
+            })
+            .insert(Name::new("OperatorBackpack"))
+            .insert(Inventory)
+            .insert(ItemSlots(3))
+            .insert(WeaponSlots(1))
+            .insert(FakeLevelStuff)
+            .set_parent(added);
+    }
 }
 
 // renders some fake level exclusive gizmos

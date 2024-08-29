@@ -1,8 +1,10 @@
 use bevy::app::Plugin;
 
+use crate::raid::Volume;
 use crate::AppState;
 use crate::AppState::Raid;
-use bevy::prelude::*;
+use crate::{exfil::Operator, raid::FreeLookCamera};
+use bevy::{math::bounding::Aabb3d, prelude::*};
 
 // Constants
 const NAME: &str = "first person controller";
@@ -31,8 +33,56 @@ pub struct FirstPersonCamera;
 // Events
 
 // Systems
-fn start_first_person_controller_system(mut _commands: Commands) {
+fn start_first_person_controller_system(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
     debug!("starting {}", NAME);
+    // camera
+    let camera = commands
+        .spawn(FirstPersonCamera)
+        //.insert(FreeLookCamera)
+        .insert(Name::new("FirstPersonCamera"))
+        .insert(Camera3dBundle {
+            transform: Transform::from_xyz(0.0, 1.75, -0.3).looking_at(Vec3::ZERO, Vec3::Y),
+            ..default()
+        })
+        .id();
+
+    let capsule = commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Capsule3d::new(0.25, 1.5)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::GREEN,
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(0.0, 1.0, 0.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
+            ..default()
+        })
+        .id();
+    // TODO: maybe backpack/inventory too?
+
+    let transform = Transform::from_xyz(0.0, 0.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y);
+    commands
+        .spawn(Operator)
+        .insert(Name::new("Operator"))
+        .insert(transform)
+        .insert(GlobalTransform::from(transform))
+        .insert(Volume(Aabb3d {
+            min: Vec3 {
+                x: -0.5,
+                y: 0.0,
+                z: -0.5,
+            },
+            max: Vec3 {
+                x: 0.5,
+                y: 1.0,
+                z: 0.5,
+            },
+        }))
+        .add_child(camera)
+        .add_child(capsule);
 }
 fn update_first_person_controller_system() {
     debug!("updating {}", NAME);

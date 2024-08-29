@@ -6,14 +6,10 @@ use bevy::{math::bounding::Aabb3d, prelude::*};
 
 use crate::{
     choose_location::ChosenLocation,
-    exfil::Operator,
     AppState::{self, Raid},
 };
 
 // Components
-
-#[derive(Component)]
-pub struct FirstPersonCamera;
 
 #[derive(Component)]
 pub struct FreeLookCamera;
@@ -81,7 +77,7 @@ fn start_raid(mut commands: Commands) {
             transform: Transform::from_xyz(-2.5, 4.5, 9.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         })
-        .insert(Name::new("FirstPersonCamera"))
+        .insert(Name::new("FreeLookCamera"))
         .insert(Volume(Aabb3d {
             min: Vec3 {
                 x: -0.5,
@@ -94,7 +90,6 @@ fn start_raid(mut commands: Commands) {
                 z: 0.5,
             },
         }))
-        .insert(Operator)
         .insert(FreeLookCamera);
 }
 

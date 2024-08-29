@@ -237,9 +237,9 @@ fn stow_weapon(
 fn drop_loot_system(
     mut commands: Commands,
     mut command: EventReader<DropLoot>,
-    inventories_with_items: Query<&Transform, (With<Inventory>, With<ItemSlots>)>,
+    inventories_with_items: Query<&GlobalTransform, (With<Inventory>, With<ItemSlots>)>,
     inventory_items: Query<(&Parent, &ItemSlot), With<Loot>>,
-    inventories_with_weapons: Query<&Transform, (With<Inventory>, With<WeaponSlots>)>,
+    inventories_with_weapons: Query<&GlobalTransform, (With<Inventory>, With<WeaponSlots>)>,
     inventory_weapons: Query<(&Parent, &WeaponSlot), With<Loot>>,
     mut event: EventWriter<DroppedLoot>,
 ) {
@@ -249,16 +249,16 @@ fn drop_loot_system(
         if let Ok((inventory, _item_slot)) = inventory_items.get(c.loot) {
             // check if the correct inventory was addressed in command
             if inventory.get() == c.dropping_entity {
-                if let Ok(transform) = inventories_with_items.get(inventory.get()) {
+                if let Ok(global_transform) = inventories_with_items.get(inventory.get()) {
                     commands.entity(c.loot).remove_parent();
                     commands.entity(c.loot).remove::<ItemSlot>();
-                    commands.entity(c.loot).insert(transform.clone());
                     commands
                         .entity(c.loot)
-                        .insert(GlobalTransform::from(transform.clone()));
+                        .insert(global_transform.compute_transform());
+                    commands.entity(c.loot).insert(global_transform.clone());
                     event.send(DroppedLoot {
                         dropping_entity: inventory.get(),
-                        dropped_position: transform.translation,
+                        dropped_position: global_transform.translation(),
                         loot: c.loot,
                     });
                 };
@@ -268,16 +268,16 @@ fn drop_loot_system(
         // ... or drop weapon
         if let Ok((inventory, _weapon_slot)) = inventory_weapons.get(c.loot) {
             if inventory.get() == c.dropping_entity {
-                if let Ok(transform) = inventories_with_weapons.get(inventory.get()) {
+                if let Ok(global_transform) = inventories_with_weapons.get(inventory.get()) {
                     commands.entity(c.loot).remove_parent();
                     commands.entity(c.loot).remove::<WeaponSlot>();
-                    commands.entity(c.loot).insert(transform.clone());
                     commands
                         .entity(c.loot)
-                        .insert(GlobalTransform::from(transform.clone()));
+                        .insert(global_transform.compute_transform());
+                    commands.entity(c.loot).insert(global_transform.clone());
                     event.send(DroppedLoot {
                         dropping_entity: inventory.get(),
-                        dropped_position: transform.translation,
+                        dropped_position: global_transform.translation(),
                         loot: c.loot,
                     });
                 };
@@ -764,7 +764,9 @@ mod tests {
         inventory.add_child(loot_in_inventory);
         inventory.insert(ItemSlots(1));
         let inventory_position = Vec3::new(1.0, 2.0, 3.0);
-        inventory.insert(Transform::from_translation(inventory_position));
+        let inventory_transform = Transform::from_translation(inventory_position);
+        inventory.insert(inventory_transform);
+        inventory.insert(GlobalTransform::from(inventory_transform));
         let inventory_entity = inventory.id();
 
         // when
@@ -818,7 +820,9 @@ mod tests {
         inventory.add_child(loot_in_inventory);
         inventory.insert(WeaponSlots(1));
         let inventory_position = Vec3::new(1.0, 2.0, 3.0);
-        inventory.insert(Transform::from_translation(inventory_position));
+        let inventory_transform = Transform::from_translation(inventory_position);
+        inventory.insert(inventory_transform);
+        inventory.insert(GlobalTransform::from(inventory_transform));
         let inventory_entity = inventory.id();
 
         // when
