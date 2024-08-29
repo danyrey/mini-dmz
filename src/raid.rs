@@ -2,7 +2,11 @@
 // Raid and declare a Raid PluginGroup that is added to the main.rs
 // TODO: basic timelimited raid
 
-use bevy::{math::bounding::Aabb3d, prelude::*};
+use bevy::{
+    math::bounding::Aabb3d,
+    prelude::*,
+    window::{CursorGrabMode, PrimaryWindow},
+};
 
 use crate::{
     choose_location::ChosenLocation,
@@ -65,41 +69,41 @@ impl Plugin for RaidPlugin {
 
 // Systems
 
-fn start_raid(mut commands: Commands) {
+fn start_raid(mut commands: Commands, mut q_windows: Query<&mut Window, With<PrimaryWindow>>) {
+    let mut primary_window = q_windows.single_mut();
+
+    // if you want to use the cursor, but not let it leave the window,
+    // use `Confined` mode:
+    primary_window.cursor.grab_mode = CursorGrabMode::Confined;
+
+    // for a game that doesn't use the cursor (like a shooter):
+    // use `Locked` mode to keep the cursor in one place
+    //primary_window.cursor.grab_mode = CursorGrabMode::Locked;
+
+    // also hide the cursor
+    //primary_window.cursor.visible = false;
+
     debug!("starting raid called");
     commands.insert_resource(InfilCountdown(31));
     commands.insert_resource(LiftoffCountdown(34));
     // chosen location cleanup
     commands.remove_resource::<ChosenLocation>();
-    // camera
-    /*
-        commands
-            .spawn(Camera3dBundle {
-                transform: Transform::from_xyz(-2.5, 4.5, 9.0).looking_at(Vec3::ZERO, Vec3::Y),
-                ..default()
-            })
-            .insert(Name::new("FreeLookCamera"))
-            .insert(Volume(Aabb3d {
-                min: Vec3 {
-                    x: -0.5,
-                    y: 0.0,
-                    z: -0.5,
-                },
-                max: Vec3 {
-                    x: 0.5,
-                    y: 1.0,
-                    z: 0.5,
-                },
-            }))
-            .insert(FreeLookCamera);
-    */
 }
 
 fn update_raid(mut _next_state: ResMut<NextState<AppState>>) {
     debug!("updating raid called");
 }
 
-fn bye_raid(mut commands: Commands, query: Query<Entity, With<FreeLookCamera>>) {
+fn bye_raid(
+    mut commands: Commands,
+    query: Query<Entity, With<FreeLookCamera>>,
+    mut q_windows: Query<&mut Window, With<PrimaryWindow>>,
+) {
+    let mut primary_window = q_windows.single_mut();
+
+    primary_window.cursor.grab_mode = CursorGrabMode::None;
+    primary_window.cursor.visible = true;
+
     debug!("exiting raid called");
     for entity in &query {
         commands.entity(entity).despawn_recursive();
