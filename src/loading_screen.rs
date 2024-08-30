@@ -5,9 +5,11 @@ use crate::AppState::{self, LoadingScreen, Raid};
 use bevy::prelude::*;
 
 #[derive(Event)]
+#[allow(dead_code)]
 struct LoadingStarted;
 
 #[derive(Event)]
+#[allow(dead_code)]
 struct LoadingFinished;
 
 pub struct MatchLoadingScreenPlugin;

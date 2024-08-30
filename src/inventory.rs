@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 use std::ops::Range;
-use std::usize;
 
 use bevy::app::Plugin;
 use bevy_inspector_egui::prelude::*;
@@ -148,24 +147,22 @@ fn stow_loot_system(
     }
 }
 
-fn calc_stow_item_slot(items: &Vec<&ItemSlot>, item_slots: usize) -> Option<u8> {
+fn calc_stow_item_slot(items: &[&ItemSlot], item_slots: usize) -> Option<u8> {
     if items.len() < item_slots {
         let item_count = items.len();
         let mut target_slot: u8 = 0;
-        if item_count < item_slots {
-            if item_count != 0 {
-                let range: Range<usize> = Range {
-                    start: 0,
-                    end: item_count + 1,
-                };
-                let mut set: HashSet<usize> = range.into_iter().collect();
-                items.iter().for_each(|i| {
-                    set.remove(&i.0.into());
-                });
-                let x: Vec<&usize> = set.iter().collect();
-                if let Some(target) = x.first() {
-                    target_slot = **target as u8;
-                }
+        if item_count < item_slots && item_count != 0 {
+            let range: Range<usize> = Range {
+                start: 0,
+                end: item_count + 1,
+            };
+            let mut set: HashSet<usize> = range.into_iter().collect();
+            items.iter().for_each(|i| {
+                set.remove(&i.0.into());
+            });
+            let x: Vec<&usize> = set.iter().collect();
+            if let Some(target) = x.first() {
+                target_slot = **target as u8;
             }
         }
         Some(target_slot)
@@ -174,24 +171,22 @@ fn calc_stow_item_slot(items: &Vec<&ItemSlot>, item_slots: usize) -> Option<u8> 
     }
 }
 
-fn calc_stow_weapon_slot(weapons: &Vec<&WeaponSlot>, weapon_slots: usize) -> Option<u8> {
+fn calc_stow_weapon_slot(weapons: &[&WeaponSlot], weapon_slots: usize) -> Option<u8> {
     if weapons.len() < weapon_slots {
         let weapon_count = weapons.len();
         let mut target_slot: u8 = 0;
-        if weapon_count < weapon_slots {
-            if weapon_count != 0 {
-                let range: Range<usize> = Range {
-                    start: 0,
-                    end: weapon_count + 1,
-                };
-                let mut set: HashSet<usize> = range.into_iter().collect();
-                weapons.iter().for_each(|i| {
-                    set.remove(&i.0.into());
-                });
-                let x: Vec<&usize> = set.iter().collect();
-                if let Some(target) = x.first() {
-                    target_slot = **target as u8;
-                }
+        if weapon_count < weapon_slots && weapon_count != 0 {
+            let range: Range<usize> = Range {
+                start: 0,
+                end: weapon_count + 1,
+            };
+            let mut set: HashSet<usize> = range.into_iter().collect();
+            weapons.iter().for_each(|i| {
+                set.remove(&i.0.into());
+            });
+            let x: Vec<&usize> = set.iter().collect();
+            if let Some(target) = x.first() {
+                target_slot = **target as u8;
             }
         }
         Some(target_slot)
@@ -255,7 +250,7 @@ fn drop_loot_system(
                     commands
                         .entity(c.loot)
                         .insert(global_transform.compute_transform());
-                    commands.entity(c.loot).insert(global_transform.clone());
+                    commands.entity(c.loot).insert(*global_transform);
                     event.send(DroppedLoot {
                         dropping_entity: inventory.get(),
                         dropped_position: global_transform.translation(),
@@ -274,7 +269,7 @@ fn drop_loot_system(
                     commands
                         .entity(c.loot)
                         .insert(global_transform.compute_transform());
-                    commands.entity(c.loot).insert(global_transform.clone());
+                    commands.entity(c.loot).insert(*global_transform);
                     event.send(DroppedLoot {
                         dropping_entity: inventory.get(),
                         dropped_position: global_transform.translation(),

@@ -44,7 +44,6 @@ mod loadout;
 mod loot;
 mod matchmake;
 mod mission_objective_screen;
-mod operator_controller;
 mod out_of_bounds;
 mod raid;
 mod start_screen;
@@ -65,6 +64,7 @@ enum MissionObjectives {
     #[default]
     Start,
     Missions,
+    #[allow(dead_code)]
     EditMissions, // how to remove redundancy as this screen exists also in DeployScreen
     Upgrades,
     LocationObjectives,

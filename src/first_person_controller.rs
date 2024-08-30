@@ -99,6 +99,7 @@ fn start_first_person_controller_system(
         .add_child(capsule);
 }
 
+#[allow(clippy::type_complexity)]
 fn update_camera_move(
     time: Res<Time>,
     key_input: Res<ButtonInput<KeyCode>>,
@@ -145,6 +146,7 @@ fn update_camera_move(
 }
 
 /// system for yaw only
+#[allow(clippy::type_complexity)]
 fn update_camera_look_yaw(
     mut mouse_events: EventReader<MouseMotion>,
     mut query: Query<&mut Transform, (With<Operator>, With<PlayerControlled>)>,
@@ -165,6 +167,7 @@ fn update_camera_look_yaw(
 }
 
 /// system for pitch only
+#[allow(clippy::type_complexity)]
 fn update_camera_look_pitch(
     mut mouse_events: EventReader<MouseMotion>,
     operator_query: Query<&Transform, (With<Operator>, With<PlayerControlled>)>,

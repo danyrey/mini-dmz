@@ -73,30 +73,28 @@ fn update_damage_system(
     for (hit_entity, hitbox, damage) in hitbox_query.iter_mut() {
         for (hurt_entity, hurtbox, health, armor) in hurtbox_query.iter_mut() {
             // dont hit yourself if overlap occours
-            if hit_entity != hurt_entity {
-                if hitbox.0.intersects(&hurtbox.0) {
-                    let mut remaining_damage = damage.0;
-                    if let Some(a) = armor {
-                        let x = max(0, a.0 - damage.0);
-                        let y = a.0 - x;
-                        armor_sender.send(ArmorDamageReceived {
-                            entity: hurt_entity,
-                            damage: y,
-                        });
-                        remaining_damage = damage.0 - y;
-                    }
-                    if let Some(h) = health {
-                        let x = max(0, h.0 - remaining_damage);
-                        let y = h.0 - x;
-                        health_sender.send(HealthDamageReceived {
-                            entity: hurt_entity,
-                            damage: y,
-                        });
-                        remaining_damage = remaining_damage - y;
-                    }
-                    debug!("remaining_damage: {}", remaining_damage);
-                    commands.entity(hit_entity).remove::<Damage>();
+            if hit_entity != hurt_entity && hitbox.0.intersects(&hurtbox.0) {
+                let mut remaining_damage = damage.0;
+                if let Some(a) = armor {
+                    let x = max(0, a.0 - damage.0);
+                    let y = a.0 - x;
+                    armor_sender.send(ArmorDamageReceived {
+                        entity: hurt_entity,
+                        damage: y,
+                    });
+                    remaining_damage = damage.0 - y;
                 }
+                if let Some(h) = health {
+                    let x = max(0, h.0 - remaining_damage);
+                    let y = h.0 - x;
+                    health_sender.send(HealthDamageReceived {
+                        entity: hurt_entity,
+                        damage: y,
+                    });
+                    remaining_damage -= y;
+                }
+                debug!("remaining_damage: {}", remaining_damage);
+                commands.entity(hit_entity).remove::<Damage>();
             }
         }
     }

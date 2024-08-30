@@ -58,7 +58,7 @@ trait IsOutOfBounds {
 
 impl fmt::Display for Bounds {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({})", self)
+        write!(f, "(TODO)")
     }
 }
 
@@ -86,6 +86,7 @@ pub struct OperaterInOfBounds {
 
 #[derive(Event)]
 pub struct OperaterOutOfBoundsExpired {
+    #[allow(dead_code)]
     pub operator_entity: Entity,
 }
 
@@ -94,6 +95,7 @@ fn start_out_of_bounds_system(mut _commands: Commands) {
     debug!("starting {}", NAME);
 }
 
+#[allow(clippy::type_complexity)]
 fn update_out_of_bounds_system(
     mut commands: Commands,
     mut out_of_bound_event: EventWriter<OperaterOutOfBounds>,

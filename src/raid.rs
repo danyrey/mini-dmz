@@ -22,6 +22,7 @@ pub struct FreeLookCamera;
 pub struct Enemy;
 
 #[derive(Component, Debug)]
+#[allow(dead_code)]
 pub struct Volume(pub Aabb3d);
 
 // Events
@@ -40,6 +41,7 @@ struct InfilComplete;
 struct InfilCountdown(u32);
 
 #[derive(Default, Resource)]
+#[allow(dead_code)]
 struct LiftoffCountdown(u32);
 
 // TODO: counters for all other phases of exfil

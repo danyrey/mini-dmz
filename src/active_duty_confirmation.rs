@@ -118,6 +118,7 @@ fn start_active_duty_confirmation_screen(mut commands: Commands) {
     commands.insert_resource(ActiveDutyConfirmationMenuData { location_layout });
 }
 
+#[allow(clippy::type_complexity)]
 fn update_active_duty_confirmation_screen(
     mut next_state: ResMut<NextState<AppState>>,
     mut interaction_query: Query<

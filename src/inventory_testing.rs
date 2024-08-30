@@ -25,6 +25,7 @@ impl Plugin for InventoryTestingPlugin {
 
 // Systems
 
+#[allow(clippy::type_complexity)]
 fn stowing(
     key_input: Res<ButtonInput<KeyCode>>,
     inventory_query: Query<Entity, With<ItemSlots>>,
@@ -35,7 +36,7 @@ fn stowing(
 
     if let Ok(stowing_entity) = inventory_query.get_single() {
         debug!("have inventory");
-        for (loot, loot_type) in &loot_query {
+        if let Some((loot, loot_type)) = (&loot_query).into_iter().next() {
             debug!("have loot");
             if key_input.just_released(KeyCode::KeyF) {
                 debug!("stowing inventory ...");
@@ -45,7 +46,6 @@ fn stowing(
                     loot_type: loot_type.clone(),
                 });
             }
-            break;
         }
     }
 }
@@ -62,7 +62,7 @@ fn dropping(
 
     if let Ok(dropping_entity) = inventory_with_items_query.get_single() {
         debug!("have inventory");
-        for loot in &inventory_items_query {
+        if let Some(loot) = (&inventory_items_query).into_iter().next() {
             debug!("have item loot");
             if key_input.just_released(KeyCode::KeyG) {
                 debug!("dropping inventory ...");
@@ -71,13 +71,12 @@ fn dropping(
                     loot,
                 });
             }
-            break;
         }
     }
 
     if let Ok(dropping_entity) = inventory_with_weapons_query.get_single() {
         debug!("have inventory");
-        for loot in &inventory_weapons_query {
+        if let Some(loot) = (&inventory_weapons_query).into_iter().next() {
             debug!("have weapon loot");
             if key_input.just_released(KeyCode::KeyH) {
                 debug!("dropping inventory ...");
@@ -86,7 +85,6 @@ fn dropping(
                     loot,
                 });
             }
-            break;
         }
     }
 }

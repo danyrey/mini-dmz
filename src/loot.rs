@@ -32,9 +32,11 @@ pub struct Loot;
 
 /// marker template for tagging loot entities that are in proximity to any operator
 #[derive(Component)]
+#[allow(dead_code)]
 pub struct Proximity;
 
 #[derive(Component)]
+#[allow(dead_code)]
 pub struct LootName(pub String);
 
 // TODO: fix some of the research language conflicts: is Gasmask a CircleDefense or Item???
@@ -50,39 +52,55 @@ pub struct LootName(pub String);
 pub enum LootType {
     Item(ItemType),
     Weapon,
+    #[allow(dead_code)]
     Ammo,
+    #[allow(dead_code)]
     Lethal,
+    #[allow(dead_code)]
     Tactical,
     CombatDefense, // like armor plates
+    #[allow(dead_code)]
     FieldUpgrade,
+    #[allow(dead_code)]
     KillStreak,
-    CircleDefense,       // gasmask
+    #[allow(dead_code)]
+    CircleDefense, // gasmask
+    #[allow(dead_code)]
     RadiationProtection, // radiation meds
-    LastStand,           // self revive
+    #[allow(dead_code)]
+    LastStand, // self revive
+    #[allow(dead_code)]
     Cash,
+    #[allow(dead_code)]
     Intel,
+    #[allow(dead_code)]
     Key,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ItemType {
+    #[allow(dead_code)]
     Equipment, // example: vests
     Item,
 }
 
 /// price/cash amount per item in cent amount
 #[derive(Component)]
+#[allow(dead_code)]
 pub struct Price(pub u32);
 
 #[derive(Component)]
 pub struct Stackable {
+    #[allow(dead_code)]
     pub max_stack: u32,
+    #[allow(dead_code)]
     pub current_stack: u32,
 }
 
 #[derive(Component)]
 pub enum Rarity {
     /// represented by transparent/grey background
+    #[allow(dead_code)]
     Regular,
     /// represented by golden background
     Rare,
@@ -90,12 +108,14 @@ pub enum Rarity {
 
 /// represented by blue item background
 #[derive(Component)]
+#[allow(dead_code)]
 pub struct Stashable;
 
 /// uses can be subject to rng, not every use will progress usage.
 /// this is up to the system to decide not the component.
 /// the components is just a storage of the current usage state.
 #[derive(Component)]
+#[allow(dead_code)]
 pub enum Uses {
     /// fresh and pristine
     Pristine,
@@ -125,6 +145,7 @@ impl Default for Durability {
 }
 
 impl Durability {
+    #[allow(dead_code)] // not dead code i use it in unit tests!
     fn percent(&self) -> u8 {
         let max: u32 = self.max.into();
         let current: u32 = self.current.into();
@@ -143,12 +164,14 @@ pub struct DroppedLoot {
 }
 
 #[derive(Event)]
+#[allow(dead_code)]
 pub struct LootPickupAvailable {
     pub operator_entity: Entity,
     pub loot_entity: Entity,
 }
 
 #[derive(Event)]
+#[allow(dead_code)]
 pub struct LootPickupUnavailable {
     pub operator_entity: Entity,
     pub loot_entity: Entity,
@@ -164,14 +187,14 @@ fn update_loot_system() {
 }
 
 // TODO: how to keep track in we enter or leave proximity?
-fn loot_proximity_detection(
-    mut loot_query: Query<(Entity, &GlobalTransform, &Loot), With<Loot>>,
-    operator_query: Query<(Entity, &GlobalTransform), With<Operator>>,
-    mut loot_available: EventWriter<LootPickupAvailable>,
-    mut loot_unavailable: EventWriter<LootPickupUnavailable>,
+fn _loot_proximity_detection(
+    _loot_query: Query<(Entity, &GlobalTransform, &Loot), With<Loot>>,
+    _operator_query: Query<(Entity, &GlobalTransform), With<Operator>>,
+    _loot_available: EventWriter<LootPickupAvailable>,
+    _loot_unavailable: EventWriter<LootPickupUnavailable>,
 ) {
     // proximity distance hardcoded for now
-    let min_distance = 2.0;
+    let _min_distance = 2.0;
     // TODO: nest loop over all operators and loot items and mark loot items in proximity with marker component
     // TODO: send out events depending and addage or removal of said marker templates
 }

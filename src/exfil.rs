@@ -58,12 +58,12 @@ impl Plugin for ExfilPlugin {
         app.add_systems(OnEnter(Raid), start_exfil)
             .add_systems(
                 Update,
-                ((
+                (
                     update_exfil,
                     exfil_area_collision_detection,
                     exfil_area_entered,
                     exfil_area_exited,
-                ))
+                )
                     .run_if(in_state(Raid)),
             )
             .add_systems(OnExit(Raid), bye_exfil)
@@ -141,6 +141,7 @@ fn start_exfil(mut commands: Commands) {
         .insert(ExfilButton);
 }
 
+#[allow(clippy::type_complexity)]
 fn update_exfil(
     mut next_state: ResMut<NextState<AppState>>,
     mut interaction_query: Query<
@@ -253,14 +254,12 @@ fn exfil_area_collision_detection(
                     exfil_area: area.clone(),
                 });
             }
-        } else {
-            if let Some(component) = operator_exfil_area {
-                commands.entity(operator_entity).remove::<InsideExfilArea>();
-                exited.send(ExfilAreaExited {
-                    operator_entity,
-                    exfil_area: component.0.clone(),
-                });
-            }
+        } else if let Some(component) = operator_exfil_area {
+            commands.entity(operator_entity).remove::<InsideExfilArea>();
+            exited.send(ExfilAreaExited {
+                operator_entity,
+                exfil_area: component.0.clone(),
+            });
         }
     }
 }

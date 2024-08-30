@@ -53,6 +53,7 @@ fn bye_armor_system(mut _commands: Commands) {
     debug!("stopping {}", NAME);
 }
 
+#[allow(clippy::type_complexity)]
 fn damage_received_listener(
     mut armor_damage: EventReader<ArmorDamageReceived>,
     mut query: Query<(Entity, &mut Armor)>,
@@ -64,7 +65,7 @@ fn damage_received_listener(
         );
         for (entity, mut armor) in &mut query {
             if entity == event.entity {
-                armor.0 = armor.0 - event.damage;
+                armor.0 -= event.damage;
                 debug!(
                     "event applied to operator {:?}, damage applied: {}",
                     entity, armor.0

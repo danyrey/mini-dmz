@@ -27,6 +27,7 @@ impl Plugin for CachePlugin {
 // Components
 
 #[derive(Component)]
+#[allow(dead_code)]
 pub struct Cache;
 
 // Resources

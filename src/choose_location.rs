@@ -136,6 +136,7 @@ fn start_choose_location_screen(mut commands: Commands) {
     commands.insert_resource(ChooseLocationMenuData { location_layout });
 }
 
+#[allow(clippy::type_complexity)]
 fn update_choose_location_screen(
     mut commands: Commands,
     mut next_state: ResMut<NextState<AppState>>,

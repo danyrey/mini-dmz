@@ -51,6 +51,7 @@ fn bye_health_system(mut _commands: Commands) {
     debug!("stopping {}", NAME);
 }
 
+#[allow(clippy::type_complexity)]
 fn damage_received_listener(
     mut health_damage: EventReader<HealthDamageReceived>,
     mut query: Query<(Entity, &mut Health)>,
@@ -62,7 +63,7 @@ fn damage_received_listener(
         );
         for (entity, mut health) in &mut query {
             if entity == event.entity {
-                health.0 = health.0 - event.damage;
+                health.0 -= event.damage;
                 debug!(
                     "event applied to operator {:?}, damage applied: {}",
                     entity, health.0

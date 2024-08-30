@@ -226,6 +226,7 @@ fn start_mission_objectives_screen(mut commands: Commands) {
         .insert(Name::new("Notes Button"));
 }
 
+#[allow(clippy::type_complexity)]
 fn update_mission_objectives_screen(
     mut next_state: ResMut<NextState<AppState>>,
     mut interaction_query: Query<

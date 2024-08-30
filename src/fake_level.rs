@@ -265,7 +265,7 @@ fn update_fake_level(mut gizmos: Gizmos, query: Query<&GlobalTransform, With<Ene
     }
 }
 
-fn update_inventory_to_follow_camera(
+fn _update_inventory_to_follow_camera(
     camera_query: Query<&Transform, With<FreeLookCamera>>,
     mut inventory_query: Query<&mut Transform, (With<Inventory>, Without<FreeLookCamera>)>,
 ) {

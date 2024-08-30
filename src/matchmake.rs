@@ -134,6 +134,7 @@ fn start_matchmake_screen(mut commands: Commands) {
     commands.insert_resource(MatchmakeMenuData { location_layout });
 }
 
+#[allow(clippy::type_complexity)]
 fn update_matchmake_screen(
     mut next_state: ResMut<NextState<AppState>>,
     mut interaction_query: Query<
@@ -288,6 +289,8 @@ fn bye_matchmake_in_progress_screen(
     commands.remove_resource::<MatchmakeInProgressMenuData>();
 }
 
+// TODO: refactor this. ignored by clippy for now
+#[allow(clippy::too_many_arguments)]
 fn update_fake_matchmake_server(
     mut event_counter: ResMut<EventCounter>,
     time_fixed: Res<Time<Fixed>>,
@@ -333,18 +336,20 @@ fn update_fake_matchmake_server(
     event_counter.0 += 1;
 }
 
+#[allow(clippy::type_complexity)]
 fn matchmaking_started_listener(
     mut event: EventReader<MatchmakingStarted>,
     mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
 ) {
     for _ev in event.read() {
         for mut text in &mut query {
-            text.sections[0].value = format!("CONNECTING");
+            text.sections[0].value = "CONNECTING".to_string();
             debug!("matchmaking started. connecting.");
         }
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn matchmaking_update_listener(
     mut event: EventReader<MatchmakingUpdate>,
     mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
@@ -358,13 +363,14 @@ fn matchmaking_update_listener(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn match_found_listener(
     mut event: EventReader<MatchFound>,
     mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
 ) {
     for _ev in event.read() {
         for mut text in &mut query {
-            text.sections[0].value = format!("CONNECTING");
+            text.sections[0].value = "CONNECTING".to_string();
             debug!("match found. connecting");
         }
     }
@@ -400,7 +406,7 @@ fn lobby_filled_listener(
 ) {
     for _ev in event.read() {
         for mut text in &mut query {
-            text.sections[0].value = format!("WAITING. LOADING LEVEL");
+            text.sections[0].value = "WAITING. LOADING LEVEL".to_string();
             debug!("lobby filled. waiting. loading level");
         }
     }
@@ -412,7 +418,7 @@ fn level_loaded_listener(
 ) {
     for _ev in event.read() {
         for mut text in &mut query {
-            text.sections[0].value = format!("LAUNCHING");
+            text.sections[0].value = "LAUNCHING".to_string();
             debug!("level loaded. start launching.");
         }
     }

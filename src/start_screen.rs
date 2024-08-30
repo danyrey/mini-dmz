@@ -104,6 +104,7 @@ fn start_start_screen(mut commands: Commands) {
     });
 }
 
+#[allow(clippy::type_complexity)]
 fn update_start_screen(
     mut next_state: ResMut<NextState<AppState>>,
     mut interaction_query: Query<
