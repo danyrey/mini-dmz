@@ -37,6 +37,8 @@ struct FakeLevelStuff;
 // Resources
 
 // Events
+
+// Systems
 fn start_fake_level(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
