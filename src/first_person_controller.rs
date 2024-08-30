@@ -11,6 +11,7 @@ use bevy::{math::bounding::Aabb3d, prelude::*};
 // Constants
 const NAME: &str = "first person controller";
 const LOOK_SPEED: f32 = 1.0 / 360.0;
+const RUN_SPEED_FACTOR: f32 = 2.0;
 
 // Plugin
 pub struct FirstPersonControllerPlugin;
@@ -108,6 +109,12 @@ fn update_camera_move(
 
     if let Ok(mut transform) = query.get_single_mut() {
         let mut axis_input = Vec3::ZERO;
+        let mut speed_modifier = 1.0;
+
+        if key_input.pressed(KeyCode::ShiftLeft) || key_input.pressed(KeyCode::ShiftRight) {
+            speed_modifier = RUN_SPEED_FACTOR;
+        }
+
         if key_input.pressed(KeyCode::KeyW) {
             axis_input.z += 1.0;
         }
@@ -121,11 +128,11 @@ fn update_camera_move(
             axis_input.x -= 1.0;
         }
 
-        let max_speed = 3.0;
+        let speed = 3.0;
         let mut velocity = Vec3::ZERO;
 
         if axis_input != Vec3::ZERO {
-            velocity = axis_input.normalize() * max_speed;
+            velocity = axis_input.normalize() * speed * speed_modifier;
         }
 
         let forward = *transform.forward();
@@ -177,6 +184,7 @@ fn update_camera_look_pitch(
         // TODO: check for side effects for other systems that read mouse events
         mouse_events.clear();
 
+        // TODO: limit rotation to 90 up/down
         if operator_query.get(transform.0.get()).is_ok() {
             transform
                 .1
