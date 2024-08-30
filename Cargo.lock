@@ -2492,7 +2492,7 @@ dependencies = [
 
 [[package]]
 name = "mini-dmz"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "bevy",
  "bevy-inspector-egui",
