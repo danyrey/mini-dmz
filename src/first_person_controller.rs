@@ -12,6 +12,8 @@ use bevy::{math::bounding::Aabb3d, prelude::*};
 const NAME: &str = "first person controller";
 const LOOK_SPEED: f32 = 1.0 / 360.0;
 const RUN_SPEED_FACTOR: f32 = 2.0;
+const PI_QUARTER: f32 = PI / 4.0;
+const PI_HALF: f32 = PI / 2.0;
 
 // Plugin
 pub struct FirstPersonControllerPlugin;
@@ -162,7 +164,7 @@ fn update_camera_look_yaw(
         // TODO: check for side effects for other systems that read mouse events
         mouse_events.clear();
 
-        transform.rotate_y((-mouse_delta.x * LOOK_SPEED).clamp(-PI / 2., PI / 2.));
+        transform.rotate_y((-mouse_delta.x * LOOK_SPEED).clamp(-PI_HALF, PI_HALF));
     }
 }
 
@@ -187,15 +189,20 @@ fn update_camera_look_pitch(
         // TODO: check for side effects for other systems that read mouse events
         mouse_events.clear();
 
-        // TODO: limit rotation to 90 up/down
-
         // check if cameras parent is the actual operator
         if operator_query.get(camera_transform.0.get()).is_ok() {
             // default orientation is y up and down the minus z axis == forward
 
             // delta value to apply to rotation
             let delta = -mouse_delta.y * LOOK_SPEED;
+
             camera_transform.1.rotate_local_x(delta);
+            if camera_transform.1.rotation.to_axis_angle().1 > PI_HALF {
+                // if overshoot just snap back to 90 degrees
+                let x = camera_transform.1.rotation.to_axis_angle().0.x;
+                camera_transform.1.rotation.x = x * PI_QUARTER;
+                camera_transform.1.rotation.w = PI_QUARTER;
+            }
         }
     }
 }
