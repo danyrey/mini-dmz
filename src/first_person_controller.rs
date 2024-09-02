@@ -177,7 +177,7 @@ fn update_camera_look_pitch(
     >,
 ) {
     debug!("updating {}", NAME);
-    if let Ok(mut transform) = camera_query.get_single_mut() {
+    if let Ok(mut camera_transform) = camera_query.get_single_mut() {
         let mut mouse_delta = Vec2::ZERO;
 
         for mouse_event in mouse_events.read() {
@@ -188,10 +188,14 @@ fn update_camera_look_pitch(
         mouse_events.clear();
 
         // TODO: limit rotation to 90 up/down
-        if operator_query.get(transform.0.get()).is_ok() {
-            transform
-                .1
-                .rotate_x((-mouse_delta.y * LOOK_SPEED).clamp(-PI / 2., PI / 2.));
+
+        // check if cameras parent is the actual operator
+        if operator_query.get(camera_transform.0.get()).is_ok() {
+            // default orientation is y up and down the minus z axis == forward
+
+            // delta value to apply to rotation
+            let delta = -mouse_delta.y * LOOK_SPEED;
+            camera_transform.1.rotate_local_x(delta);
         }
     }
 }
