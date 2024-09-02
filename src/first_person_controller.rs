@@ -12,6 +12,9 @@ use bevy::{math::bounding::Aabb3d, prelude::*};
 const NAME: &str = "first person controller";
 const LOOK_SPEED: f32 = 1.0 / 360.0;
 const RUN_SPEED_FACTOR: f32 = 2.0;
+const CROUCH_SPEED_FACTOR: f32 = 0.5;
+const CROUCH_HEIGHT_OFFSET: f32 = -0.5;
+const JUMP_HEIGHT_OFFSET: f32 = 0.5;
 const PI_QUARTER: f32 = PI / 4.0;
 const PI_HALF: f32 = PI / 2.0;
 
@@ -113,9 +116,19 @@ fn update_camera_move(
     if let Ok(mut transform) = query.get_single_mut() {
         let mut axis_input = Vec3::ZERO;
         let mut speed_modifier = 1.0;
+        let mut height_modifier = 0.0;
 
         if key_input.pressed(KeyCode::ShiftLeft) || key_input.pressed(KeyCode::ShiftRight) {
             speed_modifier = RUN_SPEED_FACTOR;
+        }
+
+        if key_input.pressed(KeyCode::ControlLeft) || key_input.pressed(KeyCode::ControlRight) {
+            speed_modifier = CROUCH_SPEED_FACTOR;
+            height_modifier = CROUCH_HEIGHT_OFFSET;
+        }
+
+        if key_input.pressed(KeyCode::Space) {
+            height_modifier = JUMP_HEIGHT_OFFSET;
         }
 
         if key_input.pressed(KeyCode::KeyW) {
@@ -141,9 +154,11 @@ fn update_camera_move(
         let forward = *transform.forward();
         let right = *transform.right();
         let new_x = velocity.x * dt * right;
-        let new_y = velocity.y * dt * Vec3::Y;
+        let new_y = velocity.y * dt * Vec3::Y; // jump and crouch modifiers go here
         let new_z = velocity.z * dt * forward;
         transform.translation += new_x + new_y + new_z;
+        transform.translation.y = 0.0;
+        transform.translation.y += height_modifier;
     }
 }
 
