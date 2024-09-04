@@ -50,17 +50,14 @@ fn fixup_prototype_textures(
 ) {
     // TODO
     for ev in ev_asset.read() {
-        match ev {
-            AssetEvent::LoadedWithDependencies { id } => {
-                // image is prototype texture
-                if *id == proto_imgs.texture_01.id() {
-                    // image loaded, so unwrap should be ok
-                    let image = images.get_mut(*id).unwrap();
-                    debug!("image size: {}", image.size());
-                    // TODO: rescale here???
-                }
+        if let AssetEvent::LoadedWithDependencies { id } = ev {
+            // image is prototype texture
+            if *id == proto_imgs.texture_01.id() {
+                // image loaded, so unwrap should be ok
+                let image = images.get_mut(*id).unwrap();
+                debug!("image size: {}", image.size());
+                // TODO: rescale here???
             }
-            _ => (),
         }
     }
 }
