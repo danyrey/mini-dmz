@@ -153,6 +153,30 @@ impl Durability {
     }
 }
 
+// TODO: maybe listener for Inventor components to attach LootCacheState automatically?
+/// loot cache state machine enum
+#[derive(Component, Default, Debug, PartialEq)]
+#[allow(dead_code)] // not dead code i use it in unit tests!
+pub enum LootCacheState {
+    Locked,
+    #[default]
+    Closed,
+    Open,
+    Empty,
+}
+
+#[allow(dead_code)] // not dead code i use it in unit tests!
+impl LootCacheState {
+    fn next(self) -> LootCacheState {
+        match self {
+            LootCacheState::Locked => Self::Closed,
+            LootCacheState::Closed => Self::Open,
+            LootCacheState::Open => Self::Empty,
+            LootCacheState::Empty => Self::Empty,
+        }
+    }
+}
+
 // Resources
 
 // Events
@@ -208,6 +232,8 @@ fn bye_loot_system(mut _commands: Commands) {
 // tests
 #[cfg(test)]
 mod tests {
+    use crate::inventory::Inventory;
+
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
@@ -244,19 +270,23 @@ mod tests {
     }
 
     #[test]
-    fn should_test_loot_proximity() {
+    fn should_give_next_loot_cache_state() {
         // given
-        let mut app = App::new();
+        let locked = LootCacheState::Locked;
+        let closed = LootCacheState::Closed;
+        let open = LootCacheState::Open;
+        let empty = LootCacheState::Empty;
 
-        // when
-        //app.add_event::<HealthDamageReceived>();
-        //app.add_systems(Update, damage_received_listener);
-        //let entity = app.borrow_mut().world.spawn(Health(100)).id();
-        //app.borrow_mut().world.resource_mut::<Events<HealthDamageReceived>>().send(HealthDamageReceived { entity, damage: 10 });
-        //app.update();
+        // when / then
+        let after_locked = locked.next();
+        let after_closed = closed.next();
+        let after_open = open.next();
+        let after_empty = empty.next();
 
         // then
-        //assert!(app.world.get::<Health>(entity).is_some());
-        //assert_eq!(app.world.get::<Health>(entity).unwrap().0, 90);
+        assert_eq!(LootCacheState::Closed, after_locked);
+        assert_eq!(LootCacheState::Open, after_closed);
+        assert_eq!(LootCacheState::Empty, after_open);
+        assert_eq!(LootCacheState::Empty, after_empty);
     }
 }
