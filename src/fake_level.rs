@@ -8,7 +8,6 @@ use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity,
 use crate::raid::{Enemy, FreeLookCamera};
 use crate::AppState;
 use crate::AppState::Raid;
-use bevy::app::Plugin;
 use bevy::prelude::*;
 
 // Plugin
@@ -22,6 +21,7 @@ impl Plugin for FakeLevelPlugin {
                 (
                     update_fake_level,
                     add_inventory_to_operators,
+                    fixup_prototype_textures,
                     //update_inventory_to_follow_camera,
                 )
                     .run_if(in_state(AppState::Raid)),
@@ -35,21 +35,55 @@ impl Plugin for FakeLevelPlugin {
 struct FakeLevelStuff;
 
 // Resources
+#[derive(Resource)]
+struct PrototypeTextures {
+    texture_01: Handle<Image>,
+}
 
 // Events
 
 // Systems
+fn fixup_prototype_textures(
+    mut ev_asset: EventReader<AssetEvent<Image>>,
+    mut images: ResMut<Assets<Image>>,
+    proto_imgs: Res<PrototypeTextures>,
+) {
+    // TODO
+    for ev in ev_asset.read() {
+        match ev {
+            AssetEvent::LoadedWithDependencies { id } => {
+                // image is prototype texture
+                if *id == proto_imgs.texture_01.id() {
+                    // image loaded, so unwrap should be ok
+                    let image = images.get_mut(*id).unwrap();
+                    debug!("image size: {}", image.size());
+                    // TODO: rescale here???
+                }
+            }
+            _ => (),
+        }
+    }
+}
 fn start_fake_level(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
 ) {
     debug!("starting fake level");
+    let texture_01 = asset_server.load("textures/prototype/Dark/texture_01.png");
+    commands.insert_resource(PrototypeTextures {
+        texture_01: texture_01.clone(),
+    });
+
     // circular base
     commands
         .spawn(PbrBundle {
             mesh: meshes.add(Circle::new(8.0)),
             material: materials.add(StandardMaterial {
+                base_color_texture: Some(texture_01.clone()),
+                alpha_mode: AlphaMode::Blend,
+                unlit: true,
                 base_color: Color::WHITE,
                 ..Default::default()
             }),
@@ -65,6 +99,7 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
             material: materials.add(StandardMaterial {
+                base_color_texture: Some(texture_01.clone()),
                 base_color: Color::GOLD,
                 ..Default::default()
             }),
@@ -79,6 +114,7 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
             material: materials.add(StandardMaterial {
+                base_color_texture: Some(texture_01.clone()),
                 base_color: Color::GOLD,
                 ..Default::default()
             }),
@@ -105,6 +141,7 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: meshes.add(Cuboid::new(0.5, 2.0, 0.5)),
             material: materials.add(StandardMaterial {
+                base_color_texture: Some(texture_01.clone()),
                 base_color: Color::RED,
                 ..Default::default()
             }),
@@ -131,6 +168,7 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: meshes.add(Capsule3d::new(0.25, 1.5)),
             material: materials.add(StandardMaterial {
+                base_color_texture: Some(texture_01.clone()),
                 base_color: Color::ORANGE_RED,
                 ..Default::default()
             }),
@@ -145,6 +183,7 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: meshes.add(Cuboid::new(0.2, 0.2, 0.2)),
             material: materials.add(StandardMaterial {
+                base_color_texture: Some(texture_01.clone()),
                 base_color: Color::GREEN,
                 ..Default::default()
             }),
@@ -167,6 +206,7 @@ fn start_fake_level(
             mesh: meshes.add(Cuboid::new(0.2, 0.2, 0.2)),
             material: materials.add(StandardMaterial {
                 base_color: Color::GREEN,
+                base_color_texture: Some(texture_01.clone()),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(4.0, 0.1, -2.0),
@@ -185,6 +225,7 @@ fn start_fake_level(
             mesh: meshes.add(Cuboid::new(0.2, 0.2, 0.2)),
             material: materials.add(StandardMaterial {
                 base_color: Color::DARK_GREEN,
+                base_color_texture: Some(texture_01.clone()),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(3.0, 0.1, -2.0),
@@ -201,6 +242,7 @@ fn start_fake_level(
             mesh: meshes.add(Cuboid::new(0.2, 0.2, 0.2)),
             material: materials.add(StandardMaterial {
                 base_color: Color::GREEN,
+                base_color_texture: Some(texture_01.clone()),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(2.0, 0.1, -2.0),
@@ -209,6 +251,39 @@ fn start_fake_level(
         .insert(Name::new("Loot4"))
         .insert(LootType::Item(ItemType::Item))
         .insert(Loot)
+        .insert(FakeLevelStuff);
+    // loot cache 1
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Cuboid::new(0.3, 0.3, 0.5)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::ALICE_BLUE,
+                base_color_texture: Some(texture_01.clone()),
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(-4.0, 0.15, -4.0),
+            ..default()
+        })
+        .insert(Name::new("Toolbox"))
+        .insert(Inventory)
+        .insert(ItemSlots(4))
+        .insert(FakeLevelStuff);
+    // loot cache 2
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Cuboid::new(0.4, 2.0, 1.0)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::ALICE_BLUE,
+                base_color_texture: Some(texture_01.clone()),
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(-4.0, 1.0, -2.0),
+            ..default()
+        })
+        .insert(Name::new("Weapon Locker"))
+        .insert(Inventory)
+        .insert(WeaponSlots(2))
+        .insert(ItemSlots(6))
         .insert(FakeLevelStuff);
     // light
     commands
@@ -256,8 +331,15 @@ fn add_inventory_to_operators(
 }
 
 // renders some fake level exclusive gizmos
-fn update_fake_level(mut gizmos: Gizmos, query: Query<&GlobalTransform, With<Enemy>>) {
+fn update_fake_level(
+    mut gizmos: Gizmos,
+    images: ResMut<Assets<Image>>,
+    query: Query<&GlobalTransform, With<Enemy>>,
+) {
     debug!("updating fake level");
+    images.iter().for_each(|i| {
+        debug!("image: {:?}", i.1.size());
+    });
     for global_transform in query.iter() {
         gizmos.ray(
             global_transform.to_scale_rotation_translation().2 + Vec3::new(0.0, 0.75, 0.0),

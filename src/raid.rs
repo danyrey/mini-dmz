@@ -83,7 +83,7 @@ fn start_raid(mut commands: Commands, mut q_windows: Query<&mut Window, With<Pri
     //primary_window.cursor.grab_mode = CursorGrabMode::Locked;
 
     // also hide the cursor
-    //primary_window.cursor.visible = false;
+    primary_window.cursor.visible = false;
 
     debug!("starting raid called");
     commands.insert_resource(InfilCountdown(31));
