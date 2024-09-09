@@ -3,12 +3,14 @@
 //  * transfer from state from one appstate to another: active dute layout -> ...load in -> raid
 use crate::damage::HurtBox;
 use crate::exfil::{ExfilArea, Operator};
+use crate::first_person_controller::FirstPersonCamera;
 use crate::inventory::{Inventory, ItemSlots, WeaponSlots};
 use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
 use crate::raid::{Enemy, FreeLookCamera};
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
+use bevy::render::primitives::{Aabb, Frustum};
 
 // Plugin
 pub struct FakeLevelPlugin;
@@ -22,6 +24,7 @@ impl Plugin for FakeLevelPlugin {
                     update_fake_level,
                     add_inventory_to_operators,
                     fixup_prototype_textures,
+                    probe_interact_volumes,
                     //update_inventory_to_follow_camera,
                 )
                     .run_if(in_state(AppState::Raid)),
@@ -325,6 +328,18 @@ fn add_inventory_to_operators(
             .insert(FakeLevelStuff)
             .set_parent(added);
     }
+}
+
+fn probe_interact_volumes(
+    interact_probe: Query<(&Frustum, &GlobalTransform), With<FirstPersonCamera>>,
+    aabbs: Query<(&Aabb, &GlobalTransform, &Name), With<Loot>>,
+) {
+    let probe = interact_probe.single();
+    debug!("probe_results:-----------");
+    aabbs.iter().for_each(|aabb| {
+        let probe_result = probe.0.intersects_obb(aabb.0, &aabb.1.affine(), true, true);
+        debug!("probe_result {}: {}", aabb.2, probe_result)
+    })
 }
 
 // renders some fake level exclusive gizmos
