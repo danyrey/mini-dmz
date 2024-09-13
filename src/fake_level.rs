@@ -352,6 +352,10 @@ fn probe_interact_volumes(
             let intersects = r.aabb_intersection_at(&aabb3d);
             if let Some(_) = intersects {
                 debug!("im allowed to pick {} up", aabb.2);
+                gizmos.cuboid(
+                    Transform::from_translation(aabb.1.translation()).with_scale(Vec3::splat(0.25)),
+                    Color::GOLD,
+                );
             }
         })
 }
