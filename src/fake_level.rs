@@ -6,9 +6,10 @@ use crate::exfil::{ExfilArea, Operator};
 use crate::first_person_controller::FirstPersonCamera;
 use crate::inventory::{Inventory, ItemSlots, WeaponSlots};
 use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
-use crate::raid::{Enemy, FreeLookCamera};
+use crate::raid::Enemy;
 use crate::AppState;
 use crate::AppState::Raid;
+use bevy::math::bounding::{Aabb3d, RayCast3d};
 use bevy::prelude::*;
 use bevy::render::primitives::{Aabb, Frustum};
 
@@ -25,7 +26,6 @@ impl Plugin for FakeLevelPlugin {
                     add_inventory_to_operators,
                     fixup_prototype_textures,
                     probe_interact_volumes,
-                    //update_inventory_to_follow_camera,
                 )
                     .run_if(in_state(AppState::Raid)),
             )
@@ -82,8 +82,6 @@ fn start_fake_level(
             mesh: meshes.add(Circle::new(8.0)),
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(texture_01.clone()),
-                alpha_mode: AlphaMode::Blend,
-                unlit: true,
                 base_color: Color::WHITE,
                 ..Default::default()
             }),
@@ -103,7 +101,7 @@ fn start_fake_level(
                 base_color: Color::GOLD,
                 ..Default::default()
             }),
-            transform: Transform::from_xyz(0.0, 0.5, 0.0),
+            transform: Transform::from_xyz(20.0, 0.5, 0.0),
             ..default()
         })
         .insert(ExfilArea(String::from("Exfil1")))
@@ -333,13 +331,29 @@ fn add_inventory_to_operators(
 fn probe_interact_volumes(
     interact_probe: Query<(&Frustum, &GlobalTransform), With<FirstPersonCamera>>,
     aabbs: Query<(&Aabb, &GlobalTransform, &Name), With<Loot>>,
+    mut gizmos: Gizmos,
 ) {
     let probe = interact_probe.single();
     debug!("probe_results:-----------");
-    aabbs.iter().for_each(|aabb| {
-        let probe_result = probe.0.intersects_obb(aabb.0, &aabb.1.affine(), true, true);
-        debug!("probe_result {}: {}", aabb.2, probe_result)
-    })
+    aabbs
+        .iter()
+        // check if loot are in camera or not
+        .filter(|aabb| probe.0.intersects_obb(aabb.0, &aabb.1.affine(), true, true))
+        .for_each(|aabb| {
+            debug!("probe_result: {}", aabb.2);
+            let looking_at_direction = probe.0.half_spaces[4].normal();
+            let position = probe.1.translation();
+            let r = RayCast3d::new(
+                position,
+                Direction3d::new(looking_at_direction.into()).unwrap(),
+                2.0,
+            );
+            let aabb3d = Aabb3d::new(aabb.1.translation(), aabb.0.half_extents.into());
+            let intersects = r.aabb_intersection_at(&aabb3d);
+            if let Some(_) = intersects {
+                debug!("im allowed to pick {} up", aabb.2);
+            }
+        })
 }
 
 // renders some fake level exclusive gizmos
@@ -347,6 +361,7 @@ fn update_fake_level(
     mut gizmos: Gizmos,
     images: ResMut<Assets<Image>>,
     query: Query<&GlobalTransform, With<Enemy>>,
+    loot_query: Query<&GlobalTransform, With<Loot>>,
 ) {
     debug!("updating fake level");
     images.iter().for_each(|i| {
@@ -359,17 +374,23 @@ fn update_fake_level(
             Color::RED,
         );
     }
-}
-
-fn _update_inventory_to_follow_camera(
-    camera_query: Query<&Transform, With<FreeLookCamera>>,
-    mut inventory_query: Query<&mut Transform, (With<Inventory>, Without<FreeLookCamera>)>,
-) {
-    let transform = camera_query.single();
-    let offset = Vec3::new(1.0, -2.0, 4.0);
-    let new_transform = transform.with_translation(transform.translation + offset);
-    let mut inventory_transform = inventory_query.single_mut();
-    inventory_transform.translation = new_transform.translation;
+    for global_transform in loot_query.iter() {
+        gizmos.ray(
+            global_transform.translation(),
+            Vec3::new(0.5, 0.0, 0.0),
+            Color::RED,
+        );
+        gizmos.ray(
+            global_transform.translation(),
+            Vec3::new(0.0, 0.5, 0.0),
+            Color::GREEN,
+        );
+        gizmos.ray(
+            global_transform.translation(),
+            Vec3::new(0.0, 0.0, 0.5),
+            Color::BLUE,
+        );
+    }
 }
 
 fn bye_fake_level(mut commands: Commands, query: Query<Entity, With<FakeLevelStuff>>) {

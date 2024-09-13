@@ -1,6 +1,4 @@
-// TODO: idea: put all related resources/events/systems into their own plugins like Infil, Exfil,
 // Raid and declare a Raid PluginGroup that is added to the main.rs
-// TODO: basic timelimited raid
 
 use bevy::{
     math::bounding::Aabb3d,
