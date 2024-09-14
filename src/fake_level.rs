@@ -3,15 +3,12 @@
 //  * transfer from state from one appstate to another: active dute layout -> ...load in -> raid
 use crate::damage::HurtBox;
 use crate::exfil::{ExfilArea, Operator};
-use crate::first_person_controller::FirstPersonCamera;
 use crate::inventory::{Inventory, ItemSlots, WeaponSlots};
 use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
 use crate::raid::Enemy;
 use crate::AppState;
 use crate::AppState::Raid;
-use bevy::math::bounding::{Aabb3d, RayCast3d};
 use bevy::prelude::*;
-use bevy::render::primitives::{Aabb, Frustum};
 
 // Plugin
 pub struct FakeLevelPlugin;
@@ -25,7 +22,6 @@ impl Plugin for FakeLevelPlugin {
                     update_fake_level,
                     add_inventory_to_operators,
                     fixup_prototype_textures,
-                    probe_interact_volumes,
                 )
                     .run_if(in_state(AppState::Raid)),
             )
@@ -185,7 +181,7 @@ fn start_fake_level(
                 base_color: Color::GREEN,
                 ..Default::default()
             }),
-            transform: Transform::from_xyz(5.0, 0.1, -2.0),
+            transform: Transform::from_xyz(5.0, 1.1, -2.0),
             ..default()
         })
         .insert(Name::new("Loot1"))
@@ -207,7 +203,7 @@ fn start_fake_level(
                 base_color_texture: Some(texture_01.clone()),
                 ..Default::default()
             }),
-            transform: Transform::from_xyz(4.0, 0.1, -2.0),
+            transform: Transform::from_xyz(4.0, 1.1, -2.0),
             ..default()
         })
         .insert(Name::new("Loot2"))
@@ -328,44 +324,12 @@ fn add_inventory_to_operators(
     }
 }
 
-fn probe_interact_volumes(
-    interact_probe: Query<(&Frustum, &GlobalTransform), With<FirstPersonCamera>>,
-    aabbs: Query<(&Aabb, &GlobalTransform, &Name), With<Loot>>,
-    mut gizmos: Gizmos,
-) {
-    let probe = interact_probe.single();
-    debug!("probe_results:-----------");
-    aabbs
-        .iter()
-        // check if loot are in camera or not
-        .filter(|aabb| probe.0.intersects_obb(aabb.0, &aabb.1.affine(), true, true))
-        .for_each(|aabb| {
-            debug!("probe_result: {}", aabb.2);
-            let looking_at_direction = probe.0.half_spaces[4].normal();
-            let position = probe.1.translation();
-            let r = RayCast3d::new(
-                position,
-                Direction3d::new(looking_at_direction.into()).unwrap(),
-                2.0,
-            );
-            let aabb3d = Aabb3d::new(aabb.1.translation(), aabb.0.half_extents.into());
-            let intersects = r.aabb_intersection_at(&aabb3d);
-            if let Some(_) = intersects {
-                debug!("im allowed to pick {} up", aabb.2);
-                gizmos.cuboid(
-                    Transform::from_translation(aabb.1.translation()).with_scale(Vec3::splat(0.25)),
-                    Color::GOLD,
-                );
-            }
-        })
-}
-
 // renders some fake level exclusive gizmos
 fn update_fake_level(
     mut gizmos: Gizmos,
     images: ResMut<Assets<Image>>,
     query: Query<&GlobalTransform, With<Enemy>>,
-    loot_query: Query<&GlobalTransform, With<Loot>>,
+    //loot_query: Query<&GlobalTransform, With<Loot>>,
 ) {
     debug!("updating fake level");
     images.iter().for_each(|i| {
@@ -378,23 +342,28 @@ fn update_fake_level(
             Color::RED,
         );
     }
+    // renders correctly at the cubes, but ...
+    // FIXME: produces strange artifacts at the center of the screen
+    // seems like the gizmos are rendered again at the far end of frustum
+    /*
     for global_transform in loot_query.iter() {
         gizmos.ray(
             global_transform.translation(),
-            Vec3::new(0.5, 0.0, 0.0),
+            Vec3::new(0.3, 0.0, 0.0),
             Color::RED,
         );
         gizmos.ray(
             global_transform.translation(),
-            Vec3::new(0.0, 0.5, 0.0),
+            Vec3::new(0.0, 0.3, 0.0),
             Color::GREEN,
         );
         gizmos.ray(
             global_transform.translation(),
-            Vec3::new(0.0, 0.0, 0.5),
+            Vec3::new(0.0, 0.0, 0.3),
             Color::BLUE,
         );
     }
+     */
 }
 
 fn bye_fake_level(mut commands: Commands, query: Query<Entity, With<FakeLevelStuff>>) {

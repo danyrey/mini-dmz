@@ -1,5 +1,8 @@
 use bevy::app::Plugin;
+use bevy::math::bounding::{Aabb3d, RayCast3d};
+use bevy::render::primitives::{Aabb, Frustum};
 
+use crate::first_person_controller::FirstPersonCamera;
 use crate::inventory::{DropLoot, ItemSlot, ItemSlots, StowLoot, WeaponSlot, WeaponSlots};
 use crate::loot::{Loot, LootType};
 use crate::AppState::Raid;
@@ -27,23 +30,53 @@ impl Plugin for InventoryTestingPlugin {
 
 #[allow(clippy::type_complexity)]
 fn stowing(
-    key_input: Res<ButtonInput<KeyCode>>,
-    inventory_query: Query<Entity, With<ItemSlots>>,
-    loot_query: Query<(Entity, &LootType), (With<Loot>, Without<ItemSlot>)>, // TODO?: weapons
+    interact_probe: Query<(&Frustum, &GlobalTransform), With<FirstPersonCamera>>,
+    loot_query: Query<(&Aabb, &GlobalTransform, &Name, Entity, &LootType), With<Loot>>,
+    mut gizmos: Gizmos,
     mut stow_command: EventWriter<StowLoot>,
+    key_input: Res<ButtonInput<KeyCode>>,
+    inventory_query: Query<Entity, (With<ItemSlots>, With<Parent>)>,
 ) {
-    debug!("stowing {}", NAME);
+    let probe = interact_probe.single();
+    debug!("probe_results:-----------");
+    let mut closest: Vec<(f32, Entity, &LootType)> = loot_query
+        .iter()
+        // check if loot are in camera or not
+        .filter(|loot| probe.0.intersects_obb(loot.0, &loot.1.affine(), true, true))
+        .filter_map(|loot| {
+            debug!("probe_result: {}", loot.2);
+            let looking_at_direction = probe.0.half_spaces[4].normal();
+            let position = probe.1.translation();
+            let r = RayCast3d::new(
+                position,
+                Direction3d::new(looking_at_direction.into()).unwrap(),
+                2.0,
+            );
+            let aabb3d = Aabb3d::new(loot.1.translation(), loot.0.half_extents.into());
+            let intersects = r.aabb_intersection_at(&aabb3d);
+            if let Some(distance) = intersects {
+                debug!("im allowed to pick {} up. distance: {}", loot.2, distance);
+                gizmos.cuboid(
+                    Transform::from_translation(loot.1.translation()).with_scale(Vec3::splat(0.25)),
+                    Color::GOLD,
+                );
+            }
+            intersects.map(|f| (f, loot.3, loot.4))
+        })
+        .collect();
 
+    closest.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+
+    let first = closest.first();
+    debug!("the closest one is: {:?}", first);
     if let Ok(stowing_entity) = inventory_query.get_single() {
-        debug!("have inventory");
-        if let Some((loot, loot_type)) = (&loot_query).into_iter().next() {
-            debug!("have loot");
+        if let Some((_, loot, loot_type)) = first {
             if key_input.just_released(KeyCode::KeyF) {
                 debug!("stowing inventory ...");
                 stow_command.send(StowLoot {
                     stowing_entity,
-                    loot,
-                    loot_type: loot_type.clone(),
+                    loot: *loot,
+                    loot_type: (*loot_type).clone(),
                 });
             }
         }
@@ -52,8 +85,8 @@ fn stowing(
 
 fn dropping(
     key_input: Res<ButtonInput<KeyCode>>,
-    inventory_with_items_query: Query<Entity, With<ItemSlots>>,
-    inventory_with_weapons_query: Query<Entity, With<WeaponSlots>>,
+    inventory_with_items_query: Query<Entity, (With<ItemSlots>, With<Parent>)>,
+    inventory_with_weapons_query: Query<Entity, (With<WeaponSlots>, With<Parent>)>,
     inventory_items_query: Query<Entity, (With<Loot>, With<ItemSlot>)>,
     inventory_weapons_query: Query<Entity, (With<Loot>, With<WeaponSlot>)>,
     mut drop_command: EventWriter<DropLoot>,
