@@ -16,7 +16,7 @@ pub struct FakeLevelPlugin;
 
 impl Plugin for FakeLevelPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Raid), start_fake_level)
+        app.add_systems(OnEnter(Raid), (start_fake_level, start_fake_level_ui))
             .add_systems(
                 Update,
                 (
@@ -293,6 +293,28 @@ fn start_fake_level(
         })
         .insert(Name::new("PointyLight"))
         .insert(FakeLevelStuff);
+}
+
+fn start_fake_level_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
+    // ui
+    commands
+        .spawn(NodeBundle {
+            // FIXME: this does not do shit when it comes to level geometry, its just rendered behind
+            z_index: ZIndex::Global(1),
+            style: Style {
+                position_type: PositionType::Absolute,
+                ..default()
+            },
+            ..default()
+        })
+        .insert(Name::new("Crosshair POC"))
+        .with_children(|parent| {
+            parent.spawn(SpriteBundle {
+                texture: asset_server.load("textures/crosshair.png"),
+                //sprite: Sprite { ..default() },
+                ..default()
+            });
+        });
 }
 
 /// semi init procedure: add inventory cube to Operator entities.
