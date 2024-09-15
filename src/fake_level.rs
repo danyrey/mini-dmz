@@ -9,6 +9,7 @@ use crate::raid::Enemy;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
+use bevy::window::{CursorGrabMode, PrimaryWindow};
 
 // Plugin
 pub struct FakeLevelPlugin;
@@ -22,6 +23,7 @@ impl Plugin for FakeLevelPlugin {
                     update_fake_level,
                     add_inventory_to_operators,
                     fixup_prototype_textures,
+                    manage_cursor,
                 )
                     .run_if(in_state(AppState::Raid)),
             )
@@ -364,6 +366,30 @@ fn update_fake_level(
         );
     }
      */
+}
+
+/// system to toggle cursor behaviors
+fn manage_cursor(
+    mut windows: Query<&mut Window, With<PrimaryWindow>>,
+    key_input: Res<ButtonInput<KeyCode>>,
+) {
+    let mut primary_window = windows.single_mut();
+
+    if key_input.pressed(KeyCode::F9) {
+        primary_window.cursor.visible = false;
+    }
+
+    if key_input.pressed(KeyCode::F10) {
+        primary_window.cursor.visible = true;
+    }
+
+    if key_input.pressed(KeyCode::F11) {
+        primary_window.cursor.grab_mode = CursorGrabMode::Confined;
+    }
+
+    if key_input.pressed(KeyCode::F12) {
+        primary_window.cursor.grab_mode = CursorGrabMode::None;
+    }
 }
 
 fn bye_fake_level(mut commands: Commands, query: Query<Entity, With<FakeLevelStuff>>) {
