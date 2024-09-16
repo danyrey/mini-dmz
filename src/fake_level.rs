@@ -9,6 +9,10 @@ use crate::raid::Enemy;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
+use bevy::render::mesh::VertexAttributeValues;
+use bevy::render::texture::{
+    ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor,
+};
 use bevy::window::{CursorGrabMode, PrimaryWindow};
 
 // Plugin
@@ -16,15 +20,10 @@ pub struct FakeLevelPlugin;
 
 impl Plugin for FakeLevelPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Raid), (start_fake_level, start_fake_level_ui))
+        app.add_systems(OnEnter(Raid), (start_fake_level_ui, start_fake_level))
             .add_systems(
                 Update,
-                (
-                    update_fake_level,
-                    add_inventory_to_operators,
-                    fixup_prototype_textures,
-                    manage_cursor,
-                )
+                (update_fake_level, add_inventory_to_operators, manage_cursor)
                     .run_if(in_state(AppState::Raid)),
             )
             .add_systems(OnExit(AppState::Raid), bye_fake_level);
@@ -44,24 +43,6 @@ struct PrototypeTextures {
 // Events
 
 // Systems
-fn fixup_prototype_textures(
-    mut ev_asset: EventReader<AssetEvent<Image>>,
-    mut images: ResMut<Assets<Image>>,
-    proto_imgs: Res<PrototypeTextures>,
-) {
-    // TODO
-    for ev in ev_asset.read() {
-        if let AssetEvent::LoadedWithDependencies { id } = ev {
-            // image is prototype texture
-            if *id == proto_imgs.texture_01.id() {
-                // image loaded, so unwrap should be ok
-                let image = images.get_mut(*id).unwrap();
-                debug!("image size: {}", image.size());
-                // TODO: rescale here???
-            }
-        }
-    }
-}
 fn start_fake_level(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -69,18 +50,37 @@ fn start_fake_level(
     asset_server: Res<AssetServer>,
 ) {
     debug!("starting fake level");
-    let texture_01 = asset_server.load("textures/prototype/Dark/texture_01.png");
+
+    let texture_01 =
+        asset_server.load_with_settings("textures/prototype/Dark/texture_01.png", |s: &mut _| {
+            *s = ImageLoaderSettings {
+                sampler: ImageSampler::Descriptor(ImageSamplerDescriptor {
+                    // rewriting mode to repeat image,
+                    address_mode_u: ImageAddressMode::Repeat,
+                    address_mode_v: ImageAddressMode::Repeat,
+                    ..default()
+                }),
+                ..default()
+            }
+        });
+
     commands.insert_resource(PrototypeTextures {
         texture_01: texture_01.clone(),
     });
 
     // circular base
+    let disc_size = 8.0;
+    let disc = meshes.add(Circle::new(disc_size));
+    let mesh = meshes.get_mut(&disc).unwrap();
+    scale_uv(mesh, disc_size, disc_size);
+
     commands
         .spawn(PbrBundle {
-            mesh: meshes.add(Circle::new(8.0)),
+            mesh: disc,
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(texture_01.clone()),
                 base_color: Color::WHITE,
+                //uv_transform: Affine2::from_scale(Vec2::new(2., 3.)), // looks like a 14.0 feature
                 ..Default::default()
             }),
             transform: Transform::from_rotation(Quat::from_rotation_x(
@@ -99,7 +99,7 @@ fn start_fake_level(
                 base_color: Color::GOLD,
                 ..Default::default()
             }),
-            transform: Transform::from_xyz(20.0, 0.5, 0.0),
+            transform: Transform::from_xyz(2.0, 0.5, 2.0),
             ..default()
         })
         .insert(ExfilArea(String::from("Exfil1")))
@@ -133,9 +133,20 @@ fn start_fake_level(
         }))
         .insert(FakeLevelStuff);
     // enemy cube 1
+
+    let enemy_cube_size_x = 0.5;
+    let enemy_cube_size_y = 2.0;
+    let enemy_cube = meshes.add(Cuboid::new(
+        enemy_cube_size_x,
+        enemy_cube_size_y,
+        enemy_cube_size_x,
+    ));
+    let enemy_mesh = meshes.get_mut(&enemy_cube).unwrap();
+    scale_uv(enemy_mesh, enemy_cube_size_x, enemy_cube_size_y);
+
     commands
         .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(0.5, 2.0, 0.5)),
+            mesh: enemy_cube,
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(texture_01.clone()),
                 base_color: Color::RED,
@@ -175,9 +186,15 @@ fn start_fake_level(
         .insert(Name::new("Enemy2"))
         .insert(FakeLevelStuff);
     // loot cube 1
+
+    let loot_cube_size = 0.2;
+    let loot_cube = meshes.add(Cuboid::new(loot_cube_size, loot_cube_size, loot_cube_size));
+    let loot_mesh = meshes.get_mut(&loot_cube).unwrap();
+    scale_uv(loot_mesh, loot_cube_size, loot_cube_size);
+
     commands
         .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(0.2, 0.2, 0.2)),
+            mesh: loot_cube.clone(),
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(texture_01.clone()),
                 base_color: Color::GREEN,
@@ -199,7 +216,7 @@ fn start_fake_level(
     // loot cube 2
     commands
         .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(0.2, 0.2, 0.2)),
+            mesh: loot_cube.clone(),
             material: materials.add(StandardMaterial {
                 base_color: Color::GREEN,
                 base_color_texture: Some(texture_01.clone()),
@@ -218,7 +235,7 @@ fn start_fake_level(
     // loot cube 3
     commands
         .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(0.2, 0.2, 0.2)),
+            mesh: loot_cube.clone(),
             material: materials.add(StandardMaterial {
                 base_color: Color::DARK_GREEN,
                 base_color_texture: Some(texture_01.clone()),
@@ -235,7 +252,7 @@ fn start_fake_level(
     // loot cube 4
     commands
         .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(0.2, 0.2, 0.2)),
+            mesh: loot_cube.clone(),
             material: materials.add(StandardMaterial {
                 base_color: Color::GREEN,
                 base_color_texture: Some(texture_01.clone()),
@@ -301,6 +318,7 @@ fn start_fake_level_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
         .spawn(NodeBundle {
             // FIXME: this does not do shit when it comes to level geometry, its just rendered behind
             z_index: ZIndex::Global(1),
+            transform: Transform::from_xyz(0.0, 0.0, 10.0),
             style: Style {
                 position_type: PositionType::Absolute,
                 ..default()
@@ -311,7 +329,10 @@ fn start_fake_level_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
         .with_children(|parent| {
             parent.spawn(SpriteBundle {
                 texture: asset_server.load("textures/crosshair.png"),
-                //sprite: Sprite { ..default() },
+                sprite: Sprite {
+                    custom_size: Some(Vec2 { x: 18.0, y: 18.0 }),
+                    ..default()
+                },
                 ..default()
             });
         });
@@ -418,5 +439,22 @@ fn bye_fake_level(mut commands: Commands, query: Query<Entity, With<FakeLevelStu
     debug!("stopping fake level");
     for entity in &query {
         commands.entity(entity).despawn_recursive();
+    }
+}
+
+fn scale_uv(mesh: &mut Mesh, u_scale: f32, v_scale: f32) {
+    let uv_m = mesh.attribute_mut(Mesh::ATTRIBUTE_UV_0);
+
+    if let Some(uvs) = uv_m {
+        match uvs {
+            VertexAttributeValues::Float32x2(values) => {
+                for uv in values.iter_mut() {
+                    uv[0] *= u_scale;
+                    uv[1] *= v_scale;
+                }
+            }
+            _ => (),
+        };
+        debug!("uvs: {:?}", uvs);
     }
 }

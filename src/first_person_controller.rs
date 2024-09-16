@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use bevy::{app::Plugin, input::mouse::MouseMotion};
+use bevy::{app::Plugin, input::mouse::MouseMotion, transform};
 
 use crate::exfil::Operator;
 use crate::raid::Volume;
@@ -30,6 +30,7 @@ impl Plugin for FirstPersonControllerPlugin {
                     update_camera_move,
                     update_camera_look_yaw,
                     update_camera_look_pitch,
+                    debug_im_crosshair,
                 )
                     .run_if(in_state(AppState::Raid)),
             )
@@ -220,6 +221,26 @@ fn update_camera_look_pitch(
             }
         }
     }
+}
+
+fn debug_im_crosshair(
+    mut _gizmos: Gizmos,
+    _camera_query: Query<(&Parent, &mut GlobalTransform), With<FirstPersonCamera>>,
+) {
+    /*
+        for transform in camera_query.iter() {
+            gizmos.ray(
+                transform.1.translation() + Vec3::new(-0.1, 0.0, -0.5),
+                Vec3::new(0.2, 0.0, 0.0),
+                Color::RED,
+            );
+            gizmos.ray(
+                transform.1.translation() + Vec3::new(0.0, -0.1, -0.5),
+                Vec3::new(0.0, 0.2, 0.0),
+                Color::RED,
+            );
+        }
+    */
 }
 
 fn bye_first_person_controller_system(
