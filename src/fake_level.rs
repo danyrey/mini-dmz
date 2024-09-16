@@ -34,6 +34,9 @@ impl Plugin for FakeLevelPlugin {
 #[derive(Component)]
 struct FakeLevelStuff;
 
+#[derive(Component)]
+struct Crosshair;
+
 // Resources
 #[derive(Resource)]
 struct PrototypeTextures {
@@ -86,7 +89,7 @@ fn start_fake_level(
     let disc_size = 8.0;
     let disc = meshes.add(Circle::new(disc_size));
     let mesh = meshes.get_mut(&disc).unwrap();
-    scale_uv(mesh, disc_size, disc_size);
+    scale_uv(mesh, 2.0 * disc_size, 2.0 * disc_size);
 
     commands
         .spawn(PbrBundle {
@@ -347,9 +350,12 @@ fn start_fake_level_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
                 position_type: PositionType::Absolute,
                 ..default()
             },
+            visibility: Visibility::Hidden,
             ..default()
         })
         .insert(Name::new("Crosshair POC"))
+        .insert(FakeLevelStuff)
+        .insert(Crosshair)
         .with_children(|parent| {
             parent.spawn(SpriteBundle {
                 texture: asset_server.load("textures/crosshair.png"),
@@ -437,17 +443,22 @@ fn update_fake_level(
 
 /// system to toggle cursor behaviors
 fn manage_cursor(
+    mut commands: Commands,
     mut windows: Query<&mut Window, With<PrimaryWindow>>,
     key_input: Res<ButtonInput<KeyCode>>,
+    crosshair: Query<Entity, With<Crosshair>>,
 ) {
     let mut primary_window = windows.single_mut();
+    let crosshair_vis = crosshair.single();
 
     if key_input.pressed(KeyCode::F9) {
         primary_window.cursor.visible = false;
+        commands.entity(crosshair_vis).insert(Visibility::Visible);
     }
 
     if key_input.pressed(KeyCode::F10) {
         primary_window.cursor.visible = true;
+        commands.entity(crosshair_vis).insert(Visibility::Hidden);
     }
 
     if key_input.pressed(KeyCode::F11) {
