@@ -447,18 +447,22 @@ fn manage_cursor(
     mut windows: Query<&mut Window, With<PrimaryWindow>>,
     key_input: Res<ButtonInput<KeyCode>>,
     crosshair: Query<Entity, With<Crosshair>>,
+    mut ui_camera: Query<&mut Camera, With<Camera2d>>,
 ) {
     let mut primary_window = windows.single_mut();
     let crosshair_vis = crosshair.single();
+    let mut ui_cam = ui_camera.single_mut();
 
     if key_input.pressed(KeyCode::F9) {
         primary_window.cursor.visible = false;
         commands.entity(crosshair_vis).insert(Visibility::Visible);
+        ui_cam.order = 1;
     }
 
     if key_input.pressed(KeyCode::F10) {
         primary_window.cursor.visible = true;
         commands.entity(crosshair_vis).insert(Visibility::Hidden);
+        ui_cam.order = 0;
     }
 
     if key_input.pressed(KeyCode::F11) {
