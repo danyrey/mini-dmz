@@ -38,6 +38,7 @@ struct FakeLevelStuff;
 #[derive(Resource)]
 struct PrototypeTextures {
     texture_01: Handle<Image>,
+    texture_06: Handle<Image>,
 }
 
 // Events
@@ -63,9 +64,22 @@ fn start_fake_level(
                 ..default()
             }
         });
+    let texture_06 =
+        asset_server.load_with_settings("textures/prototype/Light/texture_06.png", |s: &mut _| {
+            *s = ImageLoaderSettings {
+                sampler: ImageSampler::Descriptor(ImageSamplerDescriptor {
+                    // rewriting mode to repeat image,
+                    address_mode_u: ImageAddressMode::Repeat,
+                    address_mode_v: ImageAddressMode::Repeat,
+                    ..default()
+                }),
+                ..default()
+            }
+        });
 
     commands.insert_resource(PrototypeTextures {
         texture_01: texture_01.clone(),
+        texture_06: texture_06.clone(),
     });
 
     // circular base
@@ -78,7 +92,7 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: disc,
             material: materials.add(StandardMaterial {
-                base_color_texture: Some(texture_01.clone()),
+                base_color_texture: Some(texture_06.clone()),
                 base_color: Color::WHITE,
                 //uv_transform: Affine2::from_scale(Vec2::new(2., 3.)), // looks like a 14.0 feature
                 ..Default::default()
@@ -95,7 +109,7 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
             material: materials.add(StandardMaterial {
-                base_color_texture: Some(texture_01.clone()),
+                base_color_texture: Some(texture_06.clone()),
                 base_color: Color::GOLD,
                 ..Default::default()
             }),
@@ -110,25 +124,25 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
             material: materials.add(StandardMaterial {
-                base_color_texture: Some(texture_01.clone()),
+                base_color_texture: Some(texture_06.clone()),
                 base_color: Color::GOLD,
                 ..Default::default()
             }),
-            transform: Transform::from_xyz(10.0, 0.5, 10.0),
+            transform: Transform::from_xyz(4.0, 0.5, 5.0),
             ..default()
         })
         .insert(ExfilArea(String::from("Exfil2")))
         .insert(Name::new("Exfil2"))
         .insert(HurtBox(bevy::math::bounding::Aabb3d {
             min: Vec3 {
-                x: 10.0,
+                x: 4.0,
                 y: 0.5,
-                z: 10.0,
+                z: 5.0,
             },
             max: Vec3 {
-                x: 11.0,
+                x: 5.0,
                 y: 0.5,
-                z: 11.0,
+                z: 6.0,
             },
         }))
         .insert(FakeLevelStuff);
@@ -148,7 +162,7 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: enemy_cube,
             material: materials.add(StandardMaterial {
-                base_color_texture: Some(texture_01.clone()),
+                base_color_texture: Some(texture_06.clone()),
                 base_color: Color::RED,
                 ..Default::default()
             }),
@@ -171,15 +185,25 @@ fn start_fake_level(
         }))
         .insert(FakeLevelStuff);
     // enemy 2 capsule
+    let capsule_height = 1.50;
+    let capsule_radius = 0.25;
+    let capsule = meshes.add(Capsule3d::new(capsule_radius, capsule_height));
+    let cap_mesh = meshes.get_mut(&capsule).unwrap();
+    scale_uv(
+        cap_mesh,
+        6.0 * capsule_radius,
+        capsule_height + (2.0 * capsule_radius),
+    );
+
     commands
         .spawn(PbrBundle {
-            mesh: meshes.add(Capsule3d::new(0.25, 1.5)),
+            mesh: capsule,
             material: materials.add(StandardMaterial {
-                base_color_texture: Some(texture_01.clone()),
+                base_color_texture: Some(texture_06.clone()),
                 base_color: Color::ORANGE_RED,
                 ..Default::default()
             }),
-            transform: Transform::from_xyz(6.0, 1.0, 6.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
+            transform: Transform::from_xyz(3.5, 1.0, 5.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
             ..default()
         })
         .insert(Enemy)
@@ -196,7 +220,7 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: loot_cube.clone(),
             material: materials.add(StandardMaterial {
-                base_color_texture: Some(texture_01.clone()),
+                base_color_texture: Some(texture_06.clone()),
                 base_color: Color::GREEN,
                 ..Default::default()
             }),
@@ -219,7 +243,7 @@ fn start_fake_level(
             mesh: loot_cube.clone(),
             material: materials.add(StandardMaterial {
                 base_color: Color::GREEN,
-                base_color_texture: Some(texture_01.clone()),
+                base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(4.0, 1.1, -2.0),
@@ -238,7 +262,7 @@ fn start_fake_level(
             mesh: loot_cube.clone(),
             material: materials.add(StandardMaterial {
                 base_color: Color::DARK_GREEN,
-                base_color_texture: Some(texture_01.clone()),
+                base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(3.0, 0.1, -2.0),
@@ -255,7 +279,7 @@ fn start_fake_level(
             mesh: loot_cube.clone(),
             material: materials.add(StandardMaterial {
                 base_color: Color::GREEN,
-                base_color_texture: Some(texture_01.clone()),
+                base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(2.0, 0.1, -2.0),
@@ -271,7 +295,7 @@ fn start_fake_level(
             mesh: meshes.add(Cuboid::new(0.3, 0.3, 0.5)),
             material: materials.add(StandardMaterial {
                 base_color: Color::ALICE_BLUE,
-                base_color_texture: Some(texture_01.clone()),
+                base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(-4.0, 0.15, -4.0),
@@ -287,7 +311,7 @@ fn start_fake_level(
             mesh: meshes.add(Cuboid::new(0.4, 2.0, 1.0)),
             material: materials.add(StandardMaterial {
                 base_color: Color::ALICE_BLUE,
-                base_color_texture: Some(texture_01.clone()),
+                base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(-4.0, 1.0, -2.0),
