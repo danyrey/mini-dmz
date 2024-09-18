@@ -20,6 +20,7 @@ use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
 use mission_objective_screen::MissionObjectivesScreenPlugin;
 use out_of_bounds::OutOfBoundsPlugin;
 use raid::RaidPlugin;
+use raid_summary::RaidSummaryPlugin;
 use start_screen::StartScreenPlugin;
 use template_plugin::TemplatePlugin;
 
@@ -46,6 +47,7 @@ mod matchmake;
 mod mission_objective_screen;
 mod out_of_bounds;
 mod raid;
+mod raid_summary;
 mod start_screen;
 mod template_plugin;
 
@@ -121,6 +123,7 @@ fn main() {
             LootPlugin,
             CachePlugin,
             InventoryPlugin,
+            RaidSummaryPlugin,
             InventoryTestingPlugin,
         ))
         .init_state::<AppState>()

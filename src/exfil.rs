@@ -7,6 +7,11 @@ use crate::{
 
 // Events
 
+#[derive(Event)]
+pub struct ExfilSpawned {
+    pub exfil_entity: Entity,
+}
+
 // trigger for showing the prompt
 #[derive(Event)]
 pub struct ExfilAreaEntered {
@@ -33,8 +38,60 @@ pub struct ExfilAreaExited {
 // ExfilTakeOffHovered
 // ExfilClimbed
 // ExfilCruised
-// ExfilExfilled
 // ExfilCooldownComplete // after x amount of time smoke and prompt show up again
+
+// TODO: how to introduce the timers for each transition
+/// enum for the exfil procedure state machine
+#[derive(Default, Debug, PartialEq, Clone, Copy)]
+pub enum ExfilState {
+    #[default]
+    Available,
+    Calling,
+    EnteringAO,
+    Spawning,
+    Approaching,
+    Descending,
+    LandingHovering,
+    TouchingDown,
+    BoardingHold,
+    TakingOff,
+    Climbing,
+    Cruising,
+    CoolingDown,
+}
+
+trait ExfilStateMachine {
+    fn next(&mut self) -> ExfilState;
+}
+
+#[derive(Default)]
+struct Exfil {
+    current_state: ExfilState,
+}
+
+impl ExfilStateMachine for Exfil {
+    fn next(&mut self) -> ExfilState {
+        self.current_state = match self.current_state {
+            ExfilState::Available => ExfilState::Calling,
+            ExfilState::Calling => ExfilState::EnteringAO,
+            ExfilState::EnteringAO => ExfilState::Spawning,
+            ExfilState::Spawning => ExfilState::Approaching,
+            ExfilState::Approaching => ExfilState::Descending,
+            ExfilState::Descending => ExfilState::LandingHovering,
+            ExfilState::LandingHovering => ExfilState::TouchingDown,
+            ExfilState::TouchingDown => ExfilState::BoardingHold,
+            ExfilState::BoardingHold => ExfilState::TakingOff,
+            ExfilState::TakingOff => ExfilState::Climbing,
+            ExfilState::Climbing => ExfilState::Cruising,
+            ExfilState::Cruising => ExfilState::CoolingDown,
+            ExfilState::CoolingDown => ExfilState::Available,
+        };
+        self.current_state
+    }
+}
+
+#[derive(Event)]
+pub struct ExfilExitedAO;
 
 // Resources
 
@@ -60,6 +117,7 @@ impl Plugin for ExfilPlugin {
                 Update,
                 (
                     update_exfil,
+                    exfil_created,
                     exfil_area_collision_detection,
                     exfil_area_entered,
                     exfil_area_exited,
@@ -67,8 +125,10 @@ impl Plugin for ExfilPlugin {
                     .run_if(in_state(Raid)),
             )
             .add_systems(OnExit(Raid), bye_exfil)
+            .add_event::<ExfilSpawned>()
             .add_event::<ExfilAreaEntered>()
-            .add_event::<ExfilAreaExited>();
+            .add_event::<ExfilAreaExited>()
+            .add_event::<ExfilExitedAO>();
     }
 }
 
@@ -141,6 +201,17 @@ fn start_exfil(mut commands: Commands) {
         .insert(ExfilButton);
 }
 
+fn exfil_created(
+    query: Query<Entity, Added<ExfilArea>>,
+    mut exfil_spawn: EventWriter<ExfilSpawned>,
+) {
+    for entity in query.iter() {
+        exfil_spawn.send(ExfilSpawned {
+            exfil_entity: entity,
+        });
+    }
+}
+
 #[allow(clippy::type_complexity)]
 fn update_exfil(
     mut next_state: ResMut<NextState<AppState>>,
@@ -148,6 +219,7 @@ fn update_exfil(
         (&Interaction, &mut BackgroundColor, &ButtonTargetState),
         (Changed<Interaction>, With<Button>),
     >,
+    mut exited_ao: EventWriter<ExfilExitedAO>,
 ) {
     debug!("updating exfil called");
     for (interaction, mut color, target_state) in &mut interaction_query {
@@ -155,6 +227,8 @@ fn update_exfil(
             Interaction::Pressed => {
                 debug!("button pressed, target_state: {:?}", target_state);
                 *color = PRESSED_BUTTON.into();
+                exited_ao.send(ExfilExitedAO); // FIXME: known bug since we change appstate right
+                                               // after: listener might not pick up the event. random chance
                 next_state.set(target_state.0.clone());
             }
             Interaction::Hovered => {
@@ -261,5 +335,51 @@ fn exfil_area_collision_detection(
                 exfil_area: component.0.clone(),
             });
         }
+    }
+}
+
+// tests
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+
+    #[test]
+    fn should_exfil() {
+        // given
+        let mut exfil = Exfil::default();
+
+        // when & then
+        assert_eq!(ExfilState::Available, exfil.current_state);
+        assert_eq!(ExfilState::Calling, exfil.next());
+        assert_eq!(ExfilState::Calling, exfil.current_state);
+        assert_eq!(ExfilState::EnteringAO, exfil.next());
+        assert_eq!(ExfilState::EnteringAO, exfil.current_state);
+        assert_eq!(ExfilState::Spawning, exfil.next());
+        assert_eq!(ExfilState::Spawning, exfil.current_state);
+        assert_eq!(ExfilState::Approaching, exfil.next());
+        assert_eq!(ExfilState::Approaching, exfil.current_state);
+        assert_eq!(ExfilState::Descending, exfil.next());
+        assert_eq!(ExfilState::Descending, exfil.current_state);
+        assert_eq!(ExfilState::LandingHovering, exfil.next());
+        assert_eq!(ExfilState::LandingHovering, exfil.current_state);
+        assert_eq!(ExfilState::TouchingDown, exfil.next());
+        assert_eq!(ExfilState::TouchingDown, exfil.current_state);
+        assert_eq!(ExfilState::BoardingHold, exfil.next());
+        assert_eq!(ExfilState::BoardingHold, exfil.current_state);
+        assert_eq!(ExfilState::TakingOff, exfil.next());
+        assert_eq!(ExfilState::TakingOff, exfil.current_state);
+        assert_eq!(ExfilState::Climbing, exfil.next());
+        assert_eq!(ExfilState::Climbing, exfil.current_state);
+        assert_eq!(ExfilState::Cruising, exfil.next());
+        assert_eq!(ExfilState::Cruising, exfil.current_state);
+        assert_eq!(ExfilState::CoolingDown, exfil.next());
+        assert_eq!(ExfilState::CoolingDown, exfil.current_state);
+        assert_eq!(ExfilState::Available, exfil.next());
+        assert_eq!(ExfilState::Available, exfil.current_state);
+
+        // then
+        //assert!(app.world.get::<Health>(entity).is_some());
+        //assert_eq!(app.world.get::<Health>(entity).unwrap().0, 90);
     }
 }

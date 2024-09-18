@@ -484,16 +484,10 @@ fn bye_fake_level(mut commands: Commands, query: Query<Entity, With<FakeLevelStu
 fn scale_uv(mesh: &mut Mesh, u_scale: f32, v_scale: f32) {
     let uv_m = mesh.attribute_mut(Mesh::ATTRIBUTE_UV_0);
 
-    if let Some(uvs) = uv_m {
-        match uvs {
-            VertexAttributeValues::Float32x2(values) => {
-                for uv in values.iter_mut() {
-                    uv[0] *= u_scale;
-                    uv[1] *= v_scale;
-                }
-            }
-            _ => (),
-        };
-        debug!("uvs: {:?}", uvs);
-    }
+    if let Some(VertexAttributeValues::Float32x2(values)) = uv_m {
+        for uv in values.iter_mut() {
+            uv[0] *= u_scale;
+            uv[1] *= v_scale;
+        }
+    };
 }
