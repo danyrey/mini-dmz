@@ -1,7 +1,10 @@
-use bevy::prelude::*;
+use std::time::Duration;
+
+use bevy::{prelude::*, utils::HashMap};
+use bevy_inspector_egui::prelude::*;
 
 use crate::{
-    AppState::{self, Raid, StartScreen},
+    AppState::{Raid, StartScreen},
     ButtonTargetState,
 };
 
@@ -9,14 +12,28 @@ use crate::{
 
 #[derive(Event)]
 pub struct ExfilSpawned {
+    #[allow(dead_code)] // not in use yet, can be used for starting particle system
     pub exfil_entity: Entity,
 }
 
-// trigger for showing the prompt
+trait OriginState {
+    const ORIGIN_STATE: ExfilState;
+}
+
+#[derive(Event)]
+pub struct ExfilCalled {
+    pub exfil_entity: Entity,
+}
+
+impl OriginState for ExfilCalled {
+    const ORIGIN_STATE: ExfilState = ExfilState::Available;
+}
+
+/// trigger for showing the prompt
 #[derive(Event)]
 pub struct ExfilAreaEntered {
     pub operator_entity: Entity,
-    pub exfil_area: ExfilArea,
+    pub exfil_area: Entity,
 }
 
 // trigger for hiding the prompt again
@@ -24,6 +41,14 @@ pub struct ExfilAreaEntered {
 pub struct ExfilAreaExited {
     pub operator_entity: Entity,
     pub exfil_area: ExfilArea,
+}
+
+// Resources
+
+#[derive(Resource, Default, Reflect, InspectorOptions)]
+#[reflect(Resource, InspectorOptions)]
+struct Exfils {
+    map: HashMap<Entity, Exfil>,
 }
 
 // TODO: Potential events for Exfil procedure
@@ -42,50 +67,68 @@ pub struct ExfilAreaExited {
 
 // TODO: how to introduce the timers for each transition
 /// enum for the exfil procedure state machine
-#[derive(Default, Debug, PartialEq, Clone, Copy)]
+#[derive(Default, Debug, PartialEq, Clone, Copy, Reflect)]
 pub enum ExfilState {
     #[default]
     Available,
-    Calling,
-    EnteringAO,
-    Spawning,
-    Approaching,
-    Descending,
-    LandingHovering,
-    TouchingDown,
+    Called,
+    EnteredAO,
+    Spawned,
+    Approached,
+    Descended,
+    LandingHover,
+    TouchedDown,
     BoardingHold,
-    TakingOff,
-    Climbing,
-    Cruising,
-    CoolingDown,
+    TookOff,
+    Climbed,
+    Cruised,
+    Cooldown,
 }
 
 trait ExfilStateMachine {
     fn next(&mut self) -> ExfilState;
 }
 
-#[derive(Default)]
+#[derive(Default, Reflect)]
 struct Exfil {
     current_state: ExfilState,
+    current_timer: Timer,
 }
 
 impl ExfilStateMachine for Exfil {
     fn next(&mut self) -> ExfilState {
+        debug!("switching exfil state from {:?}", self.current_state);
         self.current_state = match self.current_state {
-            ExfilState::Available => ExfilState::Calling,
-            ExfilState::Calling => ExfilState::EnteringAO,
-            ExfilState::EnteringAO => ExfilState::Spawning,
-            ExfilState::Spawning => ExfilState::Approaching,
-            ExfilState::Approaching => ExfilState::Descending,
-            ExfilState::Descending => ExfilState::LandingHovering,
-            ExfilState::LandingHovering => ExfilState::TouchingDown,
-            ExfilState::TouchingDown => ExfilState::BoardingHold,
-            ExfilState::BoardingHold => ExfilState::TakingOff,
-            ExfilState::TakingOff => ExfilState::Climbing,
-            ExfilState::Climbing => ExfilState::Cruising,
-            ExfilState::Cruising => ExfilState::CoolingDown,
-            ExfilState::CoolingDown => ExfilState::Available,
+            ExfilState::Available => ExfilState::Called,
+            ExfilState::Called => ExfilState::EnteredAO,
+            ExfilState::EnteredAO => ExfilState::Spawned,
+            ExfilState::Spawned => ExfilState::Approached,
+            ExfilState::Approached => ExfilState::Descended,
+            ExfilState::Descended => ExfilState::LandingHover,
+            ExfilState::LandingHover => ExfilState::TouchedDown,
+            ExfilState::TouchedDown => ExfilState::BoardingHold,
+            ExfilState::BoardingHold => ExfilState::TookOff,
+            ExfilState::TookOff => ExfilState::Climbed,
+            ExfilState::Climbed => ExfilState::Cruised,
+            ExfilState::Cruised => ExfilState::Cooldown,
+            ExfilState::Cooldown => ExfilState::Available,
         };
+        self.current_timer = match self.current_state {
+            ExfilState::Available => Timer::new(Duration::from_secs(5), TimerMode::Once),
+            ExfilState::Called => Timer::new(Duration::from_secs(5), TimerMode::Once),
+            ExfilState::EnteredAO => Timer::new(Duration::from_secs(5), TimerMode::Once),
+            ExfilState::Spawned => Timer::new(Duration::from_secs(5), TimerMode::Once),
+            ExfilState::Approached => Timer::new(Duration::from_secs(5), TimerMode::Once),
+            ExfilState::Descended => Timer::new(Duration::from_secs(5), TimerMode::Once),
+            ExfilState::LandingHover => Timer::new(Duration::from_secs(5), TimerMode::Once),
+            ExfilState::TouchedDown => Timer::new(Duration::from_secs(5), TimerMode::Once),
+            ExfilState::BoardingHold => Timer::new(Duration::from_secs(5), TimerMode::Once),
+            ExfilState::TookOff => Timer::new(Duration::from_secs(5), TimerMode::Once),
+            ExfilState::Climbed => Timer::new(Duration::from_secs(5), TimerMode::Once),
+            ExfilState::Cruised => Timer::new(Duration::from_secs(5), TimerMode::Once),
+            ExfilState::Cooldown => Timer::new(Duration::from_secs(5), TimerMode::Once),
+        };
+        debug!("switching exfil state to {:?}", self.current_state);
         self.current_state
     }
 }
@@ -117,17 +160,23 @@ impl Plugin for ExfilPlugin {
                 Update,
                 (
                     update_exfil,
+                    progress_exfils,
                     exfil_created,
                     exfil_area_collision_detection,
                     exfil_area_entered,
                     exfil_area_exited,
+                    exfil_called,
                 )
                     .run_if(in_state(Raid)),
             )
             .add_systems(OnExit(Raid), bye_exfil)
-            .add_event::<ExfilSpawned>()
             .add_event::<ExfilAreaEntered>()
             .add_event::<ExfilAreaExited>()
+            .init_resource::<Exfils>()
+            .register_type::<Exfils>()
+            .register_type::<CurrentExfil>()
+            .add_event::<ExfilSpawned>()
+            .add_event::<ExfilCalled>()
             .add_event::<ExfilExitedAO>();
     }
 }
@@ -136,6 +185,10 @@ impl Plugin for ExfilPlugin {
 
 #[derive(Component, Clone, Debug, Default)]
 pub struct ExfilArea(pub String);
+
+#[derive(Component, Reflect, InspectorOptions)]
+#[reflect(Component, InspectorOptions)]
+pub struct CurrentExfil(pub Entity);
 
 #[derive(Component)]
 struct ExfilButton;
@@ -195,6 +248,10 @@ fn start_exfil(mut commands: Commands) {
         exfil_button_entity,
     });
 
+    commands.insert_resource(Exfils {
+        map: HashMap::new(),
+    });
+
     commands
         .entity(exfil_button_entity)
         .insert(Name::new("Exfil Button"))
@@ -204,32 +261,49 @@ fn start_exfil(mut commands: Commands) {
 fn exfil_created(
     query: Query<Entity, Added<ExfilArea>>,
     mut exfil_spawn: EventWriter<ExfilSpawned>,
+    mut exfil_map: ResMut<Exfils>,
 ) {
     for entity in query.iter() {
+        debug!("exfil was spawned");
+        exfil_map.map.insert(entity, Exfil::default());
         exfil_spawn.send(ExfilSpawned {
             exfil_entity: entity,
         });
     }
 }
 
+/// system that progresses all timers for all current exfils
+fn progress_exfils(mut exfils: ResMut<Exfils>, time: Res<Time>) {
+    for (entity, exfil) in exfils.map.iter_mut() {
+        exfil.current_timer.tick(time.delta());
+        if exfil.current_timer.just_finished() {
+            debug!("Exfil({:?}) timer just finished!", entity);
+            // TODO: emit event for state progression
+        } else if !exfil.current_timer.finished() {
+            debug!("Exfil({:?}) timer is at {:?}!", entity, exfil.current_timer);
+        }
+    }
+}
+
 #[allow(clippy::type_complexity)]
 fn update_exfil(
-    mut next_state: ResMut<NextState<AppState>>,
     mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor, &ButtonTargetState),
+        (&Interaction, &mut BackgroundColor, &Parent),
         (Changed<Interaction>, With<Button>),
     >,
-    mut exited_ao: EventWriter<ExfilExitedAO>,
+    exfil_button_query: Query<&CurrentExfil>,
+    mut called: EventWriter<ExfilCalled>,
 ) {
-    debug!("updating exfil called");
-    for (interaction, mut color, target_state) in &mut interaction_query {
+    for (interaction, mut color, parent) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
-                debug!("button pressed, target_state: {:?}", target_state);
                 *color = PRESSED_BUTTON.into();
-                exited_ao.send(ExfilExitedAO); // FIXME: known bug since we change appstate right
-                                               // after: listener might not pick up the event. random chance
-                next_state.set(target_state.0.clone());
+
+                if let Ok(exfil) = exfil_button_query.get(**parent) {
+                    called.send(ExfilCalled {
+                        exfil_entity: exfil.0,
+                    });
+                }
             }
             Interaction::Hovered => {
                 debug!("button hovered");
@@ -238,6 +312,21 @@ fn update_exfil(
             Interaction::None => {
                 debug!("button normal");
                 *color = NORMAL_BUTTON.into();
+            }
+        }
+    }
+}
+
+/// exfil called event listener
+fn exfil_called(mut exfil_called: EventReader<ExfilCalled>, mut exfils: ResMut<Exfils>) {
+    for event in exfil_called.read() {
+        debug!("exfil called event received");
+        let exfil = exfils.map.get_mut(&event.exfil_entity);
+        if let Some(e) = exfil {
+            if e.current_state == ExfilCalled::ORIGIN_STATE {
+                e.next();
+            } else {
+                debug!("wrong origin state, event ignored");
             }
         }
     }
@@ -262,6 +351,9 @@ fn exfil_area_entered(
                 "operator({:?}) entered exfil zone({:?})",
                 event.operator_entity, event.exfil_area
             );
+            commands
+                .entity(entity)
+                .insert(CurrentExfil(event.exfil_area));
             commands.entity(entity).insert(Visibility::Visible);
         }
     }
@@ -279,6 +371,7 @@ fn exfil_area_exited(
                 "operator({:?}) exited exfil zone({:?})",
                 event.operator_entity, event.exfil_area
             );
+            commands.entity(entity).remove::<CurrentExfil>();
             commands.entity(entity).insert(Visibility::Hidden);
         }
     }
@@ -298,34 +391,34 @@ fn exfil_area_collision_detection(
     let min_distance = 5.0;
 
     for (operator_entity, operator_transform, operator_exfil_area) in operator_query.iter_mut() {
-        let mut any_exfil_area: Option<ExfilArea> = None;
+        let mut any_exfil_area: Option<(Entity, ExfilArea)> = None;
 
-        for (_exfil_entity, exfil_transform, exfil_area) in exfil_query.iter() {
+        for (exfil_entity, exfil_transform, exfil_area) in exfil_query.iter() {
             let distance = exfil_transform
                 .translation()
                 .distance(operator_transform.translation());
 
             if distance < min_distance {
-                any_exfil_area = Some(exfil_area.clone());
+                any_exfil_area = Some((exfil_entity, exfil_area.clone()));
             }
         }
 
         if let Some(area) = any_exfil_area {
             if let Some(mut component_inside) = operator_exfil_area {
-                if !area.0.eq(&(component_inside.0).0) {
-                    component_inside.0 = area.clone();
+                if !(area.1).0.eq(&(component_inside.0).0) {
+                    component_inside.0 = area.1.clone();
                     entered.send(ExfilAreaEntered {
                         operator_entity,
-                        exfil_area: area.clone(),
+                        exfil_area: area.0,
                     });
                 }
             } else {
                 commands
                     .entity(operator_entity)
-                    .insert(InsideExfilArea(area.clone()));
+                    .insert(InsideExfilArea(area.1.clone()));
                 entered.send(ExfilAreaEntered {
                     operator_entity,
-                    exfil_area: area.clone(),
+                    exfil_area: area.0,
                 });
             }
         } else if let Some(component) = operator_exfil_area {
@@ -351,30 +444,30 @@ mod tests {
 
         // when & then
         assert_eq!(ExfilState::Available, exfil.current_state);
-        assert_eq!(ExfilState::Calling, exfil.next());
-        assert_eq!(ExfilState::Calling, exfil.current_state);
-        assert_eq!(ExfilState::EnteringAO, exfil.next());
-        assert_eq!(ExfilState::EnteringAO, exfil.current_state);
-        assert_eq!(ExfilState::Spawning, exfil.next());
-        assert_eq!(ExfilState::Spawning, exfil.current_state);
-        assert_eq!(ExfilState::Approaching, exfil.next());
-        assert_eq!(ExfilState::Approaching, exfil.current_state);
-        assert_eq!(ExfilState::Descending, exfil.next());
-        assert_eq!(ExfilState::Descending, exfil.current_state);
-        assert_eq!(ExfilState::LandingHovering, exfil.next());
-        assert_eq!(ExfilState::LandingHovering, exfil.current_state);
-        assert_eq!(ExfilState::TouchingDown, exfil.next());
-        assert_eq!(ExfilState::TouchingDown, exfil.current_state);
+        assert_eq!(ExfilState::Called, exfil.next());
+        assert_eq!(ExfilState::Called, exfil.current_state);
+        assert_eq!(ExfilState::EnteredAO, exfil.next());
+        assert_eq!(ExfilState::EnteredAO, exfil.current_state);
+        assert_eq!(ExfilState::Spawned, exfil.next());
+        assert_eq!(ExfilState::Spawned, exfil.current_state);
+        assert_eq!(ExfilState::Approached, exfil.next());
+        assert_eq!(ExfilState::Approached, exfil.current_state);
+        assert_eq!(ExfilState::Descended, exfil.next());
+        assert_eq!(ExfilState::Descended, exfil.current_state);
+        assert_eq!(ExfilState::LandingHover, exfil.next());
+        assert_eq!(ExfilState::LandingHover, exfil.current_state);
+        assert_eq!(ExfilState::TouchedDown, exfil.next());
+        assert_eq!(ExfilState::TouchedDown, exfil.current_state);
         assert_eq!(ExfilState::BoardingHold, exfil.next());
         assert_eq!(ExfilState::BoardingHold, exfil.current_state);
-        assert_eq!(ExfilState::TakingOff, exfil.next());
-        assert_eq!(ExfilState::TakingOff, exfil.current_state);
-        assert_eq!(ExfilState::Climbing, exfil.next());
-        assert_eq!(ExfilState::Climbing, exfil.current_state);
-        assert_eq!(ExfilState::Cruising, exfil.next());
-        assert_eq!(ExfilState::Cruising, exfil.current_state);
-        assert_eq!(ExfilState::CoolingDown, exfil.next());
-        assert_eq!(ExfilState::CoolingDown, exfil.current_state);
+        assert_eq!(ExfilState::TookOff, exfil.next());
+        assert_eq!(ExfilState::TookOff, exfil.current_state);
+        assert_eq!(ExfilState::Climbed, exfil.next());
+        assert_eq!(ExfilState::Climbed, exfil.current_state);
+        assert_eq!(ExfilState::Cruised, exfil.next());
+        assert_eq!(ExfilState::Cruised, exfil.current_state);
+        assert_eq!(ExfilState::Cooldown, exfil.next());
+        assert_eq!(ExfilState::Cooldown, exfil.current_state);
         assert_eq!(ExfilState::Available, exfil.next());
         assert_eq!(ExfilState::Available, exfil.current_state);
 

@@ -1,6 +1,7 @@
 use bevy::app::Plugin;
 
-use crate::exfil::ExfilExitedAO;
+use crate::exfil::{ExfilExitedAO, Operator};
+use crate::inventory::{Inventory, ItemSlot, WeaponSlot};
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
@@ -38,9 +39,14 @@ fn update_raid_summary_system() {
 }
 
 // TODO: query for the actual exfilled operator
-fn exit_ao_received(mut exited_ao: EventReader<ExfilExitedAO>) {
+#[allow(clippy::type_complexity)]
+fn exit_ao_received(
+    mut exited_ao: EventReader<ExfilExitedAO>,
+    _backpack_query: Query<(&Parent, Option<&ItemSlot>, Option<&WeaponSlot>), With<Inventory>>,
+    _operator_query: Query<Entity, With<Operator>>,
+) {
     for _ in exited_ao.read() {
-        debug!("somebody exited the AO")
+        debug!("somebody exited the AO, let me do the summary")
     }
 }
 

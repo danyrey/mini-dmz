@@ -40,7 +40,9 @@ struct Crosshair;
 // Resources
 #[derive(Resource)]
 struct PrototypeTextures {
+    #[allow(dead_code)]
     texture_01: Handle<Image>,
+    #[allow(dead_code)]
     texture_06: Handle<Image>,
 }
 
