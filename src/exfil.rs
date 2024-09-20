@@ -92,7 +92,7 @@ trait ExfilStateMachine {
 #[derive(Default, Reflect)]
 struct Exfil {
     current_state: ExfilState,
-    current_timer: Timer,
+    current_timer: Option<Timer>,
 }
 
 impl ExfilStateMachine for Exfil {
@@ -114,19 +114,19 @@ impl ExfilStateMachine for Exfil {
             ExfilState::Cooldown => ExfilState::Available,
         };
         self.current_timer = match self.current_state {
-            ExfilState::Available => Timer::new(Duration::from_secs(5), TimerMode::Once),
-            ExfilState::Called => Timer::new(Duration::from_secs(5), TimerMode::Once),
-            ExfilState::EnteredAO => Timer::new(Duration::from_secs(5), TimerMode::Once),
-            ExfilState::Spawned => Timer::new(Duration::from_secs(5), TimerMode::Once),
-            ExfilState::Approached => Timer::new(Duration::from_secs(5), TimerMode::Once),
-            ExfilState::Descended => Timer::new(Duration::from_secs(5), TimerMode::Once),
-            ExfilState::LandingHover => Timer::new(Duration::from_secs(5), TimerMode::Once),
-            ExfilState::TouchedDown => Timer::new(Duration::from_secs(5), TimerMode::Once),
-            ExfilState::BoardingHold => Timer::new(Duration::from_secs(5), TimerMode::Once),
-            ExfilState::TookOff => Timer::new(Duration::from_secs(5), TimerMode::Once),
-            ExfilState::Climbed => Timer::new(Duration::from_secs(5), TimerMode::Once),
-            ExfilState::Cruised => Timer::new(Duration::from_secs(5), TimerMode::Once),
-            ExfilState::Cooldown => Timer::new(Duration::from_secs(5), TimerMode::Once),
+            ExfilState::Available => None,
+            ExfilState::Called => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
+            ExfilState::EnteredAO => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
+            ExfilState::Spawned => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
+            ExfilState::Approached => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
+            ExfilState::Descended => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
+            ExfilState::LandingHover => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
+            ExfilState::TouchedDown => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
+            ExfilState::BoardingHold => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
+            ExfilState::TookOff => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
+            ExfilState::Climbed => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
+            ExfilState::Cruised => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
+            ExfilState::Cooldown => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
         };
         debug!("switching exfil state to {:?}", self.current_state);
         self.current_state
@@ -275,12 +275,17 @@ fn exfil_created(
 /// system that progresses all timers for all current exfils
 fn progress_exfils(mut exfils: ResMut<Exfils>, time: Res<Time>) {
     for (entity, exfil) in exfils.map.iter_mut() {
-        exfil.current_timer.tick(time.delta());
-        if exfil.current_timer.just_finished() {
-            debug!("Exfil({:?}) timer just finished!", entity);
-            // TODO: emit event for state progression
-        } else if !exfil.current_timer.finished() {
-            debug!("Exfil({:?}) timer is at {:?}!", entity, exfil.current_timer);
+        if let Some(timer) = &mut exfil.current_timer {
+            timer.tick(time.delta());
+            if timer.just_finished() {
+                debug!("Exfil({:?}) timer just finished!", entity);
+                // TODO: emit event for state progression
+                if exfil.current_state != ExfilState::Available {
+                    exfil.next(); // shortcut / hack until fully implemented
+                }
+            } else if !timer.finished() {
+                debug!("Exfil({:?}) timer is at {:?}!", entity, timer);
+            }
         }
     }
 }
