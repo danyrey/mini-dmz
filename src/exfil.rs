@@ -4,6 +4,7 @@ use bevy::{prelude::*, utils::HashMap};
 use bevy_inspector_egui::prelude::*;
 
 use crate::{
+    first_person_controller::PlayerControlled,
     AppState::{Raid, StartScreen},
     ButtonTargetState,
 };
@@ -23,6 +24,14 @@ trait OriginState {
 #[derive(Event)]
 pub struct ExfilCalled {
     pub exfil_entity: Entity,
+    pub calling_entity: Entity,
+}
+
+#[derive(Event)]
+pub struct Exfilled {
+    #[allow(dead_code)] // not in use yet, can be used for starting particle system
+    pub exfil_entity: Entity,
+    // TODO: put the operator in here somehow
 }
 
 impl OriginState for ExfilCalled {
@@ -51,21 +60,6 @@ struct Exfils {
     map: HashMap<Entity, Exfil>,
 }
 
-// TODO: Potential events for Exfil procedure
-// ExfilCalled // trigger the flare and sound fx and hide prompt while exfil is in progress
-// ExfilEnteredAO // trigger spawning of helicopter
-// ExfilSpawned // trigger radio in of pilot
-// ExfilApproached
-// ExfilDescented
-// ExfilLandingHovered
-// ExfilTouchedDown
-// ExfilFullyBoarded
-// ExfilTakeOffHovered
-// ExfilClimbed
-// ExfilCruised
-// ExfilCooldownComplete // after x amount of time smoke and prompt show up again
-
-// TODO: how to introduce the timers for each transition
 /// enum for the exfil procedure state machine
 #[derive(Default, Debug, PartialEq, Clone, Copy, Reflect)]
 pub enum ExfilState {
@@ -82,6 +76,7 @@ pub enum ExfilState {
     TookOff,
     Climbed,
     Cruised,
+    ExitedAO,
     Cooldown,
 }
 
@@ -93,10 +88,12 @@ trait ExfilStateMachine {
 struct Exfil {
     current_state: ExfilState,
     current_timer: Option<Timer>,
+    exfil_operator: Option<Entity>,
 }
 
 impl ExfilStateMachine for Exfil {
     fn next(&mut self) -> ExfilState {
+        let default_timer = Timer::new(Duration::from_secs(1), TimerMode::Once);
         debug!("switching exfil state from {:?}", self.current_state);
         self.current_state = match self.current_state {
             ExfilState::Available => ExfilState::Called,
@@ -110,23 +107,25 @@ impl ExfilStateMachine for Exfil {
             ExfilState::BoardingHold => ExfilState::TookOff,
             ExfilState::TookOff => ExfilState::Climbed,
             ExfilState::Climbed => ExfilState::Cruised,
-            ExfilState::Cruised => ExfilState::Cooldown,
+            ExfilState::Cruised => ExfilState::ExitedAO,
+            ExfilState::ExitedAO => ExfilState::Cooldown,
             ExfilState::Cooldown => ExfilState::Available,
         };
         self.current_timer = match self.current_state {
             ExfilState::Available => None,
-            ExfilState::Called => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
-            ExfilState::EnteredAO => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
-            ExfilState::Spawned => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
-            ExfilState::Approached => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
-            ExfilState::Descended => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
-            ExfilState::LandingHover => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
-            ExfilState::TouchedDown => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
-            ExfilState::BoardingHold => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
-            ExfilState::TookOff => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
-            ExfilState::Climbed => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
-            ExfilState::Cruised => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
-            ExfilState::Cooldown => Some(Timer::new(Duration::from_secs(5), TimerMode::Once)),
+            ExfilState::Called => Some(default_timer),
+            ExfilState::EnteredAO => Some(default_timer),
+            ExfilState::Spawned => Some(default_timer),
+            ExfilState::Approached => Some(default_timer),
+            ExfilState::Descended => Some(default_timer),
+            ExfilState::LandingHover => Some(default_timer),
+            ExfilState::TouchedDown => Some(default_timer),
+            ExfilState::BoardingHold => Some(default_timer),
+            ExfilState::TookOff => Some(default_timer),
+            ExfilState::Climbed => Some(default_timer),
+            ExfilState::Cruised => Some(default_timer),
+            ExfilState::ExitedAO => Some(default_timer),
+            ExfilState::Cooldown => Some(default_timer),
         };
         debug!("switching exfil state to {:?}", self.current_state);
         self.current_state
@@ -134,7 +133,9 @@ impl ExfilStateMachine for Exfil {
 }
 
 #[derive(Event)]
-pub struct ExfilExitedAO;
+pub struct ExfilExitedAO {
+    pub operator_entity: Entity,
+}
 
 // Resources
 
@@ -177,6 +178,7 @@ impl Plugin for ExfilPlugin {
             .register_type::<CurrentExfil>()
             .add_event::<ExfilSpawned>()
             .add_event::<ExfilCalled>()
+            .add_event::<Exfilled>()
             .add_event::<ExfilExitedAO>();
     }
 }
@@ -273,7 +275,11 @@ fn exfil_created(
 }
 
 /// system that progresses all timers for all current exfils
-fn progress_exfils(mut exfils: ResMut<Exfils>, time: Res<Time>) {
+fn progress_exfils(
+    mut exfils: ResMut<Exfils>,
+    time: Res<Time>,
+    mut exit_ao: EventWriter<ExfilExitedAO>,
+) {
     for (entity, exfil) in exfils.map.iter_mut() {
         if let Some(timer) = &mut exfil.current_timer {
             timer.tick(time.delta());
@@ -282,6 +288,11 @@ fn progress_exfils(mut exfils: ResMut<Exfils>, time: Res<Time>) {
                 // TODO: emit event for state progression
                 if exfil.current_state != ExfilState::Available {
                     exfil.next(); // shortcut / hack until fully implemented
+                }
+                if exfil.current_state == ExfilState::ExitedAO {
+                    if let Some(operator_entity) = exfil.exfil_operator {
+                        exit_ao.send(ExfilExitedAO { operator_entity });
+                    }
                 }
             } else if !timer.finished() {
                 debug!("Exfil({:?}) timer is at {:?}!", entity, timer);
@@ -298,7 +309,10 @@ fn update_exfil(
     >,
     exfil_button_query: Query<&CurrentExfil>,
     mut called: EventWriter<ExfilCalled>,
+    player_query: Query<Entity, With<PlayerControlled>>,
 ) {
+    // TODO: we need to put the calling/clicking operator to the ExfilCalled event
+    let caller = player_query.single();
     for (interaction, mut color, parent) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
@@ -307,6 +321,7 @@ fn update_exfil(
                 if let Ok(exfil) = exfil_button_query.get(**parent) {
                     called.send(ExfilCalled {
                         exfil_entity: exfil.0,
+                        calling_entity: caller,
                     });
                 }
             }
@@ -330,6 +345,7 @@ fn exfil_called(mut exfil_called: EventReader<ExfilCalled>, mut exfils: ResMut<E
         if let Some(e) = exfil {
             if e.current_state == ExfilCalled::ORIGIN_STATE {
                 e.next();
+                e.exfil_operator = Some(event.calling_entity);
             } else {
                 debug!("wrong origin state, event ignored");
             }

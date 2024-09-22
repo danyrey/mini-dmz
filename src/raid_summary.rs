@@ -42,11 +42,38 @@ fn update_raid_summary_system() {
 #[allow(clippy::type_complexity)]
 fn exit_ao_received(
     mut exited_ao: EventReader<ExfilExitedAO>,
-    _backpack_query: Query<(&Parent, Option<&ItemSlot>, Option<&WeaponSlot>), With<Inventory>>,
-    _operator_query: Query<Entity, With<Operator>>,
+    operator_query: Query<(Entity, Option<&Name>, &Children), With<Operator>>,
+    backpack_query: Query<(Entity, &Children), With<Inventory>>,
+    items_query: Query<(Entity, Option<&Name>), With<ItemSlot>>,
+    weapons_query: Query<(Entity, Option<&Name>), With<WeaponSlot>>,
 ) {
-    for _ in exited_ao.read() {
-        debug!("somebody exited the AO, let me do the summary")
+    for event in exited_ao.read() {
+        debug!(
+            "operator '{:?}' exited the AO, let me do a summary:",
+            event.operator_entity
+        );
+
+        let event_op = operator_query.get(event.operator_entity).unwrap(); // maybe we dont need operator query at
+                                                                           // all since it given from the event
+        for (_, _, inventories) in operator_query.iter().filter(|(op, _, _)| *op == event_op.0) {
+            // TODO
+            for inventory in inventories {
+                // TODO
+                for (_, contents) in backpack_query.iter().filter(|(inv, _)| inv == inventory) {
+                    // TODO
+                    for content in contents {
+                        let item = items_query.get(*content);
+                        let weapon = weapons_query.get(*content);
+                        if let Ok(i) = item {
+                            debug!("item: {:?} : {:?}", i.0, i.1);
+                        }
+                        if let Ok(w) = weapon {
+                            debug!("weapon: {:?} : {:?}", w.0, w.1);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
