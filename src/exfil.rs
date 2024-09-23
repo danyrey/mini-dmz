@@ -12,7 +12,7 @@ use crate::{
 // Events
 
 #[derive(Event)]
-pub struct ExfilSpawned {
+pub struct ExfilCreated {
     #[allow(dead_code)] // not in use yet, can be used for starting particle system
     pub exfil_entity: Entity,
 }
@@ -27,15 +27,64 @@ pub struct ExfilCalled {
     pub calling_entity: Entity,
 }
 
+impl OriginState for ExfilCalled {
+    const ORIGIN_STATE: ExfilState = ExfilState::Available;
+}
+
+#[allow(dead_code)]
+#[derive(Event)]
+pub struct ExfilEnteredAO;
+
+#[allow(dead_code)]
+#[derive(Event)]
+pub struct ExfilSpawned;
+
+#[allow(dead_code)]
+#[derive(Event)]
+pub struct ExfilApproached;
+
+#[allow(dead_code)]
+#[derive(Event)]
+pub struct ExfilDescended;
+
+#[allow(dead_code)]
+#[derive(Event)]
+pub struct ExfilLandingHover;
+
+#[allow(dead_code)]
+#[derive(Event)]
+pub struct ExfilTouchedDown;
+
+#[allow(dead_code)]
+#[derive(Event)]
+pub struct ExfilBoardingHold;
+
+#[allow(dead_code)]
+#[derive(Event)]
+pub struct ExfilTookOff;
+
+#[allow(dead_code)]
+#[derive(Event)]
+pub struct ExfilClimbed;
+
+#[allow(dead_code)]
+#[derive(Event)]
+pub struct ExfilCruised;
+
+#[derive(Event)]
+pub struct ExfilExitedAO {
+    pub operator_entity: Entity,
+}
+
+#[allow(dead_code)]
+#[derive(Event)]
+pub struct ExfilCooledDown;
+
 #[derive(Event)]
 pub struct Exfilled {
     #[allow(dead_code)] // not in use yet, can be used for starting particle system
     pub exfil_entity: Entity,
     // TODO: put the operator in here somehow
-}
-
-impl OriginState for ExfilCalled {
-    const ORIGIN_STATE: ExfilState = ExfilState::Available;
 }
 
 /// trigger for showing the prompt
@@ -132,11 +181,6 @@ impl ExfilStateMachine for Exfil {
     }
 }
 
-#[derive(Event)]
-pub struct ExfilExitedAO {
-    pub operator_entity: Entity,
-}
-
 // Resources
 
 #[derive(Resource)]
@@ -176,7 +220,7 @@ impl Plugin for ExfilPlugin {
             .init_resource::<Exfils>()
             .register_type::<Exfils>()
             .register_type::<CurrentExfil>()
-            .add_event::<ExfilSpawned>()
+            .add_event::<ExfilCreated>()
             .add_event::<ExfilCalled>()
             .add_event::<Exfilled>()
             .add_event::<ExfilExitedAO>();
@@ -262,13 +306,13 @@ fn start_exfil(mut commands: Commands) {
 
 fn exfil_created(
     query: Query<Entity, Added<ExfilArea>>,
-    mut exfil_spawn: EventWriter<ExfilSpawned>,
+    mut exfil_spawn: EventWriter<ExfilCreated>,
     mut exfil_map: ResMut<Exfils>,
 ) {
     for entity in query.iter() {
         debug!("exfil was spawned");
         exfil_map.map.insert(entity, Exfil::default());
-        exfil_spawn.send(ExfilSpawned {
+        exfil_spawn.send(ExfilCreated {
             exfil_entity: entity,
         });
     }
