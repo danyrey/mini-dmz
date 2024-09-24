@@ -91,7 +91,13 @@ enum DeployScreen {
 struct ButtonTargetState(AppState);
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle {
+        camera: Camera {
+            order: 1,
+            ..default()
+        },
+        ..Default::default()
+    });
 }
 
 fn main() {

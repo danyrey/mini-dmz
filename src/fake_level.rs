@@ -462,13 +462,11 @@ fn manage_cursor(
     if key_input.pressed(KeyCode::F9) {
         primary_window.cursor.visible = false;
         commands.entity(crosshair_vis).insert(Visibility::Visible);
-        ui_cam.order = 1;
     }
 
     if key_input.pressed(KeyCode::F10) {
         primary_window.cursor.visible = true;
         commands.entity(crosshair_vis).insert(Visibility::Hidden);
-        ui_cam.order = 0;
     }
 
     if key_input.pressed(KeyCode::F11) {
