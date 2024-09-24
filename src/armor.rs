@@ -97,11 +97,11 @@ mod tests {
         app.add_systems(Update, damage_received_listener);
 
         // Setup test entities
-        let entity = app.borrow_mut().world.spawn(Armor(100)).id();
+        let entity = app.borrow_mut().world_mut().spawn(Armor(100)).id();
 
         // Send an `DamageReceived` event
         app.borrow_mut()
-            .world
+            .world_mut()
             .resource_mut::<Events<ArmorDamageReceived>>()
             .send(ArmorDamageReceived { entity, damage: 10 });
 
@@ -109,7 +109,7 @@ mod tests {
         app.update();
 
         // Check resulting changes
-        assert!(app.world.get::<Armor>(entity).is_some());
-        assert_eq!(app.world.get::<Armor>(entity).unwrap().0, 90);
+        assert!(app.world_mut().get::<Armor>(entity).is_some());
+        assert_eq!(app.world_mut().get::<Armor>(entity).unwrap().0, 90);
     }
 }

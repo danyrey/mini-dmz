@@ -302,24 +302,26 @@ mod tests {
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
         app.add_systems(Update, stow_loot_system);
-        let loot_entity = app.world.spawn(Loot).id();
-        let mut inventory = app.world.spawn(Inventory);
+        let loot_entity = app.world_mut().spawn(Loot).id();
+        let mut inventory = app.world_mut().spawn(Inventory);
         inventory.insert(ItemSlots(1));
         let inventory_entity = inventory.id();
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_none());
 
         // when
-        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
-            stowing_entity: inventory_entity,
-            loot: loot_entity,
-            loot_type: LootType::Item(ItemType::Item),
-        });
+        app.world_mut()
+            .resource_mut::<Events<StowLoot>>()
+            .send(StowLoot {
+                stowing_entity: inventory_entity,
+                loot: loot_entity,
+                loot_type: LootType::Item(ItemType::Item),
+            });
         app.update();
 
         // then
         // assert inventory now has children
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_some());
 
         // assert the one child it the loot entity
@@ -329,14 +331,14 @@ mod tests {
 
         // assert the loot entity has not been duplicated and was really moved
         let entities = app
-            .world
+            .world_mut()
             .query::<(Entity, &Loot)>()
-            .iter(&app.world)
+            .iter(&app.world())
             .collect::<Vec<_>>();
         assert_eq!(1, entities.len());
 
         // assert the event has been sent
-        let stowed_loot_events = app.world.resource::<Events<StowedLoot>>();
+        let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
         let mut stowed_loot_reader = stowed_loot_events.get_reader();
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
 
@@ -354,24 +356,26 @@ mod tests {
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
         app.add_systems(Update, stow_loot_system);
-        let loot_entity = app.world.spawn(Loot).id();
-        let mut inventory = app.world.spawn(Inventory);
+        let loot_entity = app.world_mut().spawn(Loot).id();
+        let mut inventory = app.world_mut().spawn(Inventory);
         inventory.insert(WeaponSlots(1));
         let inventory_entity = inventory.id();
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_none());
 
         // when
-        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
-            stowing_entity: inventory_entity,
-            loot: loot_entity,
-            loot_type: LootType::Weapon,
-        });
+        app.world_mut()
+            .resource_mut::<Events<StowLoot>>()
+            .send(StowLoot {
+                stowing_entity: inventory_entity,
+                loot: loot_entity,
+                loot_type: LootType::Weapon,
+            });
         app.update();
 
         // then
         // assert inventory now has children
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_some());
 
         // assert the one child it the loot entity
@@ -381,14 +385,14 @@ mod tests {
 
         // assert the loot entity has not been duplicated and was really moved
         let entities = app
-            .world
+            .world_mut()
             .query::<(Entity, &Loot)>()
-            .iter(&app.world)
+            .iter(&app.world())
             .collect::<Vec<_>>();
         assert_eq!(1, entities.len());
 
         // assert the event has been sent
-        let stowed_loot_events = app.world.resource::<Events<StowedLoot>>();
+        let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
         let mut stowed_loot_reader = stowed_loot_events.get_reader();
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
 
@@ -406,36 +410,38 @@ mod tests {
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
         app.add_systems(Update, stow_loot_system);
-        let loot_entity_1 = app.world.spawn(Loot).id();
-        let loot_entity_2 = app.world.spawn(Loot).id();
-        let loot_entity_3 = app.world.spawn(Loot).id();
-        let mut inventory = app.world.spawn(Inventory);
+        let loot_entity_1 = app.world_mut().spawn(Loot).id();
+        let loot_entity_2 = app.world_mut().spawn(Loot).id();
+        let loot_entity_3 = app.world_mut().spawn(Loot).id();
+        let mut inventory = app.world_mut().spawn(Inventory);
         inventory.insert(ItemSlots(2));
         let inventory_entity = inventory.id();
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_none());
 
         // when / then
         // first loot item should succeed
-        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
-            stowing_entity: inventory_entity,
-            loot: loot_entity_1,
-            loot_type: LootType::Item(ItemType::Item),
-        });
+        app.world_mut()
+            .resource_mut::<Events<StowLoot>>()
+            .send(StowLoot {
+                stowing_entity: inventory_entity,
+                loot: loot_entity_1,
+                loot_type: LootType::Item(ItemType::Item),
+            });
         app.update();
 
         // assert inventory now has 1 children
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_some());
         assert_eq!(1, inventory_children.unwrap().len());
 
         inventory_children.unwrap().iter().for_each(|c| {
-            let item_slot = app.world.get::<ItemSlot>(*c);
+            let item_slot = app.world().get::<ItemSlot>(*c);
             assert!(item_slot.is_some());
         });
 
         // assert the event for 1 has been sent
-        let stowed_loot_events = app.world.resource::<Events<StowedLoot>>();
+        let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
         let mut stowed_loot_reader = stowed_loot_events.get_reader();
         assert_eq!(1, stowed_loot_reader.len(stowed_loot_events));
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
@@ -447,24 +453,26 @@ mod tests {
         assert_eq!(&expected_stowed_loot, actual_stowed_loot);
 
         // second loot item should succeed too
-        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
-            stowing_entity: inventory_entity,
-            loot: loot_entity_2,
-            loot_type: LootType::Item(ItemType::Item),
-        });
+        app.world_mut()
+            .resource_mut::<Events<StowLoot>>()
+            .send(StowLoot {
+                stowing_entity: inventory_entity,
+                loot: loot_entity_2,
+                loot_type: LootType::Item(ItemType::Item),
+            });
         app.update();
 
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_some());
         assert_eq!(2, inventory_children.unwrap().len());
 
         inventory_children.unwrap().iter().for_each(|c| {
-            let item_slot = app.world.get::<ItemSlot>(*c);
+            let item_slot = app.world().get::<ItemSlot>(*c);
             assert!(item_slot.is_some());
         });
 
         // assert the event for 2 has been sent
-        let stowed_loot_events = app.world.resource::<Events<StowedLoot>>();
+        let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
         let mut stowed_loot_reader = stowed_loot_events.get_reader();
         // TODO: why is the consumed previous event still in this new reader????
         assert_eq!(2, stowed_loot_reader.len(stowed_loot_events));
@@ -478,19 +486,21 @@ mod tests {
         assert_eq!(&expected_stowed_loot, actual_stowed_loot);
 
         // third loot item should not succeed as capacity is reached already
-        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
-            stowing_entity: inventory_entity,
-            loot: loot_entity_3,
-            loot_type: LootType::Item(ItemType::Item),
-        });
+        app.world_mut()
+            .resource_mut::<Events<StowLoot>>()
+            .send(StowLoot {
+                stowing_entity: inventory_entity,
+                loot: loot_entity_3,
+                loot_type: LootType::Item(ItemType::Item),
+            });
         app.update();
 
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_some());
         assert_eq!(2, inventory_children.unwrap().len());
 
         // assert the event for 3 has not been sent
-        let stowed_loot_events = app.world.resource::<Events<StowedLoot>>();
+        let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
         let mut stowed_loot_reader = stowed_loot_events.get_reader();
         // TODO: same here, why is the consumed previous event still in this new reader????
         assert_eq!(1, stowed_loot_reader.len(stowed_loot_events));
@@ -506,36 +516,38 @@ mod tests {
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
         app.add_systems(Update, stow_loot_system);
-        let loot_entity_1 = app.world.spawn(Loot).id();
-        let loot_entity_2 = app.world.spawn(Loot).id();
-        let loot_entity_3 = app.world.spawn(Loot).id();
-        let mut inventory = app.world.spawn(Inventory);
+        let loot_entity_1 = app.world_mut().spawn(Loot).id();
+        let loot_entity_2 = app.world_mut().spawn(Loot).id();
+        let loot_entity_3 = app.world_mut().spawn(Loot).id();
+        let mut inventory = app.world_mut().spawn(Inventory);
         inventory.insert(WeaponSlots(2));
         let inventory_entity = inventory.id();
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_none());
 
         // when / then
         // first loot item should succeed
-        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
-            stowing_entity: inventory_entity,
-            loot: loot_entity_1,
-            loot_type: LootType::Weapon,
-        });
+        app.world_mut()
+            .resource_mut::<Events<StowLoot>>()
+            .send(StowLoot {
+                stowing_entity: inventory_entity,
+                loot: loot_entity_1,
+                loot_type: LootType::Weapon,
+            });
         app.update();
 
         // assert inventory now has 1 children
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_some());
         assert_eq!(1, inventory_children.unwrap().len());
 
         inventory_children.unwrap().iter().for_each(|c| {
-            let weapon_slot = app.world.get::<WeaponSlot>(*c);
+            let weapon_slot = app.world().get::<WeaponSlot>(*c);
             assert!(weapon_slot.is_some());
         });
 
         // assert the event for 1 has been sent
-        let stowed_loot_events = app.world.resource::<Events<StowedLoot>>();
+        let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
         let mut stowed_loot_reader = stowed_loot_events.get_reader();
         assert_eq!(1, stowed_loot_reader.len(stowed_loot_events));
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
@@ -547,24 +559,26 @@ mod tests {
         assert_eq!(&expected_stowed_loot, actual_stowed_loot);
 
         // second loot item should succeed too
-        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
-            stowing_entity: inventory_entity,
-            loot: loot_entity_2,
-            loot_type: LootType::Weapon,
-        });
+        app.world_mut()
+            .resource_mut::<Events<StowLoot>>()
+            .send(StowLoot {
+                stowing_entity: inventory_entity,
+                loot: loot_entity_2,
+                loot_type: LootType::Weapon,
+            });
         app.update();
 
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_some());
         assert_eq!(2, inventory_children.unwrap().len());
 
         inventory_children.unwrap().iter().for_each(|c| {
-            let weapon_slot = app.world.get::<WeaponSlot>(*c);
+            let weapon_slot = app.world().get::<WeaponSlot>(*c);
             assert!(weapon_slot.is_some());
         });
 
         // assert the event for 2 has been sent
-        let stowed_loot_events = app.world.resource::<Events<StowedLoot>>();
+        let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
         let mut stowed_loot_reader = stowed_loot_events.get_reader();
         // TODO: why is the consumed previous event still in this new reader????
         assert_eq!(2, stowed_loot_reader.len(stowed_loot_events));
@@ -578,19 +592,21 @@ mod tests {
         assert_eq!(&expected_stowed_loot, actual_stowed_loot);
 
         // third loot item should not succeed as capacity is reached already
-        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
-            stowing_entity: inventory_entity,
-            loot: loot_entity_3,
-            loot_type: LootType::Weapon,
-        });
+        app.world_mut()
+            .resource_mut::<Events<StowLoot>>()
+            .send(StowLoot {
+                stowing_entity: inventory_entity,
+                loot: loot_entity_3,
+                loot_type: LootType::Weapon,
+            });
         app.update();
 
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_some());
         assert_eq!(2, inventory_children.unwrap().len());
 
         // assert the event for 3 has not been sent
-        let stowed_loot_events = app.world.resource::<Events<StowedLoot>>();
+        let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
         let mut stowed_loot_reader = stowed_loot_events.get_reader();
         // TODO: same here, why is the consumed previous event still in this new reader????
         assert_eq!(1, stowed_loot_reader.len(stowed_loot_events));
@@ -606,27 +622,29 @@ mod tests {
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
         app.add_systems(Update, stow_loot_system);
-        let loot_entity = app.world.spawn(Loot).id();
-        let mut inventory = app.world.spawn(Inventory);
+        let loot_entity = app.world_mut().spawn(Loot).id();
+        let mut inventory = app.world_mut().spawn(Inventory);
         inventory.insert(ItemSlots(1));
         let inventory_entity = inventory.id();
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_none());
 
         // when
         // TODO: check that proper ItemSlot component was assigned to loot item within inventory
-        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
-            stowing_entity: inventory_entity,
-            loot: loot_entity,
-            loot_type: LootType::Item(ItemType::Item),
-        });
+        app.world_mut()
+            .resource_mut::<Events<StowLoot>>()
+            .send(StowLoot {
+                stowing_entity: inventory_entity,
+                loot: loot_entity,
+                loot_type: LootType::Item(ItemType::Item),
+            });
         app.update();
 
         // then
-        let stowed_loot_events = app.world.resource::<Events<StowedLoot>>();
+        let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
         let mut stowed_loot_reader = stowed_loot_events.get_reader();
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
-        let item_slot = app.world.get::<ItemSlot>(actual_stowed_loot.loot);
+        let item_slot = app.world().get::<ItemSlot>(actual_stowed_loot.loot);
         assert_eq!(item_slot.unwrap().0, 0);
     }
 
@@ -637,27 +655,29 @@ mod tests {
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
         app.add_systems(Update, stow_loot_system);
-        let loot_entity = app.world.spawn(Loot).id();
-        let mut inventory = app.world.spawn(Inventory);
+        let loot_entity = app.world_mut().spawn(Loot).id();
+        let mut inventory = app.world_mut().spawn(Inventory);
         inventory.insert(WeaponSlots(1));
         let inventory_entity = inventory.id();
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_none());
 
         // when
         // TODO: check that proper ItemSlot component was assigned to loot item within inventory
-        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
-            stowing_entity: inventory_entity,
-            loot: loot_entity,
-            loot_type: LootType::Weapon,
-        });
+        app.world_mut()
+            .resource_mut::<Events<StowLoot>>()
+            .send(StowLoot {
+                stowing_entity: inventory_entity,
+                loot: loot_entity,
+                loot_type: LootType::Weapon,
+            });
         app.update();
 
         // then
-        let stowed_loot_events = app.world.resource::<Events<StowedLoot>>();
+        let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
         let mut stowed_loot_reader = stowed_loot_events.get_reader();
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
-        let item_slot = app.world.get::<WeaponSlot>(actual_stowed_loot.loot);
+        let item_slot = app.world().get::<WeaponSlot>(actual_stowed_loot.loot);
         assert_eq!(item_slot.unwrap().0, 0);
     }
 
@@ -668,39 +688,43 @@ mod tests {
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
         app.add_systems(Update, stow_loot_system);
-        let loot_in_inventory = app.world.spawn(Loot).id();
-        let loot_from_ground = app.world.spawn(Loot).id();
-        let mut inventory = app.world.spawn(Inventory);
+        let loot_in_inventory = app.world_mut().spawn(Loot).id();
+        let loot_from_ground = app.world_mut().spawn(Loot).id();
+        let mut inventory = app.world_mut().spawn(Inventory);
         inventory.insert(ItemSlots(2));
         let inventory_entity = inventory.id();
 
-        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
-            stowing_entity: inventory_entity,
-            loot: loot_in_inventory,
-            loot_type: LootType::Item(ItemType::Item),
-        });
+        app.world_mut()
+            .resource_mut::<Events<StowLoot>>()
+            .send(StowLoot {
+                stowing_entity: inventory_entity,
+                loot: loot_in_inventory,
+                loot_type: LootType::Item(ItemType::Item),
+            });
         app.update();
         app.update();
 
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_some());
 
         // when
-        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
-            stowing_entity: inventory_entity,
-            loot: loot_from_ground,
-            loot_type: LootType::Item(ItemType::Item),
-        });
+        app.world_mut()
+            .resource_mut::<Events<StowLoot>>()
+            .send(StowLoot {
+                stowing_entity: inventory_entity,
+                loot: loot_from_ground,
+                loot_type: LootType::Item(ItemType::Item),
+            });
         app.update();
 
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_some());
 
         // then
-        let stowed_loot_events = app.world.resource::<Events<StowedLoot>>();
+        let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
         let mut stowed_loot_reader = stowed_loot_events.get_reader();
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
-        let item_slot = app.world.get::<ItemSlot>(actual_stowed_loot.loot);
+        let item_slot = app.world().get::<ItemSlot>(actual_stowed_loot.loot);
         assert_eq!(item_slot.unwrap().0, 1);
     }
 
@@ -711,39 +735,43 @@ mod tests {
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
         app.add_systems(Update, stow_loot_system);
-        let loot_in_inventory = app.world.spawn(Loot).id();
-        let loot_from_ground = app.world.spawn(Loot).id();
-        let mut inventory = app.world.spawn(Inventory);
+        let loot_in_inventory = app.world_mut().spawn(Loot).id();
+        let loot_from_ground = app.world_mut().spawn(Loot).id();
+        let mut inventory = app.world_mut().spawn(Inventory);
         inventory.insert(WeaponSlots(2));
         let inventory_entity = inventory.id();
 
-        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
-            stowing_entity: inventory_entity,
-            loot: loot_in_inventory,
-            loot_type: LootType::Weapon,
-        });
+        app.world_mut()
+            .resource_mut::<Events<StowLoot>>()
+            .send(StowLoot {
+                stowing_entity: inventory_entity,
+                loot: loot_in_inventory,
+                loot_type: LootType::Weapon,
+            });
         app.update();
         app.update();
 
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_some());
 
         // when
-        app.world.resource_mut::<Events<StowLoot>>().send(StowLoot {
-            stowing_entity: inventory_entity,
-            loot: loot_from_ground,
-            loot_type: LootType::Weapon,
-        });
+        app.world_mut()
+            .resource_mut::<Events<StowLoot>>()
+            .send(StowLoot {
+                stowing_entity: inventory_entity,
+                loot: loot_from_ground,
+                loot_type: LootType::Weapon,
+            });
         app.update();
 
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_some());
 
         // then
-        let stowed_loot_events = app.world.resource::<Events<StowedLoot>>();
+        let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
         let mut stowed_loot_reader = stowed_loot_events.get_reader();
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
-        let item_slot = app.world.get::<WeaponSlot>(actual_stowed_loot.loot);
+        let item_slot = app.world().get::<WeaponSlot>(actual_stowed_loot.loot);
         assert_eq!(item_slot.unwrap().0, 1);
     }
 
@@ -754,8 +782,8 @@ mod tests {
         app.add_event::<DropLoot>();
         app.add_event::<DroppedLoot>();
         app.add_systems(Update, drop_loot_system);
-        let loot_in_inventory = app.world.spawn(Loot).insert(ItemSlot(0)).id();
-        let mut inventory = app.world.spawn(Inventory);
+        let loot_in_inventory = app.world_mut().spawn(Loot).insert(ItemSlot(0)).id();
+        let mut inventory = app.world_mut().spawn(Inventory);
         inventory.add_child(loot_in_inventory);
         inventory.insert(ItemSlots(1));
         let inventory_position = Vec3::new(1.0, 2.0, 3.0);
@@ -765,31 +793,33 @@ mod tests {
         let inventory_entity = inventory.id();
 
         // when
-        app.world.resource_mut::<Events<DropLoot>>().send(DropLoot {
-            dropping_entity: inventory_entity,
-            loot: loot_in_inventory,
-        });
+        app.world_mut()
+            .resource_mut::<Events<DropLoot>>()
+            .send(DropLoot {
+                dropping_entity: inventory_entity,
+                loot: loot_in_inventory,
+            });
         app.update();
 
         // then
         // check if item is no longer in inventory
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_none());
         // check if item is on ground at position of dropping entity
-        let dropped_item_transform = app.world.get::<Transform>(loot_in_inventory);
+        let dropped_item_transform = app.world().get::<Transform>(loot_in_inventory);
         assert!(dropped_item_transform.is_some());
         assert_eq!(
             inventory_position,
             dropped_item_transform.unwrap().translation
         );
-        let dropped_item_global_transform = app.world.get::<GlobalTransform>(loot_in_inventory);
+        let dropped_item_global_transform = app.world().get::<GlobalTransform>(loot_in_inventory);
         assert!(dropped_item_global_transform.is_some());
         assert_eq!(
             inventory_position,
             dropped_item_global_transform.unwrap().translation()
         );
         // check if dropped item event was sent
-        let dropped_loot_events = app.world.resource::<Events<DroppedLoot>>();
+        let dropped_loot_events = app.world().resource::<Events<DroppedLoot>>();
         let mut dropped_loot_reader = dropped_loot_events.get_reader();
         let actual_dropped_loot = dropped_loot_reader
             .read(dropped_loot_events)
@@ -810,8 +840,8 @@ mod tests {
         app.add_event::<DropLoot>();
         app.add_event::<DroppedLoot>();
         app.add_systems(Update, drop_loot_system);
-        let loot_in_inventory = app.world.spawn(Loot).insert(WeaponSlot(0)).id();
-        let mut inventory = app.world.spawn(Inventory);
+        let loot_in_inventory = app.world_mut().spawn(Loot).insert(WeaponSlot(0)).id();
+        let mut inventory = app.world_mut().spawn(Inventory);
         inventory.add_child(loot_in_inventory);
         inventory.insert(WeaponSlots(1));
         let inventory_position = Vec3::new(1.0, 2.0, 3.0);
@@ -821,31 +851,33 @@ mod tests {
         let inventory_entity = inventory.id();
 
         // when
-        app.world.resource_mut::<Events<DropLoot>>().send(DropLoot {
-            dropping_entity: inventory_entity,
-            loot: loot_in_inventory,
-        });
+        app.world_mut()
+            .resource_mut::<Events<DropLoot>>()
+            .send(DropLoot {
+                dropping_entity: inventory_entity,
+                loot: loot_in_inventory,
+            });
         app.update();
 
         // then
         // check if item is no longer in inventory
-        let inventory_children = app.world.get::<Children>(inventory_entity);
+        let inventory_children = app.world().get::<Children>(inventory_entity);
         assert!(inventory_children.is_none());
         // check if item is on ground at position of dropping entity
-        let dropped_weapon_transform = app.world.get::<Transform>(loot_in_inventory);
+        let dropped_weapon_transform = app.world().get::<Transform>(loot_in_inventory);
         assert!(dropped_weapon_transform.is_some());
         assert_eq!(
             inventory_position,
             dropped_weapon_transform.unwrap().translation
         );
-        let dropped_weapon_global_transform = app.world.get::<GlobalTransform>(loot_in_inventory);
+        let dropped_weapon_global_transform = app.world().get::<GlobalTransform>(loot_in_inventory);
         assert!(dropped_weapon_global_transform.is_some());
         assert_eq!(
             inventory_position,
             dropped_weapon_global_transform.unwrap().translation()
         );
         // check if dropped item event was sent
-        let dropped_loot_events = app.world.resource::<Events<DroppedLoot>>();
+        let dropped_loot_events = app.world().resource::<Events<DroppedLoot>>();
         let mut dropped_loot_reader = dropped_loot_events.get_reader();
         let actual_dropped_loot = dropped_loot_reader
             .read(dropped_loot_events)

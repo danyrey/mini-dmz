@@ -124,7 +124,7 @@ mod tests {
         app.add_systems(Update, update_damage_system);
         let hit_entity = app
             .borrow_mut()
-            .world
+            .world_mut()
             .spawn((
                 HitBox(Aabb3d::new(
                     Vec3::default(),
@@ -139,7 +139,7 @@ mod tests {
             .id();
         let hurt_entity = app
             .borrow_mut()
-            .world
+            .world_mut()
             .spawn((
                 HurtBox(Aabb3d::new(
                     Vec3::default(),
@@ -157,7 +157,7 @@ mod tests {
         app.update();
 
         // then
-        let armor_damage_received_events = app.world.resource::<Events<ArmorDamageReceived>>();
+        let armor_damage_received_events = app.world().resource::<Events<ArmorDamageReceived>>();
         let mut armor_damage_received_reader = armor_damage_received_events.get_reader();
         let armor_damage_received = armor_damage_received_reader
             .read(armor_damage_received_events)
@@ -171,7 +171,7 @@ mod tests {
             }),
             armor_damage_received
         );
-        assert!(app.world.get::<Damage>(hit_entity).is_none());
+        assert!(app.world().get::<Damage>(hit_entity).is_none());
     }
 
     #[test]
@@ -185,7 +185,7 @@ mod tests {
         app.add_systems(Update, update_damage_system);
         let hit_entity = app
             .borrow_mut()
-            .world
+            .world_mut()
             .spawn((
                 HitBox(Aabb3d::new(
                     Vec3::default(),
@@ -200,7 +200,7 @@ mod tests {
             .id();
         let hurt_entity = app
             .borrow_mut()
-            .world
+            .world_mut()
             .spawn((
                 HurtBox(Aabb3d::new(
                     Vec3::default(),
@@ -218,13 +218,13 @@ mod tests {
         app.update();
 
         // then
-        let armor_damage_received_events = app.world.resource::<Events<ArmorDamageReceived>>();
+        let armor_damage_received_events = app.world().resource::<Events<ArmorDamageReceived>>();
         let mut armor_damage_received_reader = armor_damage_received_events.get_reader();
         let armor_damage_received = armor_damage_received_reader
             .read(armor_damage_received_events)
             .next();
 
-        let health_damage_received_events = app.world.resource::<Events<HealthDamageReceived>>();
+        let health_damage_received_events = app.world().resource::<Events<HealthDamageReceived>>();
         let mut health_damage_received_reader = health_damage_received_events.get_reader();
         let health_damage_received = health_damage_received_reader
             .read(health_damage_received_events)
@@ -245,7 +245,7 @@ mod tests {
             }),
             health_damage_received
         );
-        assert!(app.world.get::<Damage>(hit_entity).is_none());
+        assert!(app.world().get::<Damage>(hit_entity).is_none());
     }
 
     #[test]
@@ -259,7 +259,7 @@ mod tests {
         app.add_systems(Update, update_damage_system);
         let hit_entity = app
             .borrow_mut()
-            .world
+            .world_mut()
             .spawn((
                 HitBox(Aabb3d::new(
                     Vec3::default(),
@@ -274,7 +274,7 @@ mod tests {
             .id();
         let hurt_entity = app
             .borrow_mut()
-            .world
+            .world_mut()
             .spawn((
                 HurtBox(Aabb3d::new(
                     Vec3::default(),
@@ -292,13 +292,13 @@ mod tests {
         app.update();
 
         // then
-        let armor_damage_received_events = app.world.resource::<Events<ArmorDamageReceived>>();
+        let armor_damage_received_events = app.world().resource::<Events<ArmorDamageReceived>>();
         let mut armor_damage_received_reader = armor_damage_received_events.get_reader();
         let armor_damage_received = armor_damage_received_reader
             .read(armor_damage_received_events)
             .next();
 
-        let health_damage_received_events = app.world.resource::<Events<HealthDamageReceived>>();
+        let health_damage_received_events = app.world().resource::<Events<HealthDamageReceived>>();
         let mut health_damage_received_reader = health_damage_received_events.get_reader();
         let health_damage_received = health_damage_received_reader
             .read(health_damage_received_events)
@@ -319,6 +319,6 @@ mod tests {
             }),
             health_damage_received
         );
-        assert!(app.world.get::<Damage>(hit_entity).is_none());
+        assert!(app.world().get::<Damage>(hit_entity).is_none());
     }
 }

@@ -49,16 +49,16 @@ fn stowing(
             let position = probe.1.translation();
             let r = RayCast3d::new(
                 position,
-                Direction3d::new(looking_at_direction.into()).unwrap(),
+                Dir3::new(looking_at_direction.into()).unwrap(),
                 2.0,
             );
-            let aabb3d = Aabb3d::new(loot.1.translation(), loot.0.half_extents.into());
+            let aabb3d = Aabb3d::new(loot.1.translation(), loot.0.half_extents);
             let intersects = r.aabb_intersection_at(&aabb3d);
             if let Some(distance) = intersects {
                 debug!("im allowed to pick {} up. distance: {}", loot.2, distance);
                 gizmos.cuboid(
                     Transform::from_translation(loot.1.translation()).with_scale(Vec3::splat(0.25)),
-                    Color::GOLD,
+                    Srgba::rgb(1.0, 0.84, 0.0),
                 );
             }
             intersects.map(|f| (f, loot.3, loot.4))

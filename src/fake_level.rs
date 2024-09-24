@@ -115,7 +115,7 @@ fn start_fake_level(
             mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
-                base_color: Color::GOLD,
+                base_color: Color::srgb(1.0, 1.0, 0.0),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(2.0, 0.5, 2.0),
@@ -130,7 +130,7 @@ fn start_fake_level(
             mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
-                base_color: Color::GOLD,
+                base_color: Color::srgb(1.0, 1.0, 0.0),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(4.0, 0.5, 5.0),
@@ -143,12 +143,14 @@ fn start_fake_level(
                 x: 4.0,
                 y: 0.5,
                 z: 5.0,
-            },
+            }
+            .into(),
             max: Vec3 {
                 x: 5.0,
                 y: 0.5,
                 z: 6.0,
-            },
+            }
+            .into(),
         }))
         .insert(FakeLevelStuff);
     // enemy cube 1
@@ -168,7 +170,7 @@ fn start_fake_level(
             mesh: enemy_cube,
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
-                base_color: Color::RED,
+                base_color: Color::srgb(1.0, 0.0, 0.0),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(5.0, 1.0, 5.0),
@@ -181,12 +183,14 @@ fn start_fake_level(
                 x: 4.75,
                 y: 0.0,
                 z: 4.75,
-            },
+            }
+            .into(),
             max: Vec3 {
                 x: 5.25,
                 y: 2.0,
                 z: 5.25,
-            },
+            }
+            .into(),
         }))
         .insert(FakeLevelStuff);
     // enemy 2 capsule
@@ -205,7 +209,7 @@ fn start_fake_level(
             mesh: capsule,
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
-                base_color: Color::ORANGE_RED,
+                base_color: Color::srgb(0.75, 0.0, 0.0),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(3.5, 1.0, 5.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
@@ -226,7 +230,7 @@ fn start_fake_level(
             mesh: loot_cube.clone(),
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
-                base_color: Color::GREEN,
+                base_color: Color::srgb(0.0, 1.0, 0.0),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(5.0, 1.1, -2.0),
@@ -247,7 +251,7 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: loot_cube.clone(),
             material: materials.add(StandardMaterial {
-                base_color: Color::GREEN,
+                base_color: Color::srgb(0.0, 1.0, 0.0),
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
             }),
@@ -266,7 +270,7 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: loot_cube.clone(),
             material: materials.add(StandardMaterial {
-                base_color: Color::DARK_GREEN,
+                base_color: Color::srgb(0.0, 0.75, 0.0),
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
             }),
@@ -283,7 +287,7 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: loot_cube.clone(),
             material: materials.add(StandardMaterial {
-                base_color: Color::GREEN,
+                base_color: Color::srgb(0.0, 1.0, 0.0),
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
             }),
@@ -299,7 +303,7 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: meshes.add(Cuboid::new(0.3, 0.3, 0.5)),
             material: materials.add(StandardMaterial {
-                base_color: Color::ALICE_BLUE,
+                base_color: Color::srgb(0.0, 0.0, 0.75),
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
             }),
@@ -315,7 +319,7 @@ fn start_fake_level(
         .spawn(PbrBundle {
             mesh: meshes.add(Cuboid::new(0.4, 2.0, 1.0)),
             material: materials.add(StandardMaterial {
-                base_color: Color::ALICE_BLUE,
+                base_color: Color::srgb(0.0, 0.0, 0.75),
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
             }),
@@ -386,7 +390,7 @@ fn add_inventory_to_operators(
             .spawn(PbrBundle {
                 mesh: meshes.add(Cuboid::new(0.4, 0.5, 0.25)),
                 material: materials.add(StandardMaterial {
-                    base_color: Color::OLIVE,
+                    base_color: Color::srgb(0.0, 0.75, 0.0),
                     ..Default::default()
                 }),
                 transform: Transform::from_xyz(0.0, 1.5, 0.25),
@@ -416,7 +420,7 @@ fn update_fake_level(
         gizmos.ray(
             global_transform.to_scale_rotation_translation().2 + Vec3::new(0.0, 0.75, 0.0),
             (global_transform.to_scale_rotation_translation().1 * Vec3::Z).xyz() * -1.0,
-            Color::RED,
+            Color::srgb(1.0, 0.0, 0.0),
         );
     }
     // renders correctly at the cubes, but ...

@@ -188,9 +188,9 @@ struct ExfilUIData {
     exfil_button_entity: Entity,
 }
 
-const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
-const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
-const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
+const NORMAL_BUTTON: Color = Color::srgb(0.15, 0.15, 0.15);
+const HOVERED_BUTTON: Color = Color::srgb(0.25, 0.25, 0.25);
+const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
 
 // TODO: counters for all other phases of exfil
 
@@ -281,7 +281,7 @@ fn start_exfil(mut commands: Commands) {
                         "EXFIL",
                         TextStyle {
                             font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
+                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
                         },
                     ));
@@ -531,6 +531,8 @@ mod tests {
         assert_eq!(ExfilState::Climbed, exfil.current_state);
         assert_eq!(ExfilState::Cruised, exfil.next());
         assert_eq!(ExfilState::Cruised, exfil.current_state);
+        assert_eq!(ExfilState::ExitedAO, exfil.next());
+        assert_eq!(ExfilState::ExitedAO, exfil.current_state);
         assert_eq!(ExfilState::Cooldown, exfil.next());
         assert_eq!(ExfilState::Cooldown, exfil.current_state);
         assert_eq!(ExfilState::Available, exfil.next());

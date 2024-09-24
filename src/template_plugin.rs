@@ -44,13 +44,12 @@ fn bye_template_system(mut _commands: Commands) {
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::*;
-    use std::borrow::BorrowMut;
+    //use super::*;
 
     #[test]
     fn should_test_something() {
         // given
-        let mut app = App::new();
+        //let mut _app = App::new();
 
         // when
         //app.add_event::<HealthDamageReceived>();

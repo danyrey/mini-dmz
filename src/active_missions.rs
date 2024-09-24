@@ -27,9 +27,9 @@ struct ActiveMissionsMenuData {
     active_missions_layout: Entity,
 }
 
-const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
-const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
-const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
+const NORMAL_BUTTON: Color = Color::srgb(0.15, 0.15, 0.15);
+const HOVERED_BUTTON: Color = Color::srgb(0.25, 0.25, 0.25);
+const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
 
 fn start_active_missions_screen(mut commands: Commands) {
     debug!("starting active missions screen");
@@ -155,7 +155,7 @@ fn spawn_nested_text_bundle(builder: &mut ChildBuilder, font_size: f32, text: &s
         text,
         TextStyle {
             font_size,
-            color: Color::rgb(0.9, 0.9, 0.9),
+            color: Color::srgb(0.9, 0.9, 0.9),
             ..default()
         },
     ));
@@ -198,7 +198,7 @@ fn spawn_location_button_bundle(
                         button_text,
                         TextStyle {
                             font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
+                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
                         },
                     ));

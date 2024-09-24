@@ -74,7 +74,7 @@ fn start_first_person_controller_system(
         .spawn(PbrBundle {
             mesh: meshes.add(Capsule3d::new(0.25, 1.5)),
             material: materials.add(StandardMaterial {
-                base_color: Color::GREEN,
+                base_color: Color::srgb(0.0, 1.0, 0.0),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(0.0, 1.0, 0.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
@@ -94,12 +94,14 @@ fn start_first_person_controller_system(
                 x: -0.5,
                 y: 0.0,
                 z: -0.5,
-            },
+            }
+            .into(),
             max: Vec3 {
                 x: 0.5,
                 y: 1.0,
                 z: 0.5,
-            },
+            }
+            .into(),
         }))
         .add_child(camera)
         .add_child(capsule);
@@ -259,7 +261,7 @@ fn bye_first_person_controller_system(
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::*;
+    //use super::*;
 
     #[test]
     fn should_test_something() {

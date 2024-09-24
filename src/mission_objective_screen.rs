@@ -32,9 +32,9 @@ struct MissionObjectiveMenuData {
     notes_button_entity: Entity,
 }
 
-const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
-const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
-const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
+const NORMAL_BUTTON: Color = Color::srgb(0.15, 0.15, 0.15);
+const HOVERED_BUTTON: Color = Color::srgb(0.25, 0.25, 0.25);
+const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
 
 fn start_mission_objectives_screen(mut commands: Commands) {
     debug!("starting mission objectives screen");
@@ -70,7 +70,7 @@ fn start_mission_objectives_screen(mut commands: Commands) {
                         "Missions",
                         TextStyle {
                             font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
+                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
                         },
                     ));
@@ -111,7 +111,7 @@ fn start_mission_objectives_screen(mut commands: Commands) {
                         "Upgrades",
                         TextStyle {
                             font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
+                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
                         },
                     ));
@@ -152,7 +152,7 @@ fn start_mission_objectives_screen(mut commands: Commands) {
                         "Location Objectives",
                         TextStyle {
                             font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
+                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
                         },
                     ));
@@ -193,7 +193,7 @@ fn start_mission_objectives_screen(mut commands: Commands) {
                         "Notes",
                         TextStyle {
                             font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
+                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
                         },
                     ));
