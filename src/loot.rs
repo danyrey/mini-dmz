@@ -232,7 +232,6 @@ fn bye_loot_system(mut _commands: Commands) {
 // tests
 #[cfg(test)]
 mod tests {
-    use crate::inventory::Inventory;
 
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
