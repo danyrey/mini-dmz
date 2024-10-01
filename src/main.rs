@@ -21,6 +21,7 @@ use mission_objective_screen::MissionObjectivesScreenPlugin;
 use out_of_bounds::OutOfBoundsPlugin;
 use raid::RaidPlugin;
 use raid_summary::RaidSummaryPlugin;
+use skybox::SkyboxPlugin;
 use start_screen::StartScreenPlugin;
 use template_plugin::TemplatePlugin;
 
@@ -48,6 +49,7 @@ mod mission_objective_screen;
 mod out_of_bounds;
 mod raid;
 mod raid_summary;
+mod skybox;
 mod start_screen;
 mod template_plugin;
 
@@ -131,6 +133,7 @@ fn main() {
             InventoryPlugin,
             RaidSummaryPlugin,
             InventoryTestingPlugin,
+            SkyboxPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, close_on_esc)

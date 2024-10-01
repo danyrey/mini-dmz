@@ -51,7 +51,7 @@ pub struct PlayerControlled;
 // Events
 
 // Systems
-fn start_first_person_controller_system(
+pub fn start_first_person_controller_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
