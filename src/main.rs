@@ -12,6 +12,7 @@ use exfil_timers::ExfilTimersPlugin;
 use fake_level::FakeLevelPlugin;
 use first_person_controller::FirstPersonControllerPlugin;
 use health::HealthPlugin;
+use heightmap::HeightmapPlugin;
 use inventory::InventoryPlugin;
 use inventory_testing::InventoryTestingPlugin;
 use loading_screen::MatchLoadingScreenPlugin;
@@ -23,7 +24,6 @@ use raid::RaidPlugin;
 use raid_summary::RaidSummaryPlugin;
 use skybox::SkyboxPlugin;
 use start_screen::StartScreenPlugin;
-use template_plugin::TemplatePlugin;
 
 mod active_duty_confirmation;
 mod active_missions;
@@ -39,6 +39,7 @@ mod exfil_timers;
 mod fake_level;
 mod first_person_controller;
 mod health;
+mod heightmap;
 mod inventory;
 mod inventory_testing;
 mod loading_screen;
@@ -119,7 +120,6 @@ fn main() {
             OutOfBoundsPlugin,
             HealthPlugin,
             ArmorPlugin,
-            TemplatePlugin,
         ))
         .add_plugins((
             RaidPlugin,
@@ -134,6 +134,7 @@ fn main() {
             RaidSummaryPlugin,
             InventoryTestingPlugin,
             SkyboxPlugin,
+            HeightmapPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, close_on_esc)

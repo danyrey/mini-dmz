@@ -2,10 +2,11 @@ use std::f32::consts::PI;
 
 use bevy::{app::Plugin, input::mouse::MouseMotion};
 
-use crate::exfil::Operator;
+use crate::heightmap::{XSineTerrain, XZSineTerrain};
 use crate::raid::Volume;
 use crate::AppState;
 use crate::AppState::Raid;
+use crate::{exfil::Operator, heightmap::YProbe};
 use bevy::{math::bounding::Aabb3d, prelude::*};
 
 // Constants
@@ -121,6 +122,8 @@ fn update_camera_move(
         let mut speed_modifier = 1.0;
         let mut height_modifier = 0.0;
 
+        // TODO : probe for y baseline, could be const Y for first draft
+
         if key_input.pressed(KeyCode::ShiftLeft) || key_input.pressed(KeyCode::ShiftRight) {
             speed_modifier = RUN_SPEED_FACTOR;
         }
@@ -160,8 +163,16 @@ fn update_camera_move(
         let new_y = velocity.y * dt * Vec3::Y; // jump and crouch modifiers go here
         let new_z = velocity.z * dt * forward;
         transform.translation += new_x + new_y + new_z;
-        transform.translation.y = 0.0;
+        transform.translation.y =
+            XZSineTerrain::probe_y(transform.translation.x, transform.translation.z);
         transform.translation.y += height_modifier;
+    }
+}
+
+// TODO: 0.0 for now, could be querying a heightmap in the future
+impl YProbe for FirstPersonControllerPlugin {
+    fn probe_y(x: f32, z: f32) -> f32 {
+        0.0 * x * z
     }
 }
 
