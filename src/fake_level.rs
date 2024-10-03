@@ -8,6 +8,7 @@ use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity,
 use crate::raid::Enemy;
 use crate::AppState;
 use crate::AppState::Raid;
+use bevy::math::Affine2;
 use bevy::prelude::*;
 use bevy::render::mesh::VertexAttributeValues;
 use bevy::render::texture::{
@@ -89,17 +90,14 @@ fn start_fake_level(
 
     // circular base
     let disc_size = 8.0;
-    let disc = meshes.add(Circle::new(disc_size));
-    let mesh = meshes.get_mut(&disc).unwrap();
-    scale_uv(mesh, 2.0 * disc_size, 2.0 * disc_size);
 
     commands
         .spawn(PbrBundle {
-            mesh: disc,
+            mesh: meshes.add(Circle::new(disc_size)),
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
                 base_color: Color::WHITE,
-                //uv_transform: Affine2::from_scale(Vec2::new(2., 3.)), // looks like a 14.0 feature
+                uv_transform: Affine2::from_scale(Vec2::new(2. * disc_size, 2. * disc_size)),
                 ..Default::default()
             }),
             transform: Transform::from_rotation(Quat::from_rotation_x(
@@ -162,8 +160,8 @@ fn start_fake_level(
         enemy_cube_size_y,
         enemy_cube_size_x,
     ));
-    let enemy_mesh = meshes.get_mut(&enemy_cube).unwrap();
-    scale_uv(enemy_mesh, enemy_cube_size_x, enemy_cube_size_y);
+    //let enemy_mesh = meshes.get_mut(&enemy_cube).unwrap();
+    //scale_uv(enemy_mesh, enemy_cube_size_x, enemy_cube_size_y);
 
     commands
         .spawn(PbrBundle {
@@ -171,6 +169,7 @@ fn start_fake_level(
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
                 base_color: Color::srgb(1.0, 0.0, 0.0),
+                uv_transform: Affine2::from_scale(Vec2::new(enemy_cube_size_x, enemy_cube_size_y)),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(5.0, 1.0, 5.0),
@@ -196,20 +195,17 @@ fn start_fake_level(
     // enemy 2 capsule
     let capsule_height = 1.50;
     let capsule_radius = 0.25;
-    let capsule = meshes.add(Capsule3d::new(capsule_radius, capsule_height));
-    let cap_mesh = meshes.get_mut(&capsule).unwrap();
-    scale_uv(
-        cap_mesh,
-        6.0 * capsule_radius,
-        capsule_height + (2.0 * capsule_radius),
-    );
 
     commands
         .spawn(PbrBundle {
-            mesh: capsule,
+            mesh: meshes.add(Capsule3d::new(capsule_radius, capsule_height)),
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
                 base_color: Color::srgb(0.75, 0.0, 0.0),
+                uv_transform: Affine2::from_scale(Vec2::new(
+                    6.0 * capsule_radius,
+                    capsule_height + (2.0 * capsule_radius),
+                )),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(3.5, 1.0, 5.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
@@ -222,8 +218,6 @@ fn start_fake_level(
 
     let loot_cube_size = 0.2;
     let loot_cube = meshes.add(Cuboid::new(loot_cube_size, loot_cube_size, loot_cube_size));
-    let loot_mesh = meshes.get_mut(&loot_cube).unwrap();
-    scale_uv(loot_mesh, loot_cube_size, loot_cube_size);
 
     commands
         .spawn(PbrBundle {
@@ -231,6 +225,7 @@ fn start_fake_level(
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
                 base_color: Color::srgb(0.0, 1.0, 0.0),
+                uv_transform: Affine2::from_scale(Vec2::new(loot_cube_size, loot_cube_size)),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(5.0, 1.1, -2.0),
@@ -253,6 +248,7 @@ fn start_fake_level(
             material: materials.add(StandardMaterial {
                 base_color: Color::srgb(0.0, 1.0, 0.0),
                 base_color_texture: Some(texture_06.clone()),
+                uv_transform: Affine2::from_scale(Vec2::new(loot_cube_size, loot_cube_size)),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(4.0, 1.1, -2.0),
@@ -272,6 +268,7 @@ fn start_fake_level(
             material: materials.add(StandardMaterial {
                 base_color: Color::srgb(0.0, 0.75, 0.0),
                 base_color_texture: Some(texture_06.clone()),
+                uv_transform: Affine2::from_scale(Vec2::new(loot_cube_size, loot_cube_size)),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(3.0, 0.1, -2.0),
@@ -289,6 +286,7 @@ fn start_fake_level(
             material: materials.add(StandardMaterial {
                 base_color: Color::srgb(0.0, 1.0, 0.0),
                 base_color_texture: Some(texture_06.clone()),
+                uv_transform: Affine2::from_scale(Vec2::new(loot_cube_size, loot_cube_size)),
                 ..Default::default()
             }),
             transform: Transform::from_xyz(2.0, 0.1, -2.0),

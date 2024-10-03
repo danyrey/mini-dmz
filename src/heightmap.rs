@@ -31,19 +31,21 @@ impl Plugin for HeightmapPlugin {
 // Systems
 fn start_heightmap_system(mut commands: Commands, asset_server: Res<AssetServer>) {
     debug!("starting {}", NAME);
-    commands.spawn(SceneBundle {
-        scene: asset_server
-            .load(GltfAssetLabel::Scene(0).from_asset("models/terrain/Mountains.gltf")),
-        transform: Transform {
-            scale: Vec3 {
-                x: 16.0,
-                y: 16.0,
-                z: 16.0,
+    commands
+        .spawn(SceneBundle {
+            scene: asset_server
+                .load(GltfAssetLabel::Scene(0).from_asset("models/terrain/Mountains.gltf")),
+            transform: Transform {
+                scale: Vec3 {
+                    x: 16.0,
+                    y: 16.0,
+                    z: 16.0,
+                },
+                ..Default::default()
             },
-            ..Default::default()
-        },
-        ..default()
-    });
+            ..default()
+        })
+        .insert(Name::from("Mountains"));
 }
 fn update_heightmap_system() {
     debug!("updating {}", NAME);
