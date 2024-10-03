@@ -1,4 +1,7 @@
 use bevy::app::Plugin;
+use bevy::render::texture::{
+    ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor,
+};
 
 use crate::AppState;
 use crate::AppState::Raid;
@@ -25,12 +28,51 @@ impl Plugin for HeightmapPlugin {
 // Components
 
 // Resources
+#[derive(Resource)]
+struct PrototypeTextures {
+    #[allow(dead_code)]
+    texture_01: Handle<Image>,
+    #[allow(dead_code)]
+    texture_06: Handle<Image>,
+}
 
 // Events
 
 // Systems
 fn start_heightmap_system(mut commands: Commands, asset_server: Res<AssetServer>) {
     debug!("starting {}", NAME);
+
+    let texture_01 =
+        asset_server.load_with_settings("textures/prototype/Dark/texture_01.png", |s: &mut _| {
+            *s = ImageLoaderSettings {
+                sampler: ImageSampler::Descriptor(ImageSamplerDescriptor {
+                    // rewriting mode to repeat image,
+                    address_mode_u: ImageAddressMode::Repeat,
+                    address_mode_v: ImageAddressMode::Repeat,
+                    ..default()
+                }),
+                ..default()
+            }
+        });
+    let texture_06 =
+        asset_server.load_with_settings("textures/prototype/Light/texture_06.png", |s: &mut _| {
+            *s = ImageLoaderSettings {
+                sampler: ImageSampler::Descriptor(ImageSamplerDescriptor {
+                    // rewriting mode to repeat image,
+                    address_mode_u: ImageAddressMode::Repeat,
+                    address_mode_v: ImageAddressMode::Repeat,
+                    ..default()
+                }),
+                ..default()
+            }
+        });
+
+    commands.insert_resource(PrototypeTextures {
+        texture_01: texture_01.clone(),
+        texture_06: texture_06.clone(),
+    });
+
+    // terrain
     commands
         .spawn(SceneBundle {
             scene: asset_server

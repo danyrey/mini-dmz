@@ -347,8 +347,6 @@ fn start_fake_level_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     // ui
     commands
         .spawn(NodeBundle {
-            // FIXME: this does not do shit when it comes to level geometry, its just rendered behind
-            z_index: ZIndex::Global(1),
             transform: Transform::from_xyz(0.0, 0.0, 10.0),
             style: Style {
                 position_type: PositionType::Absolute,
