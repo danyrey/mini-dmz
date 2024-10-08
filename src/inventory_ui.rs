@@ -8,7 +8,6 @@ use crate::{
 use bevy::prelude::*;
 
 // Constants
-const NAME: &str = "InventoryUI";
 
 // Plugin
 
@@ -25,7 +24,7 @@ impl Plugin for InventoryUIPlugin {
         app.add_event::<AccessLootCache>()
             .add_systems(
                 Update,
-                ((toggle_loot_cache_ui, toggle_backpack_ui)).run_if(in_state(AppState::Raid)),
+                (toggle_loot_cache_ui, toggle_backpack_ui).run_if(in_state(AppState::Raid)),
             )
             .add_systems(
                 OnEnter(RaidState::AccessLootCache),
@@ -41,13 +40,12 @@ impl Plugin for InventoryUIPlugin {
             )
             .add_systems(
                 Update,
-                ((update_loot_cache_ui, update_backpack_ui, update_loadout_ui))
+                (update_loot_cache_ui, update_backpack_ui, update_loadout_ui)
                     .run_if(in_state(RaidState::AccessLootCache)),
             )
             .add_systems(
                 Update,
-                ((update_backpack_ui, update_loadout_ui))
-                    .run_if(in_state(RaidState::AccessBackpack)),
+                (update_backpack_ui, update_loadout_ui).run_if(in_state(RaidState::AccessBackpack)),
             )
             .add_systems(
                 OnExit(RaidState::AccessLootCache),
@@ -72,6 +70,7 @@ struct AccessLootCache {
     pub inventory: Entity,
 }
 
+#[allow(dead_code)]
 #[derive(Event, Debug, PartialEq)]
 struct AccessBackpack {
     pub operator: Entity,

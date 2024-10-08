@@ -10,7 +10,6 @@ use crate::AppState;
 use crate::AppState::Raid;
 use bevy::math::Affine2;
 use bevy::prelude::*;
-use bevy::render::mesh::VertexAttributeValues;
 use bevy::render::texture::{
     ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor,
 };
@@ -477,15 +476,4 @@ fn bye_fake_level(mut commands: Commands, query: Query<Entity, With<FakeLevelStu
     for entity in &query {
         commands.entity(entity).despawn_recursive();
     }
-}
-
-fn scale_uv(mesh: &mut Mesh, u_scale: f32, v_scale: f32) {
-    let uv_m = mesh.attribute_mut(Mesh::ATTRIBUTE_UV_0);
-
-    if let Some(VertexAttributeValues::Float32x2(values)) = uv_m {
-        for uv in values.iter_mut() {
-            uv[0] *= u_scale;
-            uv[1] *= v_scale;
-        }
-    };
 }
