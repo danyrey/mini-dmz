@@ -19,6 +19,9 @@ pub enum RaidState {
     Raid,
     AccessLootCache,
     AccessBackpack,
+    //AccessTacMap,
+    //AccessMissions,
+    //AccessMenu,
 }
 
 // Components
