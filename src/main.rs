@@ -15,6 +15,7 @@ use health::HealthPlugin;
 use heightmap::HeightmapPlugin;
 use inventory::InventoryPlugin;
 use inventory_testing::InventoryTestingPlugin;
+use inventory_ui::InventoryUIPlugin;
 use loading_screen::MatchLoadingScreenPlugin;
 use loot::LootPlugin;
 use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
@@ -42,6 +43,7 @@ mod health;
 mod heightmap;
 mod inventory;
 mod inventory_testing;
+mod inventory_ui;
 mod loading_screen;
 mod loadout;
 mod loot;
@@ -55,7 +57,7 @@ mod start_screen;
 mod template_plugin;
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, States)]
-enum AppState {
+pub enum AppState {
     StartScreen,
     MissionObjectives(MissionObjectives),
     DeployScreen(DeployScreen),
@@ -65,7 +67,7 @@ enum AppState {
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, States)]
-enum MissionObjectives {
+pub enum MissionObjectives {
     #[default]
     Start,
     Missions,
@@ -77,7 +79,7 @@ enum MissionObjectives {
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, States)]
-enum DeployScreen {
+pub enum DeployScreen {
     #[default]
     ChooseLocation,
     ActiveMissions,
@@ -135,6 +137,7 @@ fn main() {
             InventoryTestingPlugin,
             SkyboxPlugin,
             HeightmapPlugin,
+            InventoryUIPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, close_on_esc)

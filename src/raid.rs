@@ -11,6 +11,16 @@ use crate::{
     AppState::{self, Raid},
 };
 
+// Sub States
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, SubStates)]
+#[source(AppState = AppState::Raid)]
+pub enum RaidState {
+    #[default]
+    Raid,
+    AccessLootCache,
+    AccessBackpack,
+}
+
 // Components
 
 #[derive(Component)]
@@ -52,6 +62,7 @@ impl Plugin for RaidPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<InfilCounter>()
             .add_event::<InfilComplete>()
+            .add_sub_state::<RaidState>()
             .add_systems(OnEnter(Raid), start_raid)
             .add_systems(
                 Update,
