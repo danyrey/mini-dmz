@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use bevy::{app::Plugin, input::mouse::MouseMotion};
 
 use crate::heightmap::XZSineTerrain;
-use crate::raid::Volume;
+use crate::raid::{RaidState, Volume};
 use crate::AppState;
 use crate::AppState::Raid;
 use crate::{exfil::Operator, heightmap::YProbe};
@@ -27,13 +27,12 @@ impl Plugin for FirstPersonControllerPlugin {
         app.add_systems(OnEnter(Raid), start_first_person_controller_system)
             .add_systems(
                 Update,
-                (
-                    update_camera_move,
-                    update_camera_look_yaw,
-                    update_camera_look_pitch,
-                    debug_im_crosshair,
-                )
-                    .run_if(in_state(AppState::Raid)),
+                (update_camera_move, debug_im_crosshair).run_if(in_state(AppState::Raid)),
+            )
+            .add_systems(
+                Update,
+                (update_camera_look_yaw, update_camera_look_pitch)
+                    .run_if(in_state(AppState::Raid).and_then(in_state(RaidState::Raid))),
             )
             .add_systems(OnExit(AppState::Raid), bye_first_person_controller_system);
     }

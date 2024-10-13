@@ -35,7 +35,7 @@ impl Plugin for FakeLevelPlugin {
 struct FakeLevelStuff;
 
 #[derive(Component)]
-struct Crosshair;
+pub struct Crosshair;
 
 // Resources
 #[derive(Resource)]

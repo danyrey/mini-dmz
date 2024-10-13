@@ -1,7 +1,12 @@
-use bevy::app::Plugin;
+use bevy::{
+    app::Plugin,
+    color::palettes::css::{MAROON, RED},
+    window::PrimaryWindow,
+};
 
 use crate::{
     //exfil::Operator, first_person_controller::PlayerControlled, inventory::ItemSlots,
+    fake_level::Crosshair,
     raid::RaidState,
     AppState,
 };
@@ -28,11 +33,20 @@ impl Plugin for InventoryUIPlugin {
             )
             .add_systems(
                 OnEnter(RaidState::AccessLootCache),
-                (start_loot_cache_ui, start_backpack_ui, start_loadout_ui),
+                (
+                    startup_cursor_crosshair,
+                    start_loot_cache_ui,
+                    start_backpack_ui,
+                    start_loadout_ui,
+                ),
             )
             .add_systems(
                 OnEnter(RaidState::AccessBackpack),
-                (start_backpack_ui, start_loadout_ui),
+                (
+                    startup_cursor_crosshair,
+                    start_backpack_ui,
+                    start_loadout_ui,
+                ),
             )
             .add_systems(
                 Update,
@@ -45,11 +59,16 @@ impl Plugin for InventoryUIPlugin {
             )
             .add_systems(
                 OnExit(RaidState::AccessLootCache),
-                (bye_loot_cache_ui, bye_backpack_ui, bye_loadout_ui),
+                (
+                    cleanup_cursor_crosshair,
+                    bye_loot_cache_ui,
+                    bye_backpack_ui,
+                    bye_loadout_ui,
+                ),
             )
             .add_systems(
                 OnExit(RaidState::AccessBackpack),
-                (bye_backpack_ui, bye_loadout_ui),
+                (cleanup_cursor_crosshair, bye_backpack_ui, bye_loadout_ui),
             );
     }
 }
@@ -137,6 +156,17 @@ fn toggle_backpack_ui(
 
 // STARTING SYSTEMS
 
+fn startup_cursor_crosshair(
+    mut commands: Commands,
+    mut windows: Query<&mut Window, With<PrimaryWindow>>,
+    crosshair: Query<Entity, With<Crosshair>>,
+) {
+    let mut primary_window = windows.single_mut();
+    let crosshair_vis = crosshair.single();
+    primary_window.cursor.visible = true;
+    commands.entity(crosshair_vis).insert(Visibility::Hidden);
+}
+
 fn start_loot_cache_ui(mut commands: Commands) {
     debug!("start loot cache ui");
 
@@ -145,19 +175,13 @@ fn start_loot_cache_ui(mut commands: Commands) {
     let loot_cache_ui = commands
         .spawn(NodeBundle {
             style: Style {
-                display: Display::Grid,
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
                 padding: UiRect {
                     top: Val::Percent(10.),
                     ..Default::default()
                 },
-                grid_template_columns: vec![GridTrack::auto()],
-                grid_template_rows: vec![
-                    GridTrack::auto(),
-                    GridTrack::flex(1.0),
-                    GridTrack::px(20.),
-                ],
+                justify_self: JustifySelf::Center,
                 ..default()
             },
             ..default()
@@ -168,11 +192,14 @@ fn start_loot_cache_ui(mut commands: Commands) {
             builder
                 .spawn(NodeBundle {
                     style: Style {
-                        display: Display::Grid,
-                        justify_items: JustifyItems::Center,
+                        display: Display::Flex,
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
                         padding: UiRect::all(Val::Px(12.0)),
                         ..default()
                     },
+                    //background_color: DARK_GREEN.into(),
                     ..default()
                 })
                 .insert(Name::new("Loot Cache Header"))
@@ -190,22 +217,104 @@ fn start_loot_cache_ui(mut commands: Commands) {
             builder
                 .spawn(NodeBundle {
                     style: Style {
-                        display: Display::Grid,
-                        justify_items: JustifyItems::Center,
+                        display: Display::Flex,
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::Center,
                         padding: UiRect::all(Val::Px(12.0)),
-                        grid_template_columns: RepeatedGridTrack::flex(1, 1.0),
+                        border: UiRect {
+                            left: Val::Px(100.0),
+                            right: Val::Px(100.0),
+                            ..default()
+                        },
                         ..default()
                     },
+                    //background_color: GREEN.into(),
                     ..default()
                 })
                 .insert(Name::new("Loot Cache Main"))
                 .with_children(|builder| {
-                    builder.spawn(TextBundle::from_section(
-                        "Loot Cache Main",
-                        TextStyle {
-                            font_size: 10.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
-                            ..default()
+                    builder.spawn((
+                        NodeBundle {
+                            style: Style {
+                                width: Val::Px(100.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..Default::default()
+                            },
+                            background_color: MAROON.into(),
+                            border_color: RED.into(),
+                            ..Default::default()
+                        },
+                        Outline {
+                            width: Val::Px(6.),
+                            offset: Val::Px(6.),
+                            color: Color::WHITE,
+                        },
+                    ));
+                    builder.spawn((
+                        NodeBundle {
+                            style: Style {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..Default::default()
+                            },
+                            background_color: MAROON.into(),
+                            border_color: RED.into(),
+                            ..Default::default()
+                        },
+                        Outline {
+                            width: Val::Px(6.),
+                            offset: Val::Px(6.),
+                            color: Color::WHITE,
+                        },
+                    ));
+                    builder.spawn((
+                        NodeBundle {
+                            style: Style {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..Default::default()
+                            },
+                            background_color: MAROON.into(),
+                            border_color: RED.into(),
+                            ..Default::default()
+                        },
+                        Outline {
+                            width: Val::Px(6.),
+                            offset: Val::Px(6.),
+                            color: Color::WHITE,
+                        },
+                    ));
+                    builder.spawn((
+                        NodeBundle {
+                            style: Style {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..Default::default()
+                            },
+                            background_color: MAROON.into(),
+                            border_color: RED.into(),
+                            ..Default::default()
+                        },
+                        Outline {
+                            width: Val::Px(6.),
+                            offset: Val::Px(6.),
+                            color: Color::WHITE,
                         },
                     ));
                 });
@@ -224,19 +333,13 @@ fn start_backpack_ui(mut commands: Commands) {
     let backpack_ui = commands
         .spawn(NodeBundle {
             style: Style {
-                display: Display::Grid,
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
                 padding: UiRect {
-                    top: Val::Percent(20.),
+                    top: Val::Percent(25.),
                     ..Default::default()
                 },
-                grid_template_columns: vec![GridTrack::auto()],
-                grid_template_rows: vec![
-                    GridTrack::auto(),
-                    GridTrack::flex(1.0),
-                    GridTrack::px(20.),
-                ],
+                justify_self: JustifySelf::Center,
                 ..default()
             },
             ..default()
@@ -247,11 +350,14 @@ fn start_backpack_ui(mut commands: Commands) {
             builder
                 .spawn(NodeBundle {
                     style: Style {
-                        display: Display::Grid,
-                        justify_items: JustifyItems::Center,
+                        display: Display::Flex,
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
                         padding: UiRect::all(Val::Px(12.0)),
                         ..default()
                     },
+                    //background_color: DARK_GREEN.into(),
                     ..default()
                 })
                 .insert(Name::new("Backpack Header"))
@@ -269,22 +375,104 @@ fn start_backpack_ui(mut commands: Commands) {
             builder
                 .spawn(NodeBundle {
                     style: Style {
-                        display: Display::Grid,
-                        justify_items: JustifyItems::Center,
+                        display: Display::Flex,
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::Center,
                         padding: UiRect::all(Val::Px(12.0)),
-                        grid_template_columns: RepeatedGridTrack::flex(1, 1.0),
+                        border: UiRect {
+                            left: Val::Px(100.0),
+                            right: Val::Px(100.0),
+                            ..default()
+                        },
                         ..default()
                     },
+                    //background_color: GREEN.into(),
                     ..default()
                 })
                 .insert(Name::new("Backpack Main"))
                 .with_children(|builder| {
-                    builder.spawn(TextBundle::from_section(
-                        "Backpack Main",
-                        TextStyle {
-                            font_size: 10.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
-                            ..default()
+                    builder.spawn((
+                        NodeBundle {
+                            style: Style {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..Default::default()
+                            },
+                            background_color: MAROON.into(),
+                            border_color: RED.into(),
+                            ..Default::default()
+                        },
+                        Outline {
+                            width: Val::Px(6.),
+                            offset: Val::Px(6.),
+                            color: Color::WHITE,
+                        },
+                    ));
+                    builder.spawn((
+                        NodeBundle {
+                            style: Style {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..Default::default()
+                            },
+                            background_color: MAROON.into(),
+                            border_color: RED.into(),
+                            ..Default::default()
+                        },
+                        Outline {
+                            width: Val::Px(6.),
+                            offset: Val::Px(6.),
+                            color: Color::WHITE,
+                        },
+                    ));
+                    builder.spawn((
+                        NodeBundle {
+                            style: Style {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..Default::default()
+                            },
+                            background_color: MAROON.into(),
+                            border_color: RED.into(),
+                            ..Default::default()
+                        },
+                        Outline {
+                            width: Val::Px(6.),
+                            offset: Val::Px(6.),
+                            color: Color::WHITE,
+                        },
+                    ));
+                    builder.spawn((
+                        NodeBundle {
+                            style: Style {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..Default::default()
+                            },
+                            background_color: MAROON.into(),
+                            border_color: RED.into(),
+                            ..Default::default()
+                        },
+                        Outline {
+                            width: Val::Px(6.),
+                            offset: Val::Px(6.),
+                            color: Color::WHITE,
                         },
                     ));
                 });
@@ -304,20 +492,17 @@ fn start_loadout_ui(mut commands: Commands) {
         .spawn(NodeBundle {
             style: Style {
                 display: Display::Grid,
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
+                flex_direction: FlexDirection::Column,
                 padding: UiRect {
-                    top: Val::Percent(30.),
+                    top: Val::Percent(40.),
+                    //left: Val::Percent(20.),
+                    //right: Val::Percent(20.),
                     ..Default::default()
                 },
-                grid_template_columns: vec![GridTrack::auto()],
-                grid_template_rows: vec![
-                    GridTrack::auto(),
-                    GridTrack::flex(1.0),
-                    GridTrack::px(20.),
-                ],
+                justify_self: JustifySelf::Center,
                 ..default()
             },
+            //background_color: BLUE.into(),
             ..default()
         })
         .insert(Name::new("Main Loadout Layout"))
@@ -326,11 +511,14 @@ fn start_loadout_ui(mut commands: Commands) {
             builder
                 .spawn(NodeBundle {
                     style: Style {
-                        display: Display::Grid,
-                        justify_items: JustifyItems::Center,
+                        display: Display::Flex,
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
                         padding: UiRect::all(Val::Px(12.0)),
                         ..default()
                     },
+                    //background_color: DARK_GREEN.into(),
                     ..default()
                 })
                 .insert(Name::new("Loadout Header"))
@@ -348,22 +536,146 @@ fn start_loadout_ui(mut commands: Commands) {
             builder
                 .spawn(NodeBundle {
                     style: Style {
-                        display: Display::Grid,
-                        justify_items: JustifyItems::Center,
+                        display: Display::Flex,
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::Center,
                         padding: UiRect::all(Val::Px(12.0)),
-                        grid_template_columns: RepeatedGridTrack::flex(1, 1.0),
+                        border: UiRect {
+                            left: Val::Px(50.0),
+                            right: Val::Px(50.0),
+                            ..default()
+                        },
                         ..default()
                     },
+                    //background_color: GREEN.into(),
                     ..default()
                 })
                 .insert(Name::new("Loadout Main"))
                 .with_children(|builder| {
-                    builder.spawn(TextBundle::from_section(
-                        "Loadout Main",
-                        TextStyle {
-                            font_size: 10.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
-                            ..default()
+                    builder.spawn((
+                        NodeBundle {
+                            style: Style {
+                                width: Val::Px(100.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..Default::default()
+                            },
+                            background_color: MAROON.into(),
+                            border_color: RED.into(),
+                            ..Default::default()
+                        },
+                        Outline {
+                            width: Val::Px(6.),
+                            offset: Val::Px(6.),
+                            color: Color::WHITE,
+                        },
+                    ));
+                    builder.spawn((
+                        NodeBundle {
+                            style: Style {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..Default::default()
+                            },
+                            background_color: MAROON.into(),
+                            border_color: RED.into(),
+                            ..Default::default()
+                        },
+                        Outline {
+                            width: Val::Px(6.),
+                            offset: Val::Px(6.),
+                            color: Color::WHITE,
+                        },
+                    ));
+                    builder.spawn((
+                        NodeBundle {
+                            style: Style {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..Default::default()
+                            },
+                            background_color: MAROON.into(),
+                            border_color: RED.into(),
+                            ..Default::default()
+                        },
+                        Outline {
+                            width: Val::Px(6.),
+                            offset: Val::Px(6.),
+                            color: Color::WHITE,
+                        },
+                    ));
+                    builder.spawn((
+                        NodeBundle {
+                            style: Style {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..Default::default()
+                            },
+                            background_color: MAROON.into(),
+                            border_color: RED.into(),
+                            ..Default::default()
+                        },
+                        Outline {
+                            width: Val::Px(6.),
+                            offset: Val::Px(6.),
+                            color: Color::WHITE,
+                        },
+                    ));
+                    builder.spawn((
+                        NodeBundle {
+                            style: Style {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..Default::default()
+                            },
+                            background_color: MAROON.into(),
+                            border_color: RED.into(),
+                            ..Default::default()
+                        },
+                        Outline {
+                            width: Val::Px(6.),
+                            offset: Val::Px(6.),
+                            color: Color::WHITE,
+                        },
+                    ));
+                    builder.spawn((
+                        NodeBundle {
+                            style: Style {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..Default::default()
+                            },
+                            background_color: MAROON.into(),
+                            border_color: RED.into(),
+                            ..Default::default()
+                        },
+                        Outline {
+                            width: Val::Px(6.),
+                            offset: Val::Px(6.),
+                            color: Color::WHITE,
                         },
                     ));
                 });
@@ -389,6 +701,17 @@ fn update_loadout_ui() {
 }
 
 // SHUTDOWN SYSTEMS
+
+fn cleanup_cursor_crosshair(
+    mut commands: Commands,
+    mut windows: Query<&mut Window, With<PrimaryWindow>>,
+    crosshair: Query<Entity, With<Crosshair>>,
+) {
+    let mut primary_window = windows.single_mut();
+    let crosshair_vis = crosshair.single();
+    primary_window.cursor.visible = false;
+    commands.entity(crosshair_vis).insert(Visibility::Visible);
+}
 
 fn bye_loot_cache_ui(mut commands: Commands, loot_cache_ui: Res<LootCacheUI>) {
     debug!("cleanup loot cache ui");
