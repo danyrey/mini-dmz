@@ -3,6 +3,7 @@
 //  * transfer from state from one appstate to another: active dute layout -> ...load in -> raid
 use crate::damage::HurtBox;
 use crate::exfil::{ExfilArea, Operator};
+use crate::interaction::Interactable;
 use crate::inventory::{Inventory, ItemSlots, WeaponSlots};
 use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
 use crate::raid::Enemy;
@@ -325,6 +326,7 @@ fn start_fake_level(
         })
         .insert(Name::new("Weapon Locker"))
         .insert(Inventory)
+        .insert(Interactable)
         .insert(WeaponSlots(2))
         .insert(ItemSlots(6))
         .insert(FakeLevelStuff);

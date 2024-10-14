@@ -1,12 +1,16 @@
 use bevy::{
     app::Plugin,
-    color::palettes::css::{MAROON, RED},
+    color::palettes::css::{DARK_GREY, GREY, MAROON, RED},
+    reflect::Tuple,
     window::PrimaryWindow,
 };
 
 use crate::{
     //exfil::Operator, first_person_controller::PlayerControlled, inventory::ItemSlots,
     fake_level::Crosshair,
+    interaction::InventoryInteracted,
+    inventory::{Inventory, ItemSlot, ItemSlots, WeaponSlot, WeaponSlots},
+    loot::Loot,
     raid::RaidState,
     AppState,
 };
@@ -29,7 +33,12 @@ impl Plugin for InventoryUIPlugin {
         app.add_event::<AccessLootCache>()
             .add_systems(
                 Update,
-                (toggle_loot_cache_ui, toggle_backpack_ui).run_if(in_state(AppState::Raid)),
+                (
+                    start_loot_cache_interaction,
+                    toggle_loot_cache_ui,
+                    toggle_backpack_ui,
+                )
+                    .run_if(in_state(AppState::Raid)),
             )
             .add_systems(
                 OnEnter(RaidState::AccessLootCache),
@@ -81,6 +90,12 @@ struct LootCacheUI {
     loot_cache_ui: Entity,
 }
 
+#[derive(Resource)]
+struct LootCacheEntities {
+    loot_cache: Entity,
+    backpack: Entity,
+}
+
 #[allow(dead_code)]
 #[derive(Resource)]
 struct BackpackUI {
@@ -118,11 +133,6 @@ struct AccessBackpack {
 // TODO: replace keypress with actual logic (proximity, raycast, occlusion, ...)
 /// toggles sub state for AccessLootCache
 fn toggle_loot_cache_ui(
-    //mut _commands: Commands,
-    //mut _raid_state: ResMut<NextState<RaidState>>,
-    //_operator_query: Query<&Transform, (With<Operator>, With<PlayerControlled>)>,
-    //_inventory_query: Query<Entity, With<ItemSlots>>,
-    //mut _access_inventory: EventWriter<AccessLootCache>,
     key_input: Res<ButtonInput<KeyCode>>,
     raid_state: Res<State<RaidState>>,
     mut next_raid_state: ResMut<NextState<RaidState>>,
@@ -167,9 +177,65 @@ fn startup_cursor_crosshair(
     commands.entity(crosshair_vis).insert(Visibility::Hidden);
 }
 
-fn start_loot_cache_ui(mut commands: Commands) {
+fn start_loot_cache_interaction(
+    mut loot_cache_interaction: EventReader<InventoryInteracted>,
+    mut commands: Commands,
+    raid_state: Res<State<RaidState>>,
+    mut next_raid_state: ResMut<NextState<RaidState>>,
+) {
+    for interacted in loot_cache_interaction.read() {
+        debug!("i received the event, TODO: time to popluate the ui");
+        debug!("loot cache: {:?}", interacted.interaction_inventory);
+        debug!(
+            "operator inventory(backpack): {:?}",
+            interacted.operator_inventory
+        );
+
+        commands.insert_resource(LootCacheEntities {
+            loot_cache: interacted.interaction_inventory,
+            backpack: interacted.operator_inventory,
+        });
+
+        match raid_state.get() {
+            RaidState::Raid => next_raid_state.set(RaidState::AccessLootCache),
+            _ => (),
+        }
+    }
+}
+
+// TODO: query/fetch items for populating the ui
+fn start_loot_cache_ui(
+    mut commands: Commands,
+    loot_entities: Res<LootCacheEntities>,
+    inventories_with_items: Query<&ItemSlots, With<Inventory>>,
+    inventory_items: Query<(&Parent, &ItemSlot), With<Loot>>,
+    inventories_with_weapons: Query<&WeaponSlots, With<Inventory>>,
+    inventory_weapons: Query<(&Parent, &WeaponSlot), With<Loot>>,
+) {
     debug!("start loot cache ui");
 
+    let inventory = loot_entities.loot_cache;
+    let inventory_items: Vec<&ItemSlot> = inventory_items
+        .iter()
+        .filter(|ii| inventory == ii.0.get())
+        .map(|ii| ii.1)
+        .collect();
+    let item_slots: usize = inventories_with_items
+        .get(inventory)
+        .map_or(0, |r| r.0.into());
+
+    let mut weapons: Vec<&WeaponSlot> = inventory_weapons
+        .iter()
+        .filter(|ii| inventory == ii.0.get())
+        .map(|ii| ii.1)
+        .collect();
+    weapons.sort_by(|a, b| a.0.cmp(&b.0));
+    let weapon_slots: usize = inventories_with_weapons
+        .get(inventory)
+        .map_or(0, |r| r.0.into());
+
+    debug!("item slots: {:?}", item_slots);
+    debug!("weapon slots: {:?}", weapon_slots);
     // Layout
     // Top-level grid (app frame)
     let loot_cache_ui = commands
@@ -233,90 +299,42 @@ fn start_loot_cache_ui(mut commands: Commands) {
                 })
                 .insert(Name::new("Loot Cache Main"))
                 .with_children(|builder| {
-                    builder.spawn((
-                        NodeBundle {
-                            style: Style {
-                                width: Val::Px(100.),
-                                height: Val::Px(50.),
-                                border: UiRect::all(Val::Px(10.)),
-                                margin: UiRect::all(Val::Px(20.)),
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
-                                ..Default::default()
-                            },
-                            background_color: MAROON.into(),
-                            border_color: RED.into(),
-                            ..Default::default()
-                        },
-                        Outline {
-                            width: Val::Px(6.),
-                            offset: Val::Px(6.),
-                            color: Color::WHITE,
-                        },
-                    ));
-                    builder.spawn((
-                        NodeBundle {
-                            style: Style {
-                                width: Val::Px(50.),
-                                height: Val::Px(50.),
-                                border: UiRect::all(Val::Px(10.)),
-                                margin: UiRect::all(Val::Px(20.)),
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
-                                ..Default::default()
-                            },
-                            background_color: MAROON.into(),
-                            border_color: RED.into(),
-                            ..Default::default()
-                        },
-                        Outline {
-                            width: Val::Px(6.),
-                            offset: Val::Px(6.),
-                            color: Color::WHITE,
-                        },
-                    ));
-                    builder.spawn((
-                        NodeBundle {
-                            style: Style {
-                                width: Val::Px(50.),
-                                height: Val::Px(50.),
-                                border: UiRect::all(Val::Px(10.)),
-                                margin: UiRect::all(Val::Px(20.)),
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
-                                ..Default::default()
-                            },
-                            background_color: MAROON.into(),
-                            border_color: RED.into(),
-                            ..Default::default()
-                        },
-                        Outline {
-                            width: Val::Px(6.),
-                            offset: Val::Px(6.),
-                            color: Color::WHITE,
-                        },
-                    ));
-                    builder.spawn((
-                        NodeBundle {
-                            style: Style {
-                                width: Val::Px(50.),
-                                height: Val::Px(50.),
-                                border: UiRect::all(Val::Px(10.)),
-                                margin: UiRect::all(Val::Px(20.)),
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
-                                ..Default::default()
-                            },
-                            background_color: MAROON.into(),
-                            border_color: RED.into(),
-                            ..Default::default()
-                        },
-                        Outline {
-                            width: Val::Px(6.),
-                            offset: Val::Px(6.),
-                            color: Color::WHITE,
-                        },
-                    ));
+                    // TODO: here put the dynamic data and replace the static placeholders
+                    // TODO: extract static stuff to helper methods(weapons/items)
+
+                    let mut it_slot_counter = 0..weapon_slots;
+                    let mut it_slot = weapons.iter();
+                    let mut slot = it_slot.next();
+
+                    while let Some(weapon_slot_no) = it_slot_counter.next() {
+                        debug!("weapon slot: {:?}", weapon_slot_no);
+                        if let Some(s) = slot {
+                            debug!("slot: {:?}", s.0);
+                            slot = it_slot.next();
+                            create_weapon_slot_ui(builder);
+                        } else {
+                            debug!("slot: nothing");
+                            // TODO: render empty slot
+                            create_empty_weapon_slot_ui(builder);
+                        }
+                    }
+
+                    let mut it_slot_counter = 0..item_slots;
+                    let mut it_slot = inventory_items.iter();
+                    let mut slot = it_slot.next();
+
+                    while let Some(item_slot_no) = it_slot_counter.next() {
+                        debug!("item slot: {:?}", item_slot_no);
+                        if let Some(s) = slot {
+                            debug!("slot: {:?}", s.0);
+                            slot = it_slot.next();
+                            create_item_slot_ui(builder);
+                        } else {
+                            debug!("slot: nothing");
+                            // TODO: render empty slot
+                            create_empty_item_slot_ui(builder);
+                        }
+                    }
                 });
         })
         .id();
@@ -715,6 +733,7 @@ fn cleanup_cursor_crosshair(
 
 fn bye_loot_cache_ui(mut commands: Commands, loot_cache_ui: Res<LootCacheUI>) {
     debug!("cleanup loot cache ui");
+    commands.remove_resource::<LootCacheEntities>();
     commands
         .entity(loot_cache_ui.loot_cache_ui)
         .despawn_recursive();
@@ -731,6 +750,101 @@ fn bye_loadout_ui(mut commands: Commands, loadout_ui: Res<LoadoutUI>) {
 }
 
 // helper functions
+fn create_empty_weapon_slot_ui(builder: &mut ChildBuilder) {
+    builder.spawn((
+        NodeBundle {
+            style: Style {
+                width: Val::Px(100.),
+                height: Val::Px(50.),
+                border: UiRect::all(Val::Px(10.)),
+                margin: UiRect::all(Val::Px(20.)),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                ..Default::default()
+            },
+            background_color: DARK_GREY.into(),
+            border_color: GREY.into(),
+            ..Default::default()
+        },
+        Outline {
+            width: Val::Px(6.),
+            offset: Val::Px(6.),
+            color: Color::WHITE,
+        },
+    ));
+}
+
+fn create_weapon_slot_ui(builder: &mut ChildBuilder) {
+    builder.spawn((
+        NodeBundle {
+            style: Style {
+                width: Val::Px(100.),
+                height: Val::Px(50.),
+                border: UiRect::all(Val::Px(10.)),
+                margin: UiRect::all(Val::Px(20.)),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                ..Default::default()
+            },
+            background_color: MAROON.into(),
+            border_color: RED.into(),
+            ..Default::default()
+        },
+        Outline {
+            width: Val::Px(6.),
+            offset: Val::Px(6.),
+            color: Color::WHITE,
+        },
+    ));
+}
+
+fn create_empty_item_slot_ui(builder: &mut ChildBuilder) {
+    builder.spawn((
+        NodeBundle {
+            style: Style {
+                width: Val::Px(50.),
+                height: Val::Px(50.),
+                border: UiRect::all(Val::Px(10.)),
+                margin: UiRect::all(Val::Px(20.)),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                ..Default::default()
+            },
+            background_color: DARK_GREY.into(),
+            border_color: GREY.into(),
+            ..Default::default()
+        },
+        Outline {
+            width: Val::Px(6.),
+            offset: Val::Px(6.),
+            color: Color::WHITE,
+        },
+    ));
+}
+
+fn create_item_slot_ui(builder: &mut ChildBuilder) {
+    builder.spawn((
+        NodeBundle {
+            style: Style {
+                width: Val::Px(50.),
+                height: Val::Px(50.),
+                border: UiRect::all(Val::Px(10.)),
+                margin: UiRect::all(Val::Px(20.)),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                ..Default::default()
+            },
+            background_color: MAROON.into(),
+            border_color: RED.into(),
+            ..Default::default()
+        },
+        Outline {
+            width: Val::Px(6.),
+            offset: Val::Px(6.),
+            color: Color::WHITE,
+        },
+    ));
+}
 
 // tests
 #[cfg(test)]

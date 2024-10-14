@@ -13,6 +13,7 @@ use fake_level::FakeLevelPlugin;
 use first_person_controller::FirstPersonControllerPlugin;
 use health::HealthPlugin;
 use heightmap::HeightmapPlugin;
+use interaction::InteractionPlugin;
 use inventory::InventoryPlugin;
 use inventory_testing::InventoryTestingPlugin;
 use inventory_ui::InventoryUIPlugin;
@@ -41,6 +42,7 @@ mod fake_level;
 mod first_person_controller;
 mod health;
 mod heightmap;
+mod interaction;
 mod inventory;
 mod inventory_testing;
 mod inventory_ui;
@@ -138,6 +140,7 @@ fn main() {
             SkyboxPlugin,
             HeightmapPlugin,
             InventoryUIPlugin,
+            InteractionPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, close_on_esc)
