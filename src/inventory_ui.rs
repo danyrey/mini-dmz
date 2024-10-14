@@ -1,7 +1,6 @@
 use bevy::{
     app::Plugin,
     color::palettes::css::{DARK_GREY, GREY, MAROON, RED},
-    reflect::Tuple,
     window::PrimaryWindow,
 };
 
@@ -93,6 +92,7 @@ struct LootCacheUI {
 #[derive(Resource)]
 struct LootCacheEntities {
     loot_cache: Entity,
+    #[allow(dead_code)]
     backpack: Entity,
 }
 
@@ -196,9 +196,8 @@ fn start_loot_cache_interaction(
             backpack: interacted.operator_inventory,
         });
 
-        match raid_state.get() {
-            RaidState::Raid => next_raid_state.set(RaidState::AccessLootCache),
-            _ => (),
+        if raid_state.get() == &RaidState::Raid {
+            next_raid_state.set(RaidState::AccessLootCache)
         }
     }
 }
@@ -299,39 +298,36 @@ fn start_loot_cache_ui(
                 })
                 .insert(Name::new("Loot Cache Main"))
                 .with_children(|builder| {
-                    // TODO: here put the dynamic data and replace the static placeholders
-                    // TODO: extract static stuff to helper methods(weapons/items)
-
-                    let mut it_slot_counter = 0..weapon_slots;
                     let mut it_slot = weapons.iter();
                     let mut slot = it_slot.next();
 
-                    while let Some(weapon_slot_no) = it_slot_counter.next() {
+                    for weapon_slot_no in 0..weapon_slots {
                         debug!("weapon slot: {:?}", weapon_slot_no);
                         if let Some(s) = slot {
-                            debug!("slot: {:?}", s.0);
-                            slot = it_slot.next();
-                            create_weapon_slot_ui(builder);
+                            if (s.0 as usize).eq(&weapon_slot_no) {
+                                debug!("slot: {:?}", s.0);
+                                create_weapon_slot_ui(builder);
+                                slot = it_slot.next();
+                            }
                         } else {
                             debug!("slot: nothing");
-                            // TODO: render empty slot
                             create_empty_weapon_slot_ui(builder);
                         }
                     }
 
-                    let mut it_slot_counter = 0..item_slots;
                     let mut it_slot = inventory_items.iter();
                     let mut slot = it_slot.next();
 
-                    while let Some(item_slot_no) = it_slot_counter.next() {
+                    for item_slot_no in 0..item_slots {
                         debug!("item slot: {:?}", item_slot_no);
                         if let Some(s) = slot {
-                            debug!("slot: {:?}", s.0);
-                            slot = it_slot.next();
-                            create_item_slot_ui(builder);
+                            if (s.0 as usize).eq(&item_slot_no) {
+                                debug!("slot: {:?}", s.0);
+                                create_item_slot_ui(builder);
+                                slot = it_slot.next();
+                            }
                         } else {
                             debug!("slot: nothing");
-                            // TODO: render empty slot
                             create_empty_item_slot_ui(builder);
                         }
                     }
