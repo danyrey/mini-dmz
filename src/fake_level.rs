@@ -4,7 +4,7 @@
 use crate::damage::HurtBox;
 use crate::exfil::{ExfilArea, Operator};
 use crate::interaction::Interactable;
-use crate::inventory::{Inventory, ItemSlots, WeaponSlots};
+use crate::inventory::{Inventory, ItemSlot, ItemSlots, WeaponSlot, WeaponSlots};
 use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
 use crate::raid::Enemy;
 use crate::AppState;
@@ -329,7 +329,59 @@ fn start_fake_level(
         .insert(Interactable)
         .insert(WeaponSlots(2))
         .insert(ItemSlots(6))
-        .insert(FakeLevelStuff);
+        .insert(FakeLevelStuff)
+        .with_children(|parent| {
+            parent
+                .spawn(PbrBundle {
+                    mesh: loot_cube.clone(),
+                    material: materials.add(StandardMaterial {
+                        base_color: Color::srgb(0.0, 0.75, 0.0),
+                        base_color_texture: Some(texture_06.clone()),
+                        uv_transform: Affine2::from_scale(Vec2::new(
+                            loot_cube_size,
+                            loot_cube_size,
+                        )),
+                        ..Default::default()
+                    }),
+                    visibility: Visibility::Hidden,
+                    transform: Transform::from_xyz(3.0, 0.1, -2.0),
+                    ..default()
+                })
+                .insert(Name::new("WeaponLockerLoot1"))
+                .insert(Loot)
+                .insert(LootName(String::from("M4")))
+                .insert(WeaponSlot(0))
+                .insert(LootType::Weapon)
+                .insert(FakeLevelStuff);
+            parent
+                .spawn(PbrBundle {
+                    mesh: loot_cube.clone(),
+                    material: materials.add(StandardMaterial {
+                        base_color_texture: Some(texture_06.clone()),
+                        base_color: Color::srgb(0.0, 1.0, 0.0),
+                        uv_transform: Affine2::from_scale(Vec2::new(
+                            loot_cube_size,
+                            loot_cube_size,
+                        )),
+                        ..Default::default()
+                    }),
+                    visibility: Visibility::Hidden,
+                    transform: Transform::from_xyz(5.0, 1.1, -2.0),
+                    ..default()
+                })
+                .insert(Name::new("WeaponLockerLoot2"))
+                .insert(Loot)
+                .insert(LootName(String::from("Wrench")))
+                .insert(LootType::Item(ItemType::Item))
+                .insert(Price(100))
+                .insert(ItemSlot(3))
+                .insert(Stackable {
+                    max_stack: 3,
+                    current_stack: 1,
+                })
+                .insert(FakeLevelStuff);
+        });
+
     // light
     commands
         .spawn(PointLightBundle {

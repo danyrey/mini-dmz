@@ -9,7 +9,7 @@ use crate::{
     fake_level::Crosshair,
     interaction::InventoryInteracted,
     inventory::{Inventory, ItemSlot, ItemSlots, WeaponSlot, WeaponSlots},
-    loot::Loot,
+    loot::{Loot, LootName},
     raid::RaidState,
     AppState,
 };
@@ -92,7 +92,6 @@ struct LootCacheUI {
 #[derive(Resource)]
 struct LootCacheEntities {
     loot_cache: Entity,
-    #[allow(dead_code)]
     backpack: Entity,
 }
 
@@ -206,35 +205,47 @@ fn start_loot_cache_interaction(
 fn start_loot_cache_ui(
     mut commands: Commands,
     loot_entities: Res<LootCacheEntities>,
-    inventories_with_items: Query<&ItemSlots, With<Inventory>>,
-    inventory_items: Query<(&Parent, &ItemSlot), With<Loot>>,
+    inventories_with_items: Query<(&ItemSlots, &Name), With<Inventory>>,
+    inventory_items: Query<(&Parent, &ItemSlot, Option<&LootName>), With<Loot>>,
     inventories_with_weapons: Query<&WeaponSlots, With<Inventory>>,
-    inventory_weapons: Query<(&Parent, &WeaponSlot), With<Loot>>,
+    inventory_weapons: Query<(&Parent, &WeaponSlot, Option<&LootName>), With<Loot>>,
 ) {
     debug!("start loot cache ui");
 
-    let inventory = loot_entities.loot_cache;
-    let inventory_items: Vec<&ItemSlot> = inventory_items
+    let loot_cache = loot_entities.loot_cache;
+
+    // Loot Cache
+    let mut loot_cache_items: Vec<(&ItemSlot, Option<&LootName>)> = inventory_items
         .iter()
-        .filter(|ii| inventory == ii.0.get())
-        .map(|ii| ii.1)
+        .filter(|ii| loot_cache == ii.0.get())
+        .map(|ii| (ii.1, ii.2))
         .collect();
-    let item_slots: usize = inventories_with_items
-        .get(inventory)
+    loot_cache_items.sort_by(|a, b| (a.0).0.cmp(&(b.0).0));
+
+    let loot_cache_item_slots: usize = inventories_with_items
+        .get(loot_cache)
+        .map_or(0, |r| (r.0).0.into());
+
+    let loot_cache_name: String = inventories_with_items
+        .get(loot_cache)
+        .map_or("".to_string(), |r| r.1.into());
+
+    let mut loot_cache_weapons: Vec<(&WeaponSlot, Option<&LootName>)> = inventory_weapons
+        .iter()
+        .filter(|ii| loot_cache == ii.0.get())
+        .map(|ii| (ii.1, ii.2))
+        .collect();
+    loot_cache_weapons.sort_by(|a, b| (a.0).0.cmp(&(b.0).0));
+
+    let loot_cache_weapon_slots: usize = inventories_with_weapons
+        .get(loot_cache)
         .map_or(0, |r| r.0.into());
 
-    let mut weapons: Vec<&WeaponSlot> = inventory_weapons
-        .iter()
-        .filter(|ii| inventory == ii.0.get())
-        .map(|ii| ii.1)
-        .collect();
-    weapons.sort_by(|a, b| a.0.cmp(&b.0));
-    let weapon_slots: usize = inventories_with_weapons
-        .get(inventory)
-        .map_or(0, |r| r.0.into());
+    // Loadout
+    // TODO: loadout
 
-    debug!("item slots: {:?}", item_slots);
-    debug!("weapon slots: {:?}", weapon_slots);
+    debug!("item slots: {:?}", loot_cache_item_slots);
+    debug!("weapon slots: {:?}", loot_cache_weapon_slots);
     // Layout
     // Top-level grid (app frame)
     let loot_cache_ui = commands
@@ -270,7 +281,8 @@ fn start_loot_cache_ui(
                 .insert(Name::new("Loot Cache Header"))
                 .with_children(|builder| {
                     builder.spawn(TextBundle::from_section(
-                        "Loot Cache Header",
+                        //"Loot Cache Header",
+                        loot_cache_name,
                         TextStyle {
                             font_size: 20.0,
                             color: Color::srgb(0.9, 0.9, 0.9),
@@ -298,16 +310,19 @@ fn start_loot_cache_ui(
                 })
                 .insert(Name::new("Loot Cache Main"))
                 .with_children(|builder| {
-                    let mut it_slot = weapons.iter();
+                    let mut it_slot = loot_cache_weapons.iter();
                     let mut slot = it_slot.next();
 
-                    for weapon_slot_no in 0..weapon_slots {
+                    for weapon_slot_no in 0..loot_cache_weapon_slots {
                         debug!("weapon slot: {:?}", weapon_slot_no);
                         if let Some(s) = slot {
-                            if (s.0 as usize).eq(&weapon_slot_no) {
-                                debug!("slot: {:?}", s.0);
-                                create_weapon_slot_ui(builder);
+                            if ((s.0).0 as usize).eq(&weapon_slot_no) {
+                                debug!("slot: {:?}", (s.0).0);
+                                create_weapon_slot_ui(builder, s.1);
                                 slot = it_slot.next();
+                            } else {
+                                debug!("slot: nothing");
+                                create_empty_weapon_slot_ui(builder);
                             }
                         } else {
                             debug!("slot: nothing");
@@ -315,16 +330,19 @@ fn start_loot_cache_ui(
                         }
                     }
 
-                    let mut it_slot = inventory_items.iter();
+                    let mut it_slot = loot_cache_items.iter();
                     let mut slot = it_slot.next();
 
-                    for item_slot_no in 0..item_slots {
+                    for item_slot_no in 0..loot_cache_item_slots {
                         debug!("item slot: {:?}", item_slot_no);
                         if let Some(s) = slot {
-                            if (s.0 as usize).eq(&item_slot_no) {
-                                debug!("slot: {:?}", s.0);
-                                create_item_slot_ui(builder);
+                            if ((s.0).0 as usize).eq(&item_slot_no) {
+                                debug!("slot: {:?}", (s.0).0);
+                                create_item_slot_ui(builder, s.1);
                                 slot = it_slot.next();
+                            } else {
+                                debug!("slot: nothing");
+                                create_empty_item_slot_ui(builder);
                             }
                         } else {
                             debug!("slot: nothing");
@@ -339,8 +357,43 @@ fn start_loot_cache_ui(
     commands.insert_resource(LootCacheUI { loot_cache_ui });
 }
 
-fn start_backpack_ui(mut commands: Commands) {
+fn start_backpack_ui(
+    mut commands: Commands,
+    loot_entities: Res<LootCacheEntities>,
+    inventories_with_items: Query<(&ItemSlots, &Name), With<Inventory>>,
+    inventory_items: Query<(&Parent, &ItemSlot, Option<&LootName>), With<Loot>>,
+    inventories_with_weapons: Query<&WeaponSlots, With<Inventory>>,
+    inventory_weapons: Query<(&Parent, &WeaponSlot, Option<&LootName>), With<Loot>>,
+) {
     debug!("start backpack ui");
+    let backpack = loot_entities.backpack;
+
+    // Backpack
+    let mut backpack_items: Vec<(&ItemSlot, Option<&LootName>)> = inventory_items
+        .iter()
+        .filter(|ii| backpack == ii.0.get())
+        .map(|ii| (ii.1, ii.2))
+        .collect();
+    backpack_items.sort_by(|a, b| (a.0).0.cmp(&(b.0).0));
+
+    let backpack_item_slots: usize = inventories_with_items
+        .get(backpack)
+        .map_or(0, |r| (r.0).0.into());
+
+    let backpack_name: String = inventories_with_items
+        .get(backpack)
+        .map_or("".to_string(), |r| r.1.into());
+
+    let mut backpack_weapons: Vec<(&WeaponSlot, Option<&LootName>)> = inventory_weapons
+        .iter()
+        .filter(|ii| backpack == ii.0.get())
+        .map(|ii| (ii.1, ii.2))
+        .collect();
+    backpack_weapons.sort_by(|a, b| (a.0).0.cmp(&(b.0).0));
+
+    let backpack_weapon_slots: usize = inventories_with_weapons
+        .get(backpack)
+        .map_or(0, |r| r.0.into());
 
     // Layout
     // Top-level grid (app frame)
@@ -377,7 +430,7 @@ fn start_backpack_ui(mut commands: Commands) {
                 .insert(Name::new("Backpack Header"))
                 .with_children(|builder| {
                     builder.spawn(TextBundle::from_section(
-                        "Backpack Header",
+                        backpack_name,
                         TextStyle {
                             font_size: 20.0,
                             color: Color::srgb(0.9, 0.9, 0.9),
@@ -405,90 +458,45 @@ fn start_backpack_ui(mut commands: Commands) {
                 })
                 .insert(Name::new("Backpack Main"))
                 .with_children(|builder| {
-                    builder.spawn((
-                        NodeBundle {
-                            style: Style {
-                                width: Val::Px(50.),
-                                height: Val::Px(50.),
-                                border: UiRect::all(Val::Px(10.)),
-                                margin: UiRect::all(Val::Px(20.)),
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
-                                ..Default::default()
-                            },
-                            background_color: MAROON.into(),
-                            border_color: RED.into(),
-                            ..Default::default()
-                        },
-                        Outline {
-                            width: Val::Px(6.),
-                            offset: Val::Px(6.),
-                            color: Color::WHITE,
-                        },
-                    ));
-                    builder.spawn((
-                        NodeBundle {
-                            style: Style {
-                                width: Val::Px(50.),
-                                height: Val::Px(50.),
-                                border: UiRect::all(Val::Px(10.)),
-                                margin: UiRect::all(Val::Px(20.)),
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
-                                ..Default::default()
-                            },
-                            background_color: MAROON.into(),
-                            border_color: RED.into(),
-                            ..Default::default()
-                        },
-                        Outline {
-                            width: Val::Px(6.),
-                            offset: Val::Px(6.),
-                            color: Color::WHITE,
-                        },
-                    ));
-                    builder.spawn((
-                        NodeBundle {
-                            style: Style {
-                                width: Val::Px(50.),
-                                height: Val::Px(50.),
-                                border: UiRect::all(Val::Px(10.)),
-                                margin: UiRect::all(Val::Px(20.)),
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
-                                ..Default::default()
-                            },
-                            background_color: MAROON.into(),
-                            border_color: RED.into(),
-                            ..Default::default()
-                        },
-                        Outline {
-                            width: Val::Px(6.),
-                            offset: Val::Px(6.),
-                            color: Color::WHITE,
-                        },
-                    ));
-                    builder.spawn((
-                        NodeBundle {
-                            style: Style {
-                                width: Val::Px(50.),
-                                height: Val::Px(50.),
-                                border: UiRect::all(Val::Px(10.)),
-                                margin: UiRect::all(Val::Px(20.)),
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
-                                ..Default::default()
-                            },
-                            background_color: MAROON.into(),
-                            border_color: RED.into(),
-                            ..Default::default()
-                        },
-                        Outline {
-                            width: Val::Px(6.),
-                            offset: Val::Px(6.),
-                            color: Color::WHITE,
-                        },
-                    ));
+                    let mut it_slot = backpack_weapons.iter();
+                    let mut slot = it_slot.next();
+
+                    for weapon_slot_no in 0..backpack_weapon_slots {
+                        debug!("weapon slot: {:?}", weapon_slot_no);
+                        if let Some(s) = slot {
+                            if ((s.0).0 as usize).eq(&weapon_slot_no) {
+                                debug!("slot: {:?}", (s.0).0);
+                                create_weapon_slot_ui(builder, s.1);
+                                slot = it_slot.next();
+                            } else {
+                                debug!("slot: nothing");
+                                create_empty_weapon_slot_ui(builder);
+                            }
+                        } else {
+                            debug!("slot: nothing");
+                            create_empty_weapon_slot_ui(builder);
+                        }
+                    }
+
+                    let mut it_slot = backpack_items.iter();
+                    let mut slot = it_slot.next();
+
+                    for item_slot_no in 0..backpack_item_slots {
+                        debug!("item slot: {:?}", item_slot_no);
+                        if let Some(s) = slot {
+                            if ((s.0).0 as usize).eq(&item_slot_no) {
+                                debug!("slot: {:?}", (s.0).0);
+                                create_item_slot_ui(builder, s.1);
+                                slot = it_slot.next();
+                            } else {
+                                debug!("slot: nothing");
+                                create_empty_item_slot_ui(builder);
+                            }
+                        } else {
+                            debug!("slot: nothing");
+                            create_empty_item_slot_ui(builder);
+                        }
+                    }
                 });
         })
         .id();
@@ -770,28 +778,42 @@ fn create_empty_weapon_slot_ui(builder: &mut ChildBuilder) {
     ));
 }
 
-fn create_weapon_slot_ui(builder: &mut ChildBuilder) {
-    builder.spawn((
-        NodeBundle {
-            style: Style {
-                width: Val::Px(100.),
-                height: Val::Px(50.),
-                border: UiRect::all(Val::Px(10.)),
-                margin: UiRect::all(Val::Px(20.)),
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
+fn create_weapon_slot_ui(builder: &mut ChildBuilder, name: Option<&LootName>) {
+    // TODO: there must be a better way, this fugly
+    let label: String = name.map(|x| x.0.clone()).unwrap_or("".to_string());
+
+    builder
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    width: Val::Px(100.),
+                    height: Val::Px(50.),
+                    border: UiRect::all(Val::Px(10.)),
+                    margin: UiRect::all(Val::Px(20.)),
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                    ..Default::default()
+                },
+                background_color: MAROON.into(),
+                border_color: RED.into(),
                 ..Default::default()
             },
-            background_color: MAROON.into(),
-            border_color: RED.into(),
-            ..Default::default()
-        },
-        Outline {
-            width: Val::Px(6.),
-            offset: Val::Px(6.),
-            color: Color::WHITE,
-        },
-    ));
+            Outline {
+                width: Val::Px(6.),
+                offset: Val::Px(6.),
+                color: Color::WHITE,
+            },
+        ))
+        .with_children(|builder| {
+            builder.spawn(TextBundle::from_section(
+                label,
+                TextStyle {
+                    font_size: 8.0,
+                    color: Color::srgb(0.9, 0.9, 0.9),
+                    ..default()
+                },
+            ));
+        });
 }
 
 fn create_empty_item_slot_ui(builder: &mut ChildBuilder) {
@@ -818,28 +840,42 @@ fn create_empty_item_slot_ui(builder: &mut ChildBuilder) {
     ));
 }
 
-fn create_item_slot_ui(builder: &mut ChildBuilder) {
-    builder.spawn((
-        NodeBundle {
-            style: Style {
-                width: Val::Px(50.),
-                height: Val::Px(50.),
-                border: UiRect::all(Val::Px(10.)),
-                margin: UiRect::all(Val::Px(20.)),
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
+fn create_item_slot_ui(builder: &mut ChildBuilder, name: Option<&LootName>) {
+    // TODO: there must be a better way, this fugly
+    let label: String = name.map(|x| x.0.clone()).unwrap_or("".to_string());
+
+    builder
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    width: Val::Px(50.),
+                    height: Val::Px(50.),
+                    border: UiRect::all(Val::Px(10.)),
+                    margin: UiRect::all(Val::Px(20.)),
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                    ..Default::default()
+                },
+                background_color: MAROON.into(),
+                border_color: RED.into(),
                 ..Default::default()
             },
-            background_color: MAROON.into(),
-            border_color: RED.into(),
-            ..Default::default()
-        },
-        Outline {
-            width: Val::Px(6.),
-            offset: Val::Px(6.),
-            color: Color::WHITE,
-        },
-    ));
+            Outline {
+                width: Val::Px(6.),
+                offset: Val::Px(6.),
+                color: Color::WHITE,
+            },
+        ))
+        .with_children(|builder| {
+            builder.spawn(TextBundle::from_section(
+                label,
+                TextStyle {
+                    font_size: 8.0,
+                    color: Color::srgb(0.9, 0.9, 0.9),
+                    ..default()
+                },
+            ));
+        });
 }
 
 // tests
