@@ -5,7 +5,6 @@ use bevy::{
 };
 
 use crate::{
-    //exfil::Operator, first_person_controller::PlayerControlled, inventory::ItemSlots,
     fake_level::Crosshair,
     interaction::InventoryInteracted,
     inventory::{Inventory, ItemSlot, ItemSlots, WeaponSlot, WeaponSlots},
@@ -16,6 +15,9 @@ use crate::{
 use bevy::prelude::*;
 
 // Constants
+const NORMAL_BUTTON: Color = Color::srgb(MAROON.red, MAROON.green, MAROON.blue);
+const HOVERED_BUTTON: Color = Color::srgb(RED.red, RED.green, RED.blue);
+const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
 
 // Plugin
 
@@ -82,6 +84,11 @@ impl Plugin for InventoryUIPlugin {
 }
 
 // Components
+#[derive(Component)]
+pub struct LootCacheItem;
+
+#[derive(Component)]
+pub struct LootCacheWeapon;
 
 // Resources
 #[derive(Resource)]
@@ -710,8 +717,33 @@ fn start_loadout_ui(mut commands: Commands) {
 
 // UPDATE SYSTEMS
 
-fn update_loot_cache_ui() {
+fn update_loot_cache_ui(
+    mut interaction_query: Query<
+        (&Interaction, &mut BackgroundColor),
+        (
+            Changed<Interaction>,
+            Or<(With<LootCacheItem>, With<LootCacheWeapon>)>,
+        ),
+    >,
+) {
     debug!("updating loot cache ui");
+    // TODO: triggered for backpack too, maybe adjust query
+    for (interaction, mut color) in &mut interaction_query {
+        match *interaction {
+            Interaction::Pressed => {
+                debug!("button pressed");
+                *color = PRESSED_BUTTON.into();
+            }
+            Interaction::Hovered => {
+                debug!("button hovered");
+                *color = HOVERED_BUTTON.into();
+            }
+            Interaction::None => {
+                debug!("button normal");
+                *color = NORMAL_BUTTON.into();
+            }
+        }
+    }
 }
 
 fn update_backpack_ui() {
@@ -781,10 +813,9 @@ fn create_empty_weapon_slot_ui(builder: &mut ChildBuilder) {
 fn create_weapon_slot_ui(builder: &mut ChildBuilder, name: Option<&LootName>) {
     // TODO: there must be a better way, this fugly
     let label: String = name.map(|x| x.0.clone()).unwrap_or("".to_string());
-
     builder
         .spawn((
-            NodeBundle {
+            ButtonBundle {
                 style: Style {
                     width: Val::Px(100.),
                     height: Val::Px(50.),
@@ -792,11 +823,11 @@ fn create_weapon_slot_ui(builder: &mut ChildBuilder, name: Option<&LootName>) {
                     margin: UiRect::all(Val::Px(20.)),
                     align_items: AlignItems::Center,
                     justify_content: JustifyContent::Center,
-                    ..Default::default()
+                    ..default()
                 },
-                background_color: MAROON.into(),
                 border_color: RED.into(),
-                ..Default::default()
+                background_color: NORMAL_BUTTON.into(),
+                ..default()
             },
             Outline {
                 width: Val::Px(6.),
@@ -804,8 +835,9 @@ fn create_weapon_slot_ui(builder: &mut ChildBuilder, name: Option<&LootName>) {
                 color: Color::WHITE,
             },
         ))
-        .with_children(|builder| {
-            builder.spawn(TextBundle::from_section(
+        .insert(LootCacheWeapon)
+        .with_children(|parent| {
+            parent.spawn(TextBundle::from_section(
                 label,
                 TextStyle {
                     font_size: 8.0,
@@ -843,10 +875,9 @@ fn create_empty_item_slot_ui(builder: &mut ChildBuilder) {
 fn create_item_slot_ui(builder: &mut ChildBuilder, name: Option<&LootName>) {
     // TODO: there must be a better way, this fugly
     let label: String = name.map(|x| x.0.clone()).unwrap_or("".to_string());
-
     builder
         .spawn((
-            NodeBundle {
+            ButtonBundle {
                 style: Style {
                     width: Val::Px(50.),
                     height: Val::Px(50.),
@@ -854,11 +885,11 @@ fn create_item_slot_ui(builder: &mut ChildBuilder, name: Option<&LootName>) {
                     margin: UiRect::all(Val::Px(20.)),
                     align_items: AlignItems::Center,
                     justify_content: JustifyContent::Center,
-                    ..Default::default()
+                    ..default()
                 },
-                background_color: MAROON.into(),
                 border_color: RED.into(),
-                ..Default::default()
+                background_color: NORMAL_BUTTON.into(),
+                ..default()
             },
             Outline {
                 width: Val::Px(6.),
@@ -866,8 +897,9 @@ fn create_item_slot_ui(builder: &mut ChildBuilder, name: Option<&LootName>) {
                 color: Color::WHITE,
             },
         ))
-        .with_children(|builder| {
-            builder.spawn(TextBundle::from_section(
+        .insert(LootCacheItem)
+        .with_children(|parent| {
+            parent.spawn(TextBundle::from_section(
                 label,
                 TextStyle {
                     font_size: 8.0,

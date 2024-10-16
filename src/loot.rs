@@ -35,8 +35,7 @@ pub struct Loot;
 #[allow(dead_code)]
 pub struct Proximity;
 
-#[derive(Component)]
-#[allow(dead_code)]
+#[derive(Component, Clone)]
 pub struct LootName(pub String);
 
 // TODO: fix some of the research language conflicts: is Gasmask a CircleDefense or Item???
