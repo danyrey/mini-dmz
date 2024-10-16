@@ -255,6 +255,7 @@ fn start_fake_level(
             ..default()
         })
         .insert(Name::new("Loot2"))
+        .insert(LootName(String::from("Batteries")))
         .insert(Loot)
         .insert(LootName(String::from("Durable Gaskmask")))
         .insert(LootType::CombatDefense)
@@ -276,7 +277,7 @@ fn start_fake_level(
         })
         .insert(Name::new("Loot3"))
         .insert(Loot)
-        .insert(LootName(String::from("M4")))
+        .insert(LootName(String::from("P890")))
         .insert(LootType::Weapon)
         .insert(FakeLevelStuff);
     // loot cube 4
@@ -293,8 +294,13 @@ fn start_fake_level(
             ..default()
         })
         .insert(Name::new("Loot4"))
+        .insert(LootName(String::from("Harddrive")))
         .insert(LootType::Item(ItemType::Item))
         .insert(Loot)
+        .insert(Stackable {
+            max_stack: 5,
+            current_stack: 1,
+        })
         .insert(FakeLevelStuff);
     // loot cache 1
     commands
@@ -445,9 +451,9 @@ fn add_inventory_to_operators(
                 transform: Transform::from_xyz(0.0, 1.5, 0.25),
                 ..default()
             })
-            .insert(Name::new("OperatorBackpack"))
+            .insert(Name::new("Medium Backpack"))
             .insert(Inventory)
-            .insert(ItemSlots(3))
+            .insert(ItemSlots(5))
             .insert(WeaponSlots(1))
             .insert(FakeLevelStuff)
             .set_parent(added);
