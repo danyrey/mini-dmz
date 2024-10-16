@@ -103,6 +103,14 @@ pub trait YProbe {
     fn probe_y(x: f32, z: f32) -> f32;
 }
 
+pub struct FlatEarth;
+
+impl YProbe for FlatEarth {
+    fn probe_y(_x: f32, _z: f32) -> f32 {
+        0.0
+    }
+}
+
 pub struct XSineTerrain;
 
 impl YProbe for XSineTerrain {

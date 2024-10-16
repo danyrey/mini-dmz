@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::{app::Plugin, input::mouse::MouseMotion};
 
-use crate::heightmap::XZSineTerrain;
+use crate::heightmap::{FlatEarth, XZSineTerrain};
 use crate::raid::{RaidState, Volume};
 use crate::AppState;
 use crate::AppState::Raid;
@@ -163,7 +163,8 @@ fn update_camera_move(
         let new_z = velocity.z * dt * forward;
         transform.translation += new_x + new_y + new_z;
         transform.translation.y =
-            XZSineTerrain::probe_y(transform.translation.x, transform.translation.z);
+            FlatEarth::probe_y(transform.translation.x, transform.translation.z);
+        //XZSineTerrain::probe_y(transform.translation.x, transform.translation.z);
         transform.translation.y += height_modifier;
     }
 }
