@@ -349,7 +349,7 @@ fn progress_exfils(
 fn update_exfil(
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor, &Parent),
-        (Changed<Interaction>, With<Button>),
+        (Changed<Interaction>, With<ExfilButton>),
     >,
     exfil_button_query: Query<&CurrentExfil>,
     mut called: EventWriter<ExfilCalled>,
