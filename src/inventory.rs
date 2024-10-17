@@ -202,10 +202,12 @@ fn stow_item(
     slot: u8,
     event: &mut EventWriter<StowedLoot>,
 ) {
+    debug!("button stowed loot received");
     commands.entity(loot).remove::<GlobalTransform>();
     commands.entity(loot).remove::<Transform>();
     commands.entity(stowing_entity).add_child(loot);
     commands.entity(loot).insert(ItemSlot(slot));
+    debug!("button stowed loot finished");
     event.send(StowedLoot {
         stowing_entity,
         loot,
