@@ -776,17 +776,15 @@ fn update_loot_cache_ui(
 
 fn update_stowed_loot_cache_ui(
     mut stowed_loot: EventReader<StowedLoot>,
-    ui_items: Query<(&Parent, &EntityReference), With<LootCacheItem>>,
-    ui_weapons: Query<(&Parent, &EntityReference), With<LootCacheWeapon>>,
+    ui_items: Query<(&Parent, Entity, &EntityReference), With<LootCacheItem>>,
+    ui_weapons: Query<(&Parent, Entity, &EntityReference), With<LootCacheWeapon>>,
     mut commands: Commands,
 ) {
-    // TODO: event contains target and loot item, no need for target here but the loot item can be used to update the loot cache ui
     for event in stowed_loot.read() {
         for item in ui_items.iter() {
-            if (item.1).0.eq(&event.loot) {
-                // TODO: we found the stowed entity from the event
-                debug!("need to replace item slot ui for {}", event.loot);
+            if (item.2).0.eq(&event.loot) {
                 if let Some(mut e) = commands.get_entity((item.0).get()) {
+                    e.remove_children(&[item.1]);
                     e.with_children(|builder| {
                         create_empty_item_slot_ui(builder);
                     });
@@ -795,10 +793,9 @@ fn update_stowed_loot_cache_ui(
         }
 
         for weapon in ui_weapons.iter() {
-            if (weapon.1).0.eq(&event.loot) {
-                // TODO: we found the stowed entity from the event
-                debug!("need to replace weapon slot ui for {}", event.loot);
+            if (weapon.2).0.eq(&event.loot) {
                 if let Some(mut e) = commands.get_entity((weapon.0).get()) {
+                    e.remove_children(&[weapon.1]);
                     e.with_children(|builder| {
                         create_empty_weapon_slot_ui(builder);
                     });
