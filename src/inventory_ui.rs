@@ -7,7 +7,7 @@ use bevy::{
 use crate::{
     fake_level::Crosshair,
     interaction::InventoryInteracted,
-    inventory::{Inventory, ItemSlot, ItemSlots, StowLoot, WeaponSlot, WeaponSlots},
+    inventory::{Inventory, ItemSlot, ItemSlots, StowLoot, StowedLoot, WeaponSlot, WeaponSlots},
     loot::{Loot, LootName, LootType},
     raid::RaidState,
     AppState,
@@ -60,7 +60,12 @@ impl Plugin for InventoryUIPlugin {
             )
             .add_systems(
                 Update,
-                (update_loot_cache_ui, update_backpack_ui, update_loadout_ui)
+                (
+                    update_loot_cache_ui,
+                    update_stowed_loot_cache_ui,
+                    update_backpack_ui,
+                    update_loadout_ui,
+                )
                     .run_if(in_state(RaidState::AccessLootCache)),
             )
             .add_systems(
@@ -764,6 +769,30 @@ fn update_loot_cache_ui(
             Interaction::None => {
                 debug!("button normal");
                 *color = NORMAL_BUTTON.into();
+            }
+        }
+    }
+}
+
+fn update_stowed_loot_cache_ui(
+    mut stowed_loot: EventReader<StowedLoot>,
+    ui_items: Query<(&Parent, &EntityReference), With<LootCacheItem>>,
+    ui_weapons: Query<(&Parent, &EntityReference), With<LootCacheWeapon>>,
+    mut commands: Commands,
+) {
+    // TODO: event contains target and loot item, no need for target here but the loot item can be used to update the loot cache ui
+    for event in stowed_loot.read() {
+        for item in ui_items.iter() {
+            if (item.1).0.eq(&event.loot) {
+                // TODO: we found the stowed entity from the event
+                debug!("need to replace item slot ui for {}", event.loot);
+            }
+        }
+
+        for weapon in ui_weapons.iter() {
+            if (weapon.1).0.eq(&event.loot) {
+                // TODO: we found the stowed entity from the event
+                debug!("need to replace weapon slot ui for {}", event.loot);
             }
         }
     }
