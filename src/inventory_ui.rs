@@ -786,6 +786,11 @@ fn update_stowed_loot_cache_ui(
             if (item.1).0.eq(&event.loot) {
                 // TODO: we found the stowed entity from the event
                 debug!("need to replace item slot ui for {}", event.loot);
+                if let Some(mut e) = commands.get_entity((item.0).get()) {
+                    e.with_children(|builder| {
+                        create_empty_item_slot_ui(builder);
+                    });
+                }
             }
         }
 
@@ -793,6 +798,11 @@ fn update_stowed_loot_cache_ui(
             if (weapon.1).0.eq(&event.loot) {
                 // TODO: we found the stowed entity from the event
                 debug!("need to replace weapon slot ui for {}", event.loot);
+                if let Some(mut e) = commands.get_entity((weapon.0).get()) {
+                    e.with_children(|builder| {
+                        create_empty_weapon_slot_ui(builder);
+                    });
+                }
             }
         }
     }
