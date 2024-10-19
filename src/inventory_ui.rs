@@ -143,6 +143,13 @@ struct AccessBackpack {
     pub operator: Entity,
 }
 
+// Misc
+enum InventoryUI {
+    LootCache,
+    Backpack,
+    Loadout,
+}
+
 // Systems
 
 // TODO: add system similar to stowing, but only for inventories instead of loot and transition to
@@ -340,7 +347,7 @@ fn start_loot_cache_ui(
                         if let Some(s) = slot {
                             if ((s.0).0 as usize).eq(&weapon_slot_no) {
                                 debug!("slot: {:?}", (s.0).0);
-                                create_weapon_slot_ui(builder, s.1, true, false);
+                                create_weapon_slot_ui(builder, s.1, InventoryUI::LootCache);
                                 slot = it_slot.next();
                             } else {
                                 debug!("slot: nothing");
@@ -360,7 +367,7 @@ fn start_loot_cache_ui(
                         if let Some(s) = slot {
                             if ((s.0).0 as usize).eq(&item_slot_no) {
                                 debug!("slot: {:?}", (s.0).0);
-                                create_item_slot_ui(builder, s.1, true, false, &s.2);
+                                create_item_slot_ui(builder, s.1, InventoryUI::LootCache, &s.2);
                                 slot = it_slot.next();
                             } else {
                                 debug!("slot: nothing");
@@ -488,7 +495,7 @@ fn start_backpack_ui(
                         if let Some(s) = slot {
                             if ((s.0).0 as usize).eq(&weapon_slot_no) {
                                 debug!("slot: {:?}", (s.0).0);
-                                create_weapon_slot_ui(builder, s.1, false, true);
+                                create_weapon_slot_ui(builder, s.1, InventoryUI::Backpack);
                                 slot = it_slot.next();
                             } else {
                                 debug!("slot: nothing");
@@ -508,7 +515,7 @@ fn start_backpack_ui(
                         if let Some(s) = slot {
                             if ((s.0).0 as usize).eq(&item_slot_no) {
                                 debug!("slot: {:?}", (s.0).0);
-                                create_item_slot_ui(builder, s.1, false, true, &s.2);
+                                create_item_slot_ui(builder, s.1, InventoryUI::Backpack, &s.2);
                                 slot = it_slot.next();
                             } else {
                                 debug!("slot: nothing");
@@ -901,12 +908,7 @@ fn create_empty_weapon_slot_ui(builder: &mut ChildBuilder) {
     ));
 }
 
-fn create_weapon_slot_ui(
-    builder: &mut ChildBuilder,
-    name: Option<&LootName>,
-    loot_cache: bool,
-    backpack: bool,
-) {
+fn create_weapon_slot_ui(builder: &mut ChildBuilder, name: Option<&LootName>, ui: InventoryUI) {
     // TODO: there must be a better way, this fugly
     let label: String = name.map(|x| x.0.clone()).unwrap_or("".to_string());
     let mut weapon = builder.spawn((
@@ -942,13 +944,11 @@ fn create_weapon_slot_ui(
         ));
     });
 
-    if loot_cache {
-        weapon.insert(LootCacheWeapon);
-    }
-
-    if backpack {
-        weapon.insert(BackpackWeapon);
-    }
+    match ui {
+        InventoryUI::LootCache => weapon.insert(LootCacheWeapon),
+        InventoryUI::Backpack => weapon.insert(BackpackWeapon),
+        InventoryUI::Loadout => todo!(),
+    };
 }
 
 fn create_empty_item_slot_ui(builder: &mut ChildBuilder) {
@@ -978,8 +978,7 @@ fn create_empty_item_slot_ui(builder: &mut ChildBuilder) {
 fn create_item_slot_ui(
     builder: &mut ChildBuilder,
     name: Option<&LootName>,
-    loot_cache: bool,
-    backpack: bool,
+    ui: InventoryUI,
     loot_entity: &Entity,
 ) {
     // TODO: there must be a better way, this fugly
@@ -1019,13 +1018,11 @@ fn create_item_slot_ui(
 
     item.insert(EntityReference(*loot_entity));
 
-    if loot_cache {
-        item.insert(LootCacheItem);
-    }
-
-    if backpack {
-        item.insert(BackpackItem);
-    }
+    match ui {
+        InventoryUI::LootCache => item.insert(LootCacheItem),
+        InventoryUI::Backpack => item.insert(BackpackItem),
+        InventoryUI::Loadout => todo!(),
+    };
 }
 
 // tests
