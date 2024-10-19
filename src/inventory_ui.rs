@@ -63,6 +63,7 @@ impl Plugin for InventoryUIPlugin {
                 (
                     update_loot_cache_ui,
                     update_stowed_loot_cache_ui,
+                    update_stowed_loot_backpack_ui,
                     update_backpack_ui,
                     update_loadout_ui,
                 )
@@ -788,6 +789,7 @@ fn update_stowed_loot_cache_ui(
                     e.with_children(|builder| {
                         create_empty_item_slot_ui(builder);
                     });
+                    commands.entity(item.1).despawn_recursive(); // maybe send over the entity via event ?
                 }
             }
         }
@@ -798,6 +800,36 @@ fn update_stowed_loot_cache_ui(
                     e.remove_children(&[weapon.1]);
                     e.with_children(|builder| {
                         create_empty_weapon_slot_ui(builder);
+                    });
+                    commands.entity(weapon.1).despawn_recursive();
+                }
+            }
+        }
+    }
+}
+
+fn update_stowed_loot_backpack_ui(
+    mut stowed_loot: EventReader<StowedLoot>,
+    ui_items: Query<(&Parent, Entity, &EntityReference), With<LootCacheItem>>,
+    ui_weapons: Query<(&Parent, Entity, &EntityReference), With<LootCacheWeapon>>,
+    mut commands: Commands,
+) {
+    for event in stowed_loot.read() {
+        for item in ui_items.iter() {
+            if (item.2).0.eq(&event.loot) {
+                if let Some(mut e) = commands.get_entity((item.0).get()) {
+                    e.with_children(|builder| {
+                        // TODO insert new item
+                    });
+                }
+            }
+        }
+
+        for weapon in ui_weapons.iter() {
+            if (weapon.2).0.eq(&event.loot) {
+                if let Some(mut e) = commands.get_entity((weapon.0).get()) {
+                    e.with_children(|builder| {
+                        // TODO insert new item
                     });
                 }
             }
