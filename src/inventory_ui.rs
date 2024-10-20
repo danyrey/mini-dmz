@@ -237,7 +237,7 @@ fn start_loot_cache_ui(
     inventories_with_items: Query<(&ItemSlots, &Name), With<Inventory>>,
     inventory_items: Query<(&Parent, &ItemSlot, Option<&LootName>, Entity), With<Loot>>,
     inventories_with_weapons: Query<&WeaponSlots, With<Inventory>>,
-    inventory_weapons: Query<(&Parent, &WeaponSlot, Option<&LootName>), With<Loot>>,
+    inventory_weapons: Query<(&Parent, &WeaponSlot, Option<&LootName>, Entity), With<Loot>>,
 ) {
     debug!("start loot cache ui");
 
@@ -259,10 +259,10 @@ fn start_loot_cache_ui(
         .get(loot_cache)
         .map_or("".to_string(), |r| r.1.into());
 
-    let mut loot_cache_weapons: Vec<(&WeaponSlot, Option<&LootName>)> = inventory_weapons
+    let mut loot_cache_weapons: Vec<(&WeaponSlot, Option<&LootName>, Entity)> = inventory_weapons
         .iter()
         .filter(|ii| loot_cache == ii.0.get())
-        .map(|ii| (ii.1, ii.2))
+        .map(|ii| (ii.1, ii.2, ii.3))
         .collect();
     loot_cache_weapons.sort_by(|a, b| (a.0).0.cmp(&(b.0).0));
 
@@ -347,7 +347,7 @@ fn start_loot_cache_ui(
                         if let Some(s) = slot {
                             if ((s.0).0 as usize).eq(&weapon_slot_no) {
                                 debug!("slot: {:?}", (s.0).0);
-                                create_weapon_slot_ui(builder, s.1, InventoryUI::LootCache);
+                                create_weapon_slot_ui(builder, s.1, InventoryUI::LootCache, &s.2);
                                 slot = it_slot.next();
                             } else {
                                 debug!("slot: nothing");
@@ -392,7 +392,7 @@ fn start_backpack_ui(
     inventories_with_items: Query<(&ItemSlots, &Name), With<Inventory>>,
     inventory_items: Query<(&Parent, &ItemSlot, Option<&LootName>, Entity), With<Loot>>,
     inventories_with_weapons: Query<&WeaponSlots, With<Inventory>>,
-    inventory_weapons: Query<(&Parent, &WeaponSlot, Option<&LootName>), With<Loot>>,
+    inventory_weapons: Query<(&Parent, &WeaponSlot, Option<&LootName>, Entity), With<Loot>>,
 ) {
     debug!("start backpack ui");
     let backpack = loot_entities.backpack;
@@ -413,10 +413,10 @@ fn start_backpack_ui(
         .get(backpack)
         .map_or("".to_string(), |r| r.1.into());
 
-    let mut backpack_weapons: Vec<(&WeaponSlot, Option<&LootName>)> = inventory_weapons
+    let mut backpack_weapons: Vec<(&WeaponSlot, Option<&LootName>, Entity)> = inventory_weapons
         .iter()
         .filter(|ii| backpack == ii.0.get())
-        .map(|ii| (ii.1, ii.2))
+        .map(|ii| (ii.1, ii.2, ii.3))
         .collect();
     backpack_weapons.sort_by(|a, b| (a.0).0.cmp(&(b.0).0));
 
@@ -495,7 +495,7 @@ fn start_backpack_ui(
                         if let Some(s) = slot {
                             if ((s.0).0 as usize).eq(&weapon_slot_no) {
                                 debug!("slot: {:?}", (s.0).0);
-                                create_weapon_slot_ui(builder, s.1, InventoryUI::Backpack);
+                                create_weapon_slot_ui(builder, s.1, InventoryUI::Backpack, &s.2);
                                 slot = it_slot.next();
                             } else {
                                 debug!("slot: nothing");
@@ -757,25 +757,34 @@ fn update_loot_cache_ui(
     mut stow_loot: EventWriter<StowLoot>,
 ) {
     debug!("updating loot cache ui");
-    // TODO: triggered for backpack too, maybe adjust query
-    for (interaction, mut color, _item, _weapon, loot_entity) in &mut interaction_query {
+    for (interaction, mut color, item, weapon, loot_entity) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
-                debug!("button pressed");
+                debug!("loot cache ui button pressed");
                 *color = PRESSED_BUTTON.into();
-                // TODO: send event
-                stow_loot.send(StowLoot {
-                    stowing_entity: loot_cache_entities.backpack,
-                    loot: loot_entity.0,
-                    loot_type: LootType::Item(crate::loot::ItemType::Item),
-                });
+
+                if let Some(_) = item {
+                    stow_loot.send(StowLoot {
+                        stowing_entity: loot_cache_entities.backpack,
+                        loot: loot_entity.0,
+                        loot_type: LootType::Item(crate::loot::ItemType::Item),
+                    });
+                }
+
+                if let Some(_) = weapon {
+                    stow_loot.send(StowLoot {
+                        stowing_entity: loot_cache_entities.backpack,
+                        loot: loot_entity.0,
+                        loot_type: LootType::Weapon,
+                    });
+                }
             }
             Interaction::Hovered => {
-                debug!("button hovered");
+                debug!("loot cache ui button hovered");
                 *color = HOVERED_BUTTON.into();
             }
             Interaction::None => {
-                debug!("button normal");
+                debug!("loot cache ui button normal");
                 *color = NORMAL_BUTTON.into();
             }
         }
@@ -908,7 +917,12 @@ fn create_empty_weapon_slot_ui(builder: &mut ChildBuilder) {
     ));
 }
 
-fn create_weapon_slot_ui(builder: &mut ChildBuilder, name: Option<&LootName>, ui: InventoryUI) {
+fn create_weapon_slot_ui(
+    builder: &mut ChildBuilder,
+    name: Option<&LootName>,
+    ui: InventoryUI,
+    loot_entity: &Entity,
+) {
     // TODO: there must be a better way, this fugly
     let label: String = name.map(|x| x.0.clone()).unwrap_or("".to_string());
     let mut weapon = builder.spawn((
@@ -943,6 +957,8 @@ fn create_weapon_slot_ui(builder: &mut ChildBuilder, name: Option<&LootName>, ui
             },
         ));
     });
+
+    weapon.insert(EntityReference(*loot_entity));
 
     match ui {
         InventoryUI::LootCache => weapon.insert(LootCacheWeapon),
