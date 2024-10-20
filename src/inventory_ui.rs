@@ -147,6 +147,7 @@ struct AccessBackpack {
 enum InventoryUI {
     LootCache,
     Backpack,
+    #[allow(dead_code)]
     Loadout,
 }
 
@@ -738,7 +739,7 @@ fn start_loadout_ui(mut commands: Commands) {
 }
 
 // UPDATE SYSTEMS
-
+#[allow(clippy::type_complexity)]
 fn update_loot_cache_ui(
     mut interaction_query: Query<
         (
@@ -763,7 +764,7 @@ fn update_loot_cache_ui(
                 debug!("loot cache ui button pressed");
                 *color = PRESSED_BUTTON.into();
 
-                if let Some(_) = item {
+                if item.is_some() {
                     stow_loot.send(StowLoot {
                         stowing_entity: loot_cache_entities.backpack,
                         loot: loot_entity.0,
@@ -771,7 +772,7 @@ fn update_loot_cache_ui(
                     });
                 }
 
-                if let Some(_) = weapon {
+                if weapon.is_some() {
                     stow_loot.send(StowLoot {
                         stowing_entity: loot_cache_entities.backpack,
                         loot: loot_entity.0,
@@ -834,7 +835,7 @@ fn update_stowed_loot_backpack_ui(
         for item in ui_items.iter() {
             if (item.2).0.eq(&event.loot) {
                 if let Some(mut e) = commands.get_entity((item.0).get()) {
-                    e.with_children(|builder| {
+                    e.with_children(|_builder| {
                         // TODO insert new item
                     });
                 }
@@ -844,7 +845,7 @@ fn update_stowed_loot_backpack_ui(
         for weapon in ui_weapons.iter() {
             if (weapon.2).0.eq(&event.loot) {
                 if let Some(mut e) = commands.get_entity((weapon.0).get()) {
-                    e.with_children(|builder| {
+                    e.with_children(|_builder| {
                         // TODO insert new item
                     });
                 }

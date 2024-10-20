@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::{app::Plugin, input::mouse::MouseMotion};
 
-use crate::heightmap::{FlatEarth, XZSineTerrain};
+use crate::heightmap::FlatEarth;
 use crate::raid::{RaidState, Volume};
 use crate::AppState;
 use crate::AppState::Raid;
