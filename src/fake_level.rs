@@ -341,7 +341,7 @@ fn start_fake_level(
                 .spawn(PbrBundle {
                     mesh: loot_cube.clone(),
                     material: materials.add(StandardMaterial {
-                        base_color: Color::srgb(0.0, 0.75, 0.0),
+                        base_color: Color::srgb(0.0, 1.0, 1.0),
                         base_color_texture: Some(texture_06.clone()),
                         uv_transform: Affine2::from_scale(Vec2::new(
                             loot_cube_size,
@@ -349,8 +349,7 @@ fn start_fake_level(
                         )),
                         ..Default::default()
                     }),
-                    visibility: Visibility::Hidden,
-                    transform: Transform::from_xyz(3.0, 0.1, -2.0),
+                    visibility: Visibility::Visible,
                     ..default()
                 })
                 .insert(Name::new("WeaponLockerLoot1"))
@@ -371,8 +370,7 @@ fn start_fake_level(
                         )),
                         ..Default::default()
                     }),
-                    visibility: Visibility::Hidden,
-                    transform: Transform::from_xyz(5.0, 1.1, -2.0),
+                    visibility: Visibility::Visible,
                     ..default()
                 })
                 .insert(Name::new("WeaponLockerLoot2"))
@@ -451,10 +449,10 @@ fn add_inventory_to_operators(
                 transform: Transform::from_xyz(0.0, 1.5, 0.25),
                 ..default()
             })
-            .insert(Name::new("Medium Backpack"))
+            .insert(Name::new("Large Backpack"))
             .insert(Inventory)
-            .insert(ItemSlots(5))
-            .insert(WeaponSlots(1))
+            .insert(ItemSlots(9))
+            .insert(WeaponSlots(2))
             .insert(FakeLevelStuff)
             .set_parent(added);
     }
