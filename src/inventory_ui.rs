@@ -60,14 +60,15 @@ impl Plugin for InventoryUIPlugin {
             )
             .add_systems(
                 Update,
-                (
-                    update_loot_cache_ui,
-                    update_stowed_loot_cache_ui,
-                    update_stowed_loot_backpack_ui,
-                    update_backpack_ui,
-                    update_loadout_ui,
-                )
+                (update_loot_cache_ui, update_backpack_ui, update_loadout_ui)
                     .run_if(in_state(RaidState::AccessLootCache)),
+            )
+            .add_systems(
+                Update,
+                (update_stowed_loot_cache_ui, update_stowed_loot_backpack_ui)
+                    .chain()
+                    .run_if(in_state(RaidState::AccessLootCache))
+                    .run_if(on_event::<StowedLoot>()),
             )
             .add_systems(
                 Update,
@@ -241,7 +242,6 @@ fn start_loot_cache_ui(
     inventory_weapons: Query<(&Parent, &WeaponSlot, Option<&LootName>, Entity), With<Loot>>,
 ) {
     debug!("start loot cache ui");
-
     let loot_cache = loot_entities.loot_cache;
 
     // Loot Cache
@@ -832,6 +832,7 @@ fn update_stowed_loot_backpack_ui(
     mut commands: Commands,
 ) {
     for event in stowed_loot.read() {
+        debug!("stowing loot to backpack");
         for item in ui_items.iter() {
             if (item.2).0.eq(&event.loot) {
                 if let Some(mut e) = commands.get_entity((item.0).get()) {
