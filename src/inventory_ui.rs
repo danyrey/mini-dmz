@@ -31,7 +31,10 @@ pub struct InventoryUIPlugin;
 
 impl Plugin for InventoryUIPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<AccessLootCache>()
+        app
+            // trying to setup systems so they dont run into any panic
+            // if resources are not available
+            .add_event::<AccessLootCache>()
             .add_systems(
                 Update,
                 (
@@ -48,7 +51,9 @@ impl Plugin for InventoryUIPlugin {
                     start_loot_cache_ui,
                     start_backpack_ui,
                     start_loadout_ui,
-                ),
+                )
+                    .chain()
+                    .run_if(resource_exists::<LootCacheEntities>),
             )
             .add_systems(
                 OnEnter(RaidState::AccessBackpack),
@@ -56,23 +61,35 @@ impl Plugin for InventoryUIPlugin {
                     startup_cursor_crosshair,
                     start_backpack_ui,
                     start_loadout_ui,
-                ),
+                )
+                    .run_if(resource_exists::<LootCacheEntities>),
             )
             .add_systems(
                 Update,
                 (update_loot_cache_ui, update_backpack_ui, update_loadout_ui)
-                    .run_if(in_state(RaidState::AccessLootCache)),
+                    .chain()
+                    .run_if(in_state(RaidState::AccessLootCache))
+                    .run_if(resource_exists::<LootCacheUI>)
+                    .run_if(resource_exists::<LootCacheEntities>)
+                    .run_if(resource_exists::<BackpackUI>)
+                    .run_if(resource_exists::<LoadoutUI>),
             )
             .add_systems(
                 Update,
                 (update_stowed_loot_cache_ui, update_stowed_loot_backpack_ui)
                     .chain()
                     .run_if(in_state(RaidState::AccessLootCache))
+                    .run_if(resource_exists::<LootCacheUI>)
+                    .run_if(resource_exists::<LootCacheEntities>)
+                    .run_if(resource_exists::<BackpackUI>)
                     .run_if(on_event::<StowedLoot>()),
             )
             .add_systems(
                 Update,
-                (update_backpack_ui, update_loadout_ui).run_if(in_state(RaidState::AccessBackpack)),
+                (update_backpack_ui, update_loadout_ui)
+                    .run_if(in_state(RaidState::AccessBackpack))
+                    .run_if(resource_exists::<BackpackUI>)
+                    .run_if(resource_exists::<LoadoutUI>),
             )
             .add_systems(
                 OnExit(RaidState::AccessLootCache),
@@ -81,11 +98,19 @@ impl Plugin for InventoryUIPlugin {
                     bye_loot_cache_ui,
                     bye_backpack_ui,
                     bye_loadout_ui,
-                ),
+                )
+                    .chain()
+                    .run_if(resource_exists::<LootCacheUI>)
+                    .run_if(resource_exists::<LootCacheEntities>)
+                    .run_if(resource_exists::<BackpackUI>)
+                    .run_if(resource_exists::<LoadoutUI>),
             )
             .add_systems(
                 OnExit(RaidState::AccessBackpack),
-                (cleanup_cursor_crosshair, bye_backpack_ui, bye_loadout_ui),
+                (cleanup_cursor_crosshair, bye_backpack_ui, bye_loadout_ui)
+                    .chain()
+                    .run_if(resource_exists::<BackpackUI>)
+                    .run_if(resource_exists::<LoadoutUI>),
             );
     }
 }
