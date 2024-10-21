@@ -921,11 +921,13 @@ fn bye_loot_cache_ui(mut commands: Commands, loot_cache_ui: Res<LootCacheUI>) {
 fn bye_backpack_ui(mut commands: Commands, backpack_ui: Res<BackpackUI>) {
     debug!("cleanup backpack ui");
     commands.entity(backpack_ui.backpack_ui).despawn_recursive();
+    commands.remove_resource::<BackpackUI>();
 }
 
 fn bye_loadout_ui(mut commands: Commands, loadout_ui: Res<LoadoutUI>) {
     debug!("cleanup loadout ui");
     commands.entity(loadout_ui.loadout_ui).despawn_recursive();
+    commands.remove_resource::<LoadoutUI>();
 }
 
 // helper functions
