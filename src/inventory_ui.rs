@@ -959,17 +959,11 @@ fn cleanup_cursor_crosshair(
     commands.entity(crosshair_vis).insert(Visibility::Visible);
 }
 
-fn bye_loot_cache_ui(
-    mut commands: Commands,
-    loot_cache_ui2: Query<Entity, With<LootCacheUI>>,
-    //loot_cache_ui: Res<LootCacheUI>,
-) {
+fn bye_loot_cache_ui(mut commands: Commands, loot_cache_ui2: Query<Entity, With<LootCacheUI>>) {
     debug!("cleanup loot cache ui");
     let ui = loot_cache_ui2.single();
     commands.entity(ui).despawn_recursive();
-    /*
-        commands.remove_resource::<LootCacheEntities>();
-    */
+    commands.remove_resource::<LootCacheEntities>();
 }
 
 fn bye_backpack_ui(mut commands: Commands, backpack_ui: Res<BackpackUI>) {
