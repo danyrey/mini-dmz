@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use bevy::{
     app::Plugin,
     color::palettes::css::{DARK_GREY, GREY, MAROON, RED},
@@ -382,6 +380,7 @@ fn render_loot_cache_ui(
         });
 }
 
+#[allow(clippy::type_complexity)]
 fn start_loot_cache_ui(
     mut commands: Commands,
     loot_entities: Res<LootCacheEntities>,
@@ -568,6 +567,7 @@ fn render_backpack_ui(
     //commands.insert_resource(BackpackUI { backpack_ui });
 }
 
+#[allow(clippy::type_complexity)]
 fn start_backpack_ui(
     mut commands: Commands,
     loot_entities: Res<LootCacheEntities>,
@@ -894,6 +894,7 @@ fn update_loot_cache_ui(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[allow(clippy::type_complexity)]
 fn update_stowed_loot_cache_ui(
     mut stowed_loot: EventReader<StowedLoot>,
     loot_cache_entities: Res<LootCacheEntities>,
@@ -967,6 +968,7 @@ fn update_stowed_loot_cache_ui(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[allow(clippy::type_complexity)]
 fn update_stowed_loot_backpack_ui(
     mut stowed_loot: EventReader<StowedLoot>,
     loot_cache_entities: Res<LootCacheEntities>,
@@ -1179,6 +1181,10 @@ fn create_empty_item_slot_ui(builder: &mut ChildBuilder) {
 
 fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) {
     // TODO: there must be a better way, this fugly
+    // TODO: price
+    if let Some(price) = item.price {
+        debug!("price: {:?}", price.0);
+    }
     let label: String = item.name.map(|x| x.0.clone()).unwrap_or("".to_string());
     let mut ui_item = builder.spawn((
         ButtonBundle {

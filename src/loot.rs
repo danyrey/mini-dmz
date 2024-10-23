@@ -84,8 +84,7 @@ pub enum ItemType {
 }
 
 /// price/cash amount per item in cent amount
-#[derive(Component)]
-#[allow(dead_code)]
+#[derive(Component, Debug)]
 pub struct Price(pub u32);
 
 #[derive(Component)]
