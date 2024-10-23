@@ -131,6 +131,13 @@ struct Item<'a> {
     entity: Entity,
 }
 
+#[derive(Clone)]
+struct Weapon<'a> {
+    slot: &'a WeaponSlot,
+    name: Option<&'a LootName>,
+    entity: Entity,
+}
+
 #[derive(Component)]
 struct LootCacheItem;
 
@@ -269,7 +276,7 @@ fn render_loot_cache_ui(
     loot_cache_name: String,
     loot_cache_items: Vec<Item>,
     loot_cache_item_slots: usize,
-    loot_cache_weapons: Vec<(&WeaponSlot, Option<&LootName>, Entity)>,
+    loot_cache_weapons: Vec<Weapon>,
     loot_cache_weapon_slots: usize,
 ) {
     // Layout
@@ -343,9 +350,9 @@ fn render_loot_cache_ui(
                     for weapon_slot_no in 0..loot_cache_weapon_slots {
                         debug!("weapon slot: {:?}", weapon_slot_no);
                         if let Some(s) = slot {
-                            if ((s.0).0 as usize).eq(&weapon_slot_no) {
-                                debug!("slot: {:?}", (s.0).0);
-                                create_weapon_slot_ui(builder, s.1, InventoryUI::LootCache, &s.2);
+                            if ((s.slot).0 as usize).eq(&weapon_slot_no) {
+                                debug!("slot: {:?}", (s.slot).0);
+                                create_weapon_slot_ui(builder, s.clone(), InventoryUI::LootCache);
                                 slot = it_slot.next();
                             } else {
                                 debug!("slot: nothing");
@@ -428,12 +435,16 @@ fn start_loot_cache_ui(
         .get(loot_cache)
         .map_or("".to_string(), |r| r.1.into());
 
-    let mut loot_cache_weapons: Vec<(&WeaponSlot, Option<&LootName>, Entity)> = inventory_weapons
+    let mut loot_cache_weapons: Vec<Weapon> = inventory_weapons
         .iter()
         .filter(|ii| loot_cache == ii.0.get())
-        .map(|ii| (ii.1, ii.2, ii.3))
+        .map(|ii| Weapon {
+            slot: ii.1,
+            name: ii.2,
+            entity: ii.3,
+        })
         .collect();
-    loot_cache_weapons.sort_by(|a, b| (a.0).0.cmp(&(b.0).0));
+    loot_cache_weapons.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
 
     let loot_cache_weapon_slots: usize = inventories_with_weapons
         .get(loot_cache)
@@ -454,7 +465,7 @@ fn render_backpack_ui(
     backpack_name: String,
     backpack_items: Vec<Item>,
     backpack_item_slots: usize,
-    backpack_weapons: Vec<(&WeaponSlot, Option<&LootName>, Entity)>,
+    backpack_weapons: Vec<Weapon>,
     backpack_weapon_slots: usize,
 ) {
     // Layout
@@ -527,9 +538,9 @@ fn render_backpack_ui(
                     for weapon_slot_no in 0..backpack_weapon_slots {
                         debug!("weapon slot: {:?}", weapon_slot_no);
                         if let Some(s) = slot {
-                            if ((s.0).0 as usize).eq(&weapon_slot_no) {
-                                debug!("slot: {:?}", (s.0).0);
-                                create_weapon_slot_ui(builder, s.1, InventoryUI::Backpack, &s.2);
+                            if ((s.slot).0 as usize).eq(&weapon_slot_no) {
+                                debug!("slot: {:?}", (s.slot).0);
+                                create_weapon_slot_ui(builder, s.clone(), InventoryUI::Backpack);
                                 slot = it_slot.next();
                             } else {
                                 debug!("slot: nothing");
@@ -615,12 +626,16 @@ fn start_backpack_ui(
         .get(backpack)
         .map_or("".to_string(), |r| r.1.into());
 
-    let mut backpack_weapons: Vec<(&WeaponSlot, Option<&LootName>, Entity)> = inventory_weapons
+    let mut backpack_weapons: Vec<Weapon> = inventory_weapons
         .iter()
         .filter(|ii| backpack == ii.0.get())
-        .map(|ii| (ii.1, ii.2, ii.3))
+        .map(|ii| Weapon {
+            slot: ii.1,
+            name: ii.2,
+            entity: ii.3,
+        })
         .collect();
-    backpack_weapons.sort_by(|a, b| (a.0).0.cmp(&(b.0).0));
+    backpack_weapons.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
 
     let backpack_weapon_slots: usize = inventories_with_weapons
         .get(backpack)
@@ -944,13 +959,16 @@ fn update_stowed_loot_cache_ui(
             .get(loot_cache)
             .map_or("".to_string(), |r| r.1.into());
 
-        let mut loot_cache_weapons: Vec<(&WeaponSlot, Option<&LootName>, Entity)> =
-            inventory_weapons
-                .iter()
-                .filter(|ii| loot_cache == ii.0.get())
-                .map(|ii| (ii.1, ii.2, ii.3))
-                .collect();
-        loot_cache_weapons.sort_by(|a, b| (a.0).0.cmp(&(b.0).0));
+        let mut loot_cache_weapons: Vec<Weapon> = inventory_weapons
+            .iter()
+            .filter(|ii| loot_cache == ii.0.get())
+            .map(|ii| Weapon {
+                slot: ii.1,
+                name: ii.2,
+                entity: ii.3,
+            })
+            .collect();
+        loot_cache_weapons.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
 
         let loot_cache_weapon_slots: usize = inventories_with_weapons
             .get(loot_cache)
@@ -1018,12 +1036,16 @@ fn update_stowed_loot_backpack_ui(
             .get(backpack)
             .map_or("".to_string(), |r| r.1.into());
 
-        let mut backpack_weapons: Vec<(&WeaponSlot, Option<&LootName>, Entity)> = inventory_weapons
+        let mut backpack_weapons: Vec<Weapon> = inventory_weapons
             .iter()
             .filter(|ii| backpack == ii.0.get())
-            .map(|ii| (ii.1, ii.2, ii.3))
+            .map(|ii| Weapon {
+                slot: ii.1,
+                name: ii.2,
+                entity: ii.3,
+            })
             .collect();
-        backpack_weapons.sort_by(|a, b| (a.0).0.cmp(&(b.0).0));
+        backpack_weapons.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
 
         let backpack_weapon_slots: usize = inventories_with_weapons
             .get(backpack)
@@ -1105,15 +1127,10 @@ fn create_empty_weapon_slot_ui(builder: &mut ChildBuilder) {
     ));
 }
 
-fn create_weapon_slot_ui(
-    builder: &mut ChildBuilder,
-    name: Option<&LootName>,
-    ui: InventoryUI,
-    loot_entity: &Entity,
-) {
+fn create_weapon_slot_ui(builder: &mut ChildBuilder, weapon: Weapon, ui: InventoryUI) {
     // TODO: there must be a better way, this fugly
-    let label: String = name.map(|x| x.0.clone()).unwrap_or("".to_string());
-    let mut weapon = builder.spawn((
+    let label: String = weapon.name.map(|x| x.0.clone()).unwrap_or("".to_string());
+    let mut ui_weapon = builder.spawn((
         ButtonBundle {
             style: Style {
                 width: Val::Px(100.),
@@ -1135,7 +1152,7 @@ fn create_weapon_slot_ui(
         },
     ));
 
-    weapon.with_children(|parent| {
+    ui_weapon.with_children(|parent| {
         parent.spawn(TextBundle::from_section(
             label,
             TextStyle {
@@ -1146,11 +1163,11 @@ fn create_weapon_slot_ui(
         ));
     });
 
-    weapon.insert(EntityReference(*loot_entity));
+    ui_weapon.insert(EntityReference(weapon.entity));
 
     match ui {
-        InventoryUI::LootCache => weapon.insert(LootCacheWeapon),
-        InventoryUI::Backpack => weapon.insert(BackpackWeapon),
+        InventoryUI::LootCache => ui_weapon.insert(LootCacheWeapon),
+        InventoryUI::Backpack => ui_weapon.insert(BackpackWeapon),
         InventoryUI::Loadout => todo!(),
     };
 }
