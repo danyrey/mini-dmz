@@ -852,6 +852,7 @@ fn update_loot_cache_ui(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn update_stowed_loot_cache_ui(
     mut stowed_loot: EventReader<StowedLoot>,
     loot_cache_entities: Res<LootCacheEntities>,
@@ -910,6 +911,7 @@ fn update_stowed_loot_cache_ui(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn update_stowed_loot_backpack_ui(
     mut stowed_loot: EventReader<StowedLoot>,
     loot_cache_entities: Res<LootCacheEntities>,
