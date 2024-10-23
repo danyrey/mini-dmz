@@ -39,7 +39,7 @@ impl Plugin for InventoryPlugin {
 pub struct Inventory;
 
 /// number of item slots
-#[derive(Component, Reflect, InspectorOptions)]
+#[derive(Component, Clone, Reflect, InspectorOptions)]
 #[reflect(Component, InspectorOptions)]
 pub struct ItemSlots(pub u8);
 
