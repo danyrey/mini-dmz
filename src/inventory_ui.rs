@@ -573,9 +573,6 @@ fn render_backpack_ui(
                     }
                 });
         });
-
-    // insert resource
-    //commands.insert_resource(BackpackUI { backpack_ui });
 }
 
 #[allow(clippy::type_complexity)]
@@ -1199,9 +1196,6 @@ fn create_empty_item_slot_ui(builder: &mut ChildBuilder) {
 fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) {
     // TODO: there must be a better way, this fugly
     // TODO: price
-    if let Some(price) = item.price {
-        debug!("price: {:?}", price.0);
-    }
     let label: String = item.name.map(|x| x.0.clone()).unwrap_or("".to_string());
     let mut ui_item = builder.spawn((
         ButtonBundle {
@@ -1226,14 +1220,269 @@ fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) 
     ));
 
     ui_item.with_children(|parent| {
-        parent.spawn(TextBundle::from_section(
-            label,
-            TextStyle {
-                font_size: 8.0,
-                color: Color::srgb(0.9, 0.9, 0.9),
+        parent
+            .spawn(NodeBundle {
+                style: Style {
+                    // Make the height of the node fill its parent
+                    height: Val::Percent(100.0),
+                    // Make the grid have a 1:1 aspect ratio meaning it will scale as an exact square
+                    // As the height is set explicitly, this means the width will adjust to match the height
+                    aspect_ratio: Some(1.0),
+                    // Use grid layout for this node
+                    display: Display::Grid,
+                    // Set the grid to have 3 columns all with sizes minmax(0, 1fr)
+                    // This creates 3 exactly evenly sized columns
+                    grid_template_columns: RepeatedGridTrack::flex(3, 1.0),
+                    // Set the grid to have 3 rows all with sizes minmax(0, 1fr)
+                    // This creates 3 exactly evenly sized rows
+                    grid_template_rows: RepeatedGridTrack::flex(3, 1.0),
+                    //border: UiRect::all(Val::Px(1.)),
+                    ..default()
+                },
+                //border_color: Color::WHITE.into(),
                 ..default()
-            },
-        ));
+            })
+            .with_children(|parent| {
+                // TOP
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::FlexStart,
+                            justify_content: JustifyContent::FlexStart,
+                            //border: UiRect::all(Val::Px(1.)),
+                            ..default()
+                        },
+                        //border_color: Color::BLACK.into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                //String::from("1"),
+                                String::from(""),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Left),
+                        );
+                    });
+
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::Center,
+                            justify_content: JustifyContent::FlexStart,
+                            //border: UiRect::all(Val::Px(1.)),
+                            ..default()
+                        },
+                        //border_color: Color::BLACK.into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                label,
+                                //String::from("2"),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Center),
+                        );
+                    });
+
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::FlexEnd,
+                            justify_content: JustifyContent::FlexStart,
+                            //border: UiRect::all(Val::Px(1.)),
+                            ..default()
+                        },
+                        //border_color: Color::BLACK.into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                //String::from("3"),
+                                String::from(""),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Right),
+                        );
+                    });
+
+                // MIDDLE
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::FlexStart,
+                            justify_content: JustifyContent::Center,
+                            //border: UiRect::all(Val::Px(1.)),
+                            ..default()
+                        },
+                        //border_color: Color::BLACK.into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                //String::from("4"),
+                                String::from(""),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Left),
+                        );
+                    });
+
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::Center,
+                            justify_content: JustifyContent::Center,
+                            //border: UiRect::all(Val::Px(1.)),
+                            ..default()
+                        },
+                        //border_color: Color::BLACK.into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                //String::from("5"),
+                                String::from(""),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Center),
+                        );
+                    });
+
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::FlexEnd,
+                            justify_content: JustifyContent::Center,
+                            //border: UiRect::all(Val::Px(1.)),
+                            ..default()
+                        },
+                        //border_color: Color::BLACK.into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                //String::from("6"),
+                                String::from(""),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Right),
+                        );
+                    });
+
+                // BOTTOM
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::FlexStart,
+                            justify_content: JustifyContent::FlexEnd,
+                            //border: UiRect::all(Val::Px(1.)),
+                            ..default()
+                        },
+                        //border_color: Color::BLACK.into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                //String::from("7"),
+                                String::from(""),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Left),
+                        );
+                    });
+
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::Center,
+                            justify_content: JustifyContent::FlexEnd,
+                            //border: UiRect::all(Val::Px(1.)),
+                            ..default()
+                        },
+                        //border_color: Color::BLACK.into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                //String::from("8"),
+                                String::from(""),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Center),
+                        );
+                    });
+
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::FlexEnd,
+                            justify_content: JustifyContent::FlexEnd,
+                            //border: UiRect::all(Val::Px(1.)),
+                            ..default()
+                        },
+                        //border_color: Color::BLACK.into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        if let Some(price) = item.price {
+                            debug!("price: {:?}", price.0);
+                            parent.spawn(
+                                TextBundle::from_section(
+                                    format!("${}", price.0),
+                                    //String::from("9"),
+                                    TextStyle {
+                                        font_size: 8.0,
+                                        color: Color::srgb(0.9, 0.9, 0.9),
+                                        ..default()
+                                    },
+                                )
+                                .with_text_justify(JustifyText::Right),
+                            );
+                        }
+                    });
+            });
     });
 
     ui_item.insert(EntityReference(item.entity));
