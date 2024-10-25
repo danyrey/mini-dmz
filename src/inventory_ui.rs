@@ -9,7 +9,7 @@ use crate::{
     fake_level::Crosshair,
     interaction::InventoryInteracted,
     inventory::{Inventory, ItemSlot, ItemSlots, StowLoot, StowedLoot, WeaponSlot, WeaponSlots},
-    loot::{Loot, LootName, LootType, Price},
+    loot::{Loot, LootName, LootType, Price, Rarity},
     raid::RaidState,
     AppState,
 };
@@ -65,9 +65,7 @@ impl Plugin for InventoryUIPlugin {
                     start_backpack_ui,
                     start_loadout_ui,
                 )
-                    .chain()
-                    .run_if(in_state(AppState::Raid))
-                    .run_if(resource_exists::<LootCacheEntities>),
+                    .run_if(in_state(AppState::Raid)),
             )
             .add_systems(
                 Update,
@@ -128,6 +126,7 @@ struct Item<'a> {
     slot: &'a ItemSlot,
     name: Option<&'a LootName>,
     price: Option<&'a Price>,
+    rarity: Option<&'a Rarity>,
     entity: Entity,
 }
 
@@ -398,6 +397,7 @@ fn start_loot_cache_ui(
             &ItemSlot,
             Option<&LootName>,
             Option<&Price>,
+            Option<&Rarity>,
             Entity,
         ),
         With<Loot>,
@@ -422,7 +422,8 @@ fn start_loot_cache_ui(
             slot: ii.1,
             name: ii.2,
             price: ii.3,
-            entity: ii.4,
+            rarity: ii.4,
+            entity: ii.5,
         })
         .collect();
     loot_cache_items.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
@@ -578,6 +579,7 @@ fn render_backpack_ui(
 #[allow(clippy::type_complexity)]
 fn start_backpack_ui(
     mut commands: Commands,
+    // MAYBE replace with a query for player controlled inventory for backpack
     loot_entities: Res<LootCacheEntities>,
     inventories_with_items: Query<(&ItemSlots, &Name), With<Inventory>>,
     inventory_items: Query<
@@ -586,6 +588,7 @@ fn start_backpack_ui(
             &ItemSlot,
             Option<&LootName>,
             Option<&Price>,
+            Option<&Rarity>,
             Entity,
         ),
         With<Loot>,
@@ -610,7 +613,8 @@ fn start_backpack_ui(
             slot: ii.1,
             name: ii.2,
             price: ii.3,
-            entity: ii.4,
+            rarity: ii.4,
+            entity: ii.5,
         })
         .collect();
     backpack_items.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
@@ -917,6 +921,7 @@ fn update_stowed_loot_cache_ui(
             &ItemSlot,
             Option<&LootName>,
             Option<&Price>,
+            Option<&Rarity>,
             Entity,
         ),
         With<Loot>,
@@ -943,7 +948,8 @@ fn update_stowed_loot_cache_ui(
                 slot: ii.1,
                 name: ii.2,
                 price: ii.3,
-                entity: ii.4,
+                rarity: ii.4,
+                entity: ii.5,
             })
             .collect();
         loot_cache_items.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
@@ -994,6 +1000,7 @@ fn update_stowed_loot_backpack_ui(
             &ItemSlot,
             Option<&LootName>,
             Option<&Price>,
+            Option<&Rarity>,
             Entity,
         ),
         With<Loot>,
@@ -1020,7 +1027,8 @@ fn update_stowed_loot_backpack_ui(
                 slot: ii.1,
                 name: ii.2,
                 price: ii.3,
-                entity: ii.4,
+                rarity: ii.4,
+                entity: ii.5,
             })
             .collect();
         backpack_items.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
@@ -1195,7 +1203,6 @@ fn create_empty_item_slot_ui(builder: &mut ChildBuilder) {
 
 fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) {
     // TODO: there must be a better way, this fugly
-    // TODO: price
     let label: String = item.name.map(|x| x.0.clone()).unwrap_or("".to_string());
     let mut ui_item = builder.spawn((
         ButtonBundle {
@@ -1209,7 +1216,21 @@ fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) 
                 ..default()
             },
             border_color: RED.into(),
-            background_color: NORMAL_BUTTON.into(),
+            background_color: {
+                match item.rarity {
+                    Some(r) => match r {
+                        Rarity::Regular => NORMAL_BUTTON.into(),
+                        Rarity::Rare => Srgba {
+                            red: 0.5,
+                            green: 0.5,
+                            blue: 0.0,
+                            alpha: 1.0,
+                        }
+                        .into(),
+                    },
+                    None => NORMAL_BUTTON.into(),
+                }
+            },
             ..default()
         },
         Outline {

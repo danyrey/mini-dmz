@@ -384,6 +384,29 @@ fn start_fake_level(
                     current_stack: 1,
                 })
                 .insert(FakeLevelStuff);
+
+            parent
+                .spawn(PbrBundle {
+                    mesh: loot_cube.clone(),
+                    material: materials.add(StandardMaterial {
+                        base_color: Color::srgb(0.0, 1.0, 0.0),
+                        base_color_texture: Some(texture_06.clone()),
+                        uv_transform: Affine2::from_scale(Vec2::new(
+                            loot_cube_size,
+                            loot_cube_size,
+                        )),
+                        ..Default::default()
+                    }),
+                    transform: Transform::from_xyz(4.0, 1.1, -2.0),
+                    ..default()
+                })
+                .insert(Name::new("Durable Gasmask"))
+                .insert(Loot)
+                .insert(LootName(String::from("Durable Gaskmask")))
+                .insert(LootType::CombatDefense)
+                .insert(Rarity::Rare)
+                .insert(FakeLevelStuff)
+                .insert(Durability::default());
         });
 
     // light
