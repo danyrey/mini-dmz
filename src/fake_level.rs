@@ -3,6 +3,7 @@
 //  * transfer from state from one appstate to another: active dute layout -> ...load in -> raid
 use crate::damage::HurtBox;
 use crate::exfil::{ExfilArea, Operator};
+use crate::follow::Zombie;
 use crate::interaction::Interactable;
 use crate::inventory::{Inventory, ItemSlot, ItemSlots, WeaponSlot, WeaponSlots};
 use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
@@ -50,7 +51,7 @@ struct PrototypeTextures {
 // Events
 
 // Systems
-fn start_fake_level(
+pub fn start_fake_level(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -213,6 +214,7 @@ fn start_fake_level(
         })
         .insert(Enemy)
         .insert(Name::new("Enemy2"))
+        .insert(Zombie)
         .insert(FakeLevelStuff);
     // loot cube 1
 

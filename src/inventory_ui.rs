@@ -1509,7 +1509,7 @@ fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) 
                                 //String::from("9"),
                                 TextStyle {
                                     font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    color: Color::srgb(0.9, 0.9, 0.0),
                                     ..default()
                                 },
                             )
