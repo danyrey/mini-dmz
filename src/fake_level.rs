@@ -255,13 +255,15 @@ fn start_fake_level(
             ..default()
         })
         .insert(Name::new("Loot2"))
-        .insert(LootName(String::from("Batteries")))
         .insert(Loot)
         .insert(LootName(String::from("Durable Gaskmask")))
         .insert(LootType::CombatDefense)
         .insert(Rarity::Rare)
         .insert(FakeLevelStuff)
-        .insert(Durability::default());
+        .insert(Durability {
+            max: 100,
+            current: 99,
+        });
     // loot cube 3
     commands
         .spawn(PbrBundle {

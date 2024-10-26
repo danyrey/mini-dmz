@@ -9,7 +9,7 @@ use crate::{
     fake_level::Crosshair,
     interaction::InventoryInteracted,
     inventory::{Inventory, ItemSlot, ItemSlots, StowLoot, StowedLoot, WeaponSlot, WeaponSlots},
-    loot::{Loot, LootName, LootType, Price, Rarity},
+    loot::{Durability, Loot, LootName, LootType, Price, Rarity},
     raid::RaidState,
     AppState,
 };
@@ -127,6 +127,7 @@ struct Item<'a> {
     name: Option<&'a LootName>,
     price: Option<&'a Price>,
     rarity: Option<&'a Rarity>,
+    durability: Option<&'a Durability>,
     entity: Entity,
 }
 
@@ -398,6 +399,7 @@ fn start_loot_cache_ui(
             Option<&LootName>,
             Option<&Price>,
             Option<&Rarity>,
+            Option<&Durability>,
             Entity,
         ),
         With<Loot>,
@@ -423,7 +425,8 @@ fn start_loot_cache_ui(
             name: ii.2,
             price: ii.3,
             rarity: ii.4,
-            entity: ii.5,
+            durability: ii.5,
+            entity: ii.6,
         })
         .collect();
     loot_cache_items.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
@@ -589,6 +592,7 @@ fn start_backpack_ui(
             Option<&LootName>,
             Option<&Price>,
             Option<&Rarity>,
+            Option<&Durability>,
             Entity,
         ),
         With<Loot>,
@@ -614,7 +618,8 @@ fn start_backpack_ui(
             name: ii.2,
             price: ii.3,
             rarity: ii.4,
-            entity: ii.5,
+            durability: ii.5,
+            entity: ii.6,
         })
         .collect();
     backpack_items.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
@@ -922,6 +927,7 @@ fn update_stowed_loot_cache_ui(
             Option<&LootName>,
             Option<&Price>,
             Option<&Rarity>,
+            Option<&Durability>,
             Entity,
         ),
         With<Loot>,
@@ -949,7 +955,8 @@ fn update_stowed_loot_cache_ui(
                 name: ii.2,
                 price: ii.3,
                 rarity: ii.4,
-                entity: ii.5,
+                durability: ii.5,
+                entity: ii.6,
             })
             .collect();
         loot_cache_items.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
@@ -1001,6 +1008,7 @@ fn update_stowed_loot_backpack_ui(
             Option<&LootName>,
             Option<&Price>,
             Option<&Rarity>,
+            Option<&Durability>,
             Entity,
         ),
         With<Loot>,
@@ -1028,7 +1036,8 @@ fn update_stowed_loot_backpack_ui(
                 name: ii.2,
                 price: ii.3,
                 rarity: ii.4,
-                entity: ii.5,
+                durability: ii.5,
+                entity: ii.6,
             })
             .collect();
         backpack_items.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
@@ -1487,21 +1496,25 @@ fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) 
                         ..default()
                     })
                     .with_children(|parent| {
-                        if let Some(price) = item.price {
-                            debug!("price: {:?}", price.0);
-                            parent.spawn(
-                                TextBundle::from_section(
-                                    format!("${}", price.0),
-                                    //String::from("9"),
-                                    TextStyle {
-                                        font_size: 8.0,
-                                        color: Color::srgb(0.9, 0.9, 0.9),
-                                        ..default()
-                                    },
-                                )
-                                .with_text_justify(JustifyText::Right),
-                            );
-                        }
+                        let label = item
+                            .price
+                            .map(|p| format!("${}", p.0))
+                            .or(item.durability.map(|d| format!("%{}", d.current)))
+                            .unwrap_or(String::from(""));
+
+                        parent.spawn(
+                            TextBundle::from_section(
+                                label,
+                                //format!("${}", price.0),
+                                //String::from("9"),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Right),
+                        );
                     });
             });
     });
