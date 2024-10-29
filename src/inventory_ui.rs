@@ -9,7 +9,7 @@ use crate::{
     fake_level::Crosshair,
     interaction::InventoryInteracted,
     inventory::{Inventory, ItemSlot, ItemSlots, StowLoot, StowedLoot, WeaponSlot, WeaponSlots},
-    loot::{Durability, Loot, LootName, LootType, Price, Rarity},
+    loot::{Durability, Loot, LootName, LootType, Price, Rarity, Stackable},
     raid::RaidState,
     AppState,
 };
@@ -128,6 +128,7 @@ struct Item<'a> {
     price: Option<&'a Price>,
     rarity: Option<&'a Rarity>,
     durability: Option<&'a Durability>,
+    stack: Option<&'a Stackable>,
     entity: Entity,
 }
 
@@ -400,6 +401,7 @@ fn start_loot_cache_ui(
             Option<&Price>,
             Option<&Rarity>,
             Option<&Durability>,
+            Option<&Stackable>,
             Entity,
         ),
         With<Loot>,
@@ -426,7 +428,8 @@ fn start_loot_cache_ui(
             price: ii.3,
             rarity: ii.4,
             durability: ii.5,
-            entity: ii.6,
+            stack: ii.6,
+            entity: ii.7,
         })
         .collect();
     loot_cache_items.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
@@ -593,6 +596,7 @@ fn start_backpack_ui(
             Option<&Price>,
             Option<&Rarity>,
             Option<&Durability>,
+            Option<&Stackable>,
             Entity,
         ),
         With<Loot>,
@@ -619,7 +623,8 @@ fn start_backpack_ui(
             price: ii.3,
             rarity: ii.4,
             durability: ii.5,
-            entity: ii.6,
+            stack: ii.6,
+            entity: ii.7,
         })
         .collect();
     backpack_items.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
@@ -928,6 +933,7 @@ fn update_stowed_loot_cache_ui(
             Option<&Price>,
             Option<&Rarity>,
             Option<&Durability>,
+            Option<&Stackable>,
             Entity,
         ),
         With<Loot>,
@@ -956,7 +962,8 @@ fn update_stowed_loot_cache_ui(
                 price: ii.3,
                 rarity: ii.4,
                 durability: ii.5,
-                entity: ii.6,
+                stack: ii.6,
+                entity: ii.7,
             })
             .collect();
         loot_cache_items.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
@@ -1009,6 +1016,7 @@ fn update_stowed_loot_backpack_ui(
             Option<&Price>,
             Option<&Rarity>,
             Option<&Durability>,
+            Option<&Stackable>,
             Entity,
         ),
         With<Loot>,
@@ -1037,7 +1045,8 @@ fn update_stowed_loot_backpack_ui(
                 price: ii.3,
                 rarity: ii.4,
                 durability: ii.5,
-                entity: ii.6,
+                stack: ii.6,
+                entity: ii.7,
             })
             .collect();
         backpack_items.sort_by(|a, b| (a.slot).0.cmp(&(b.slot).0));
@@ -1213,6 +1222,10 @@ fn create_empty_item_slot_ui(builder: &mut ChildBuilder) {
 fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) {
     // TODO: there must be a better way, this fugly
     let label: String = item.name.map(|x| x.0.clone()).unwrap_or("".to_string());
+    let stack_label: String = item
+        .stack
+        .map(|x| x.current_stack.to_string())
+        .unwrap_or("".to_string());
     let mut ui_item = builder.spawn((
         ButtonBundle {
             style: Style {
@@ -1341,7 +1354,8 @@ fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) 
                         parent.spawn(
                             TextBundle::from_section(
                                 //String::from("3"),
-                                String::from(""),
+                                stack_label,
+                                //String::from(""),
                                 TextStyle {
                                     font_size: 8.0,
                                     color: Color::srgb(0.9, 0.9, 0.9),

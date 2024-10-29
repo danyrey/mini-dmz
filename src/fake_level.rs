@@ -385,7 +385,7 @@ pub fn start_fake_level(
                 .insert(ItemSlot(3))
                 .insert(Stackable {
                     max_stack: 3,
-                    current_stack: 1,
+                    current_stack: 2,
                 })
                 .insert(FakeLevelStuff);
 
