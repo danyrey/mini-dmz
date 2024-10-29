@@ -1331,10 +1331,17 @@ fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) 
                                 //String::from("2"),
                                 TextStyle {
                                     font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    color: Color::srgb(0.1, 0.1, 0.1),
+                                    //color: Color::srgb(0.9, 0.9, 0.9),
                                     ..default()
                                 },
                             )
+                            .with_style(Style {
+                                position_type: PositionType::Relative,
+                                bottom: Val::Percent(200.0),
+                                ..default()
+                            })
+                            .with_background_color(Color::srgb(1.0, 1.0, 1.0))
                             .with_text_justify(JustifyText::Center),
                         );
                     });
