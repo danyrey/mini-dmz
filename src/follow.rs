@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use bevy::app::Plugin;
 use bevy_inspector_egui::inspector_options::ReflectInspectorOptions;
 use bevy_inspector_egui::InspectorOptions;
@@ -62,23 +64,26 @@ fn update_follow_system(
     debug!("updating {}", NAME);
     for mut follower in followers.iter_mut() {
         if let Ok(target) = targets.get((follower.0).0) {
+            // factor for translation/rotation differrence
+            let factor = 0.01;
+            //let rot_factor = 0.1;
+
+            // translation
             let target_trans = target.1.translation();
             let follower_trans = follower.1.translation();
             let difference_trans = target_trans - follower_trans;
-            let difference_rot_y = target.1.to_scale_rotation_translation().1.y
-                - follower.1.to_scale_rotation_translation().1.y;
-            debug!("translation {}", follower.1.translation());
-            debug!("difference {}", difference_trans);
-            let factor = 0.01;
+            debug!("difference trans: {}", difference_trans);
+
             if difference_trans.length() > 2.0 {
                 debug!("factor {}", factor);
                 debug!("difference * factor {}", difference_trans * factor);
-                // still wonky, fix later
-                follower.2.rotate_y(difference_rot_y * factor);
                 follower.2.translation.x += difference_trans.x * factor;
-                // no y adjustment
                 follower.2.translation.z += difference_trans.z * factor;
             }
+
+            // angle
+            let angle = -(PI / 2.0) - Vec2::new(difference_trans.x, difference_trans.z).to_angle();
+            follower.2.rotation = Quat::from_axis_angle(Vec3::Y, angle);
         }
     }
 }
