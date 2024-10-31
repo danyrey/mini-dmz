@@ -9,6 +9,7 @@ use exfil::ExfilPlugin;
 use exfil_timers::ExfilTimersPlugin;
 use fake_level::FakeLevelPlugin;
 use first_person_controller::FirstPersonControllerPlugin;
+use flee::FleePlugin;
 use follow::FollowPlugin;
 use health::HealthPlugin;
 use heightmap::HeightmapPlugin;
@@ -37,6 +38,7 @@ mod exfil;
 mod exfil_timers;
 mod fake_level;
 mod first_person_controller;
+mod flee;
 mod follow;
 mod health;
 mod heightmap;
@@ -138,7 +140,7 @@ fn main() {
             InventoryUIPlugin,
             InteractionPlugin,
         ))
-        .add_plugins((FollowPlugin,))
+        .add_plugins((FollowPlugin, FleePlugin))
         .init_state::<AppState>()
         .add_systems(Update, close_on_esc)
         .add_systems(Startup, setup)

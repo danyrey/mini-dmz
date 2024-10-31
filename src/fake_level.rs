@@ -3,6 +3,7 @@
 //  * transfer from state from one appstate to another: active dute layout -> ...load in -> raid
 use crate::damage::HurtBox;
 use crate::exfil::{ExfilArea, Operator};
+use crate::flee::Ghost;
 use crate::follow::Zombie;
 use crate::interaction::Interactable;
 use crate::inventory::{Inventory, ItemSlot, ItemSlots, WeaponSlot, WeaponSlots};
@@ -178,6 +179,7 @@ pub fn start_fake_level(
         })
         .insert(Enemy)
         .insert(Name::new("Enemy1"))
+        .insert(Ghost)
         .insert(HurtBox(bevy::math::bounding::Aabb3d {
             min: Vec3 {
                 x: 4.75,
