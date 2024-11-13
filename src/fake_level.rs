@@ -170,7 +170,7 @@ pub fn start_fake_level(
             mesh: enemy_cube,
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
-                base_color: Color::srgb(1.0, 0.0, 0.0),
+                base_color: Color::srgb(1.0, 1.0, 1.0),
                 uv_transform: Affine2::from_scale(Vec2::new(enemy_cube_size_x, enemy_cube_size_y)),
                 ..Default::default()
             }),
