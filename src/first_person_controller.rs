@@ -2,6 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::{app::Plugin, input::mouse::MouseMotion};
 
+use crate::compass::Compass;
 use crate::heightmap::FlatEarth;
 use crate::raid::{RaidState, Volume};
 use crate::AppState;
@@ -86,6 +87,7 @@ pub fn start_first_person_controller_system(
     commands
         .spawn(Operator)
         .insert(PlayerControlled)
+        .insert(Compass)
         .insert(Name::new("Operator"))
         .insert(transform)
         .insert(GlobalTransform::from(transform))

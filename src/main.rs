@@ -4,6 +4,7 @@ use armor::ArmorPlugin;
 use bevy::prelude::*;
 use cache::CachePlugin;
 use choose_location::ChooseLocationScreenPlugin;
+use compass::CompassPlugin;
 use damage::DamagePlugin;
 use exfil::ExfilPlugin;
 use exfil_timers::ExfilTimersPlugin;
@@ -32,6 +33,7 @@ mod active_missions;
 mod armor;
 mod cache;
 mod choose_location;
+mod compass;
 mod damage;
 mod deploy;
 mod exfil;
@@ -140,7 +142,7 @@ fn main() {
             InventoryUIPlugin,
             InteractionPlugin,
         ))
-        .add_plugins((FollowPlugin, FleePlugin))
+        .add_plugins((FollowPlugin, FleePlugin, CompassPlugin))
         .init_state::<AppState>()
         .add_systems(Update, close_on_esc)
         .add_systems(Startup, setup)
