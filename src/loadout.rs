@@ -59,7 +59,7 @@ mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     //use super::*;
 
-    #[test]
+    //#[test]
     fn should_test_something() {
         // given
         //let mut app = App::new();
