@@ -87,7 +87,7 @@ pub fn start_first_person_controller_system(
     commands
         .spawn(Operator)
         .insert(PlayerControlled)
-        .insert(Compass)
+        .insert(Compass::default())
         .insert(Name::new("Operator"))
         .insert(transform)
         .insert(GlobalTransform::from(transform))
@@ -276,7 +276,7 @@ mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     //use super::*;
 
-    #[test]
+    //#[test]
     fn should_test_something() {
         // given
         //let mut app = App::new();
