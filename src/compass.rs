@@ -15,10 +15,15 @@ pub struct CompassPlugin;
 
 impl Plugin for CompassPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Raid), start_compass_system)
+        app.add_systems(OnEnter(Raid), start_compass_ui)
             .add_systems(
                 Update,
-                (update_compass_system, update_compass_ui)
+                (
+                    update_compass_system,
+                    update_compass_ui,
+                    update_direction_label,
+                    update_heading_label,
+                )
                     .chain()
                     .run_if(in_state(AppState::Raid))
                     .run_if(in_state(RaidState::Raid)),
@@ -34,6 +39,12 @@ struct CompassUI;
 
 #[derive(Component)]
 struct CompassLabel;
+
+#[derive(Component)]
+struct HeadingLabel;
+
+#[derive(Component)]
+struct DirectionLabel;
 
 #[derive(Component, Default)]
 pub struct Compass {
@@ -82,7 +93,7 @@ struct CompassEntities {
 // Events
 
 // Systems
-fn start_compass_system(mut commands: Commands) {
+fn start_compass_ui(mut commands: Commands) {
     debug!("starting {}", NAME);
     let heading_direction = commands
         .spawn(NodeBundle {
@@ -101,7 +112,7 @@ fn start_compass_system(mut commands: Commands) {
             parent
                 .spawn(
                     TextBundle::from_section(
-                        String::from("TEST"),
+                        String::from("COMPASS_LABEL"),
                         TextStyle {
                             font_size: 10.0,
                             color: Color::srgb(0.9, 0.9, 0.9),
@@ -111,6 +122,32 @@ fn start_compass_system(mut commands: Commands) {
                     .with_text_justify(JustifyText::Center),
                 )
                 .insert(CompassLabel);
+            parent
+                .spawn(
+                    TextBundle::from_section(
+                        String::from("DIRECTION_LABEL"),
+                        TextStyle {
+                            font_size: 10.0,
+                            color: Color::srgb(0.9, 0.9, 0.9),
+                            ..default()
+                        },
+                    )
+                    .with_text_justify(JustifyText::Center),
+                )
+                .insert(DirectionLabel);
+            parent
+                .spawn(
+                    TextBundle::from_section(
+                        String::from("HEADING_LABEL"),
+                        TextStyle {
+                            font_size: 10.0,
+                            color: Color::srgb(0.9, 0.9, 0.9),
+                            ..default()
+                        },
+                    )
+                    .with_text_justify(JustifyText::Center),
+                )
+                .insert(HeadingLabel);
         })
         .id();
 
@@ -146,7 +183,25 @@ fn update_compass_ui(
 ) {
     let compass = operator_query.single();
     let mut label = ui_query.single_mut();
-    label.sections[0].value = format!("{:?}{}", compass.direction, compass.heading);
+    label.sections[0].value = format!("{:?} {}", compass.direction, compass.heading);
+}
+
+fn update_direction_label(
+    operator_query: Query<&Compass, (With<Operator>, With<PlayerControlled>)>,
+    mut ui_query: Query<&mut Text, With<DirectionLabel>>,
+) {
+    let compass = operator_query.single();
+    let mut label = ui_query.single_mut();
+    label.sections[0].value = format!("{:?}", compass.direction);
+}
+
+fn update_heading_label(
+    operator_query: Query<&Compass, (With<Operator>, With<PlayerControlled>)>,
+    mut ui_query: Query<&mut Text, With<HeadingLabel>>,
+) {
+    let compass = operator_query.single();
+    let mut label = ui_query.single_mut();
+    label.sections[0].value = format!("{}", compass.heading);
 }
 
 fn bye_compass_system(mut commands: Commands, compass_ui: Query<Entity, With<CompassUI>>) {

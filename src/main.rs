@@ -23,6 +23,7 @@ use loot::LootPlugin;
 use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
 use mission_objective_screen::MissionObjectivesScreenPlugin;
 use out_of_bounds::OutOfBoundsPlugin;
+use point_of_interest::PointOfInterestPlugin;
 use raid::RaidPlugin;
 use raid_summary::RaidSummaryPlugin;
 use skybox::SkyboxPlugin;
@@ -34,6 +35,7 @@ mod armor;
 mod cache;
 mod choose_location;
 mod compass;
+mod coordinates;
 mod damage;
 mod deploy;
 mod exfil;
@@ -54,6 +56,7 @@ mod loot;
 mod matchmake;
 mod mission_objective_screen;
 mod out_of_bounds;
+mod point_of_interest;
 mod raid;
 mod raid_summary;
 mod skybox;
@@ -142,7 +145,12 @@ fn main() {
             InventoryUIPlugin,
             InteractionPlugin,
         ))
-        .add_plugins((FollowPlugin, FleePlugin, CompassPlugin))
+        .add_plugins((
+            FollowPlugin,
+            FleePlugin,
+            CompassPlugin,
+            PointOfInterestPlugin,
+        ))
         .init_state::<AppState>()
         .add_systems(Update, close_on_esc)
         .add_systems(Startup, setup)
