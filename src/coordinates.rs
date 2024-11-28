@@ -42,16 +42,17 @@ impl Plugin for CoordinatesPlugin {
 ///     column: None,
 /// }
 /// ```
-struct GridCoordinate {
+#[derive(Component)]
+pub struct GridCoordinate {
     row: Option<Row>,
     column: Option<Column>,
 }
 
 #[derive(Debug, PartialEq)]
-struct Row(i32);
+pub struct Row(i32);
 
 #[derive(Debug, PartialEq)]
-struct Column(char);
+pub struct Column(char);
 
 struct MapGrid {
     // TODO: offset, scale, orientation?
@@ -74,7 +75,7 @@ impl From<Vec3> for Column {
     fn from(value: Vec3) -> Self {
         let start = 'A';
         let x = value.x / 100.0;
-        if x <= 0.0 {
+        if (x <= 0.0) && (x > -26.0) {
             let offset = -x as u32;
             let char_number = start as u32 + offset;
             let c = char::from_u32(char_number);
@@ -170,6 +171,18 @@ mod tests {
         assert_eq!(Column('-'), Column::from(x50));
         assert_eq!(Column('-'), Column::from(x150));
         assert_eq!(Column('-'), Column::from(x250));
+    }
+
+    // exceeding 26 characters should result in '-'
+    #[test]
+    fn should_convert_column_from_vec3_exceeding_negative_range() {
+        // given
+        let x2550 = Vec3::new(-2550.0, 0.0, 0.0);
+        let x2650 = Vec3::new(-2650.0, 0.0, 0.0);
+
+        // when / then
+        assert_eq!(Column('Z'), Column::from(x2550));
+        assert_eq!(Column('-'), Column::from(x2650));
     }
 
     //#[test]
