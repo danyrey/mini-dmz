@@ -62,7 +62,7 @@ struct MapGrid {
 // TODO: making it scaleable later, first go with a fixed version
 impl From<Vec3> for Row {
     fn from(value: Vec3) -> Self {
-        let z = (value.z / 100.0) + 1.0;
+        let z = value.z / 100.0;
         if z > 0.0 {
             Row(z as i32)
         } else {
@@ -126,10 +126,10 @@ mod tests {
         let y250 = Vec3::new(0.0, 0.0, 250.0);
 
         // when / then
-        assert_eq!(Row(1), Row::from(y0));
-        assert_eq!(Row(1), Row::from(y50));
-        assert_eq!(Row(2), Row::from(y150));
-        assert_eq!(Row(3), Row::from(y250));
+        assert_eq!(Row(0), Row::from(y0));
+        assert_eq!(Row(0), Row::from(y50));
+        assert_eq!(Row(1), Row::from(y150));
+        assert_eq!(Row(2), Row::from(y250));
     }
 
     #[test]
