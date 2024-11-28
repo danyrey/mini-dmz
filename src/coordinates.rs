@@ -159,6 +159,19 @@ mod tests {
         assert_eq!(Column('C'), Column::from(x250));
     }
 
+    #[test]
+    fn should_convert_column_from_vec3_positive_range() {
+        // given
+        let x50 = Vec3::new(50.0, 0.0, 0.0);
+        let x150 = Vec3::new(150.0, 0.0, 0.0);
+        let x250 = Vec3::new(250.0, 0.0, 0.0);
+
+        // when / then
+        assert_eq!(Column('-'), Column::from(x50));
+        assert_eq!(Column('-'), Column::from(x150));
+        assert_eq!(Column('-'), Column::from(x250));
+    }
+
     //#[test]
     fn should_test_something() {
         // given
