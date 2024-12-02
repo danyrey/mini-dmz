@@ -1,11 +1,12 @@
 use bevy::app::Plugin;
 
+use crate::exfil::Operator;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
 
 // Constants
-const NAME: &str = "template";
+const NAME: &str = "coordinates";
 
 // Plugin
 pub struct CoordinatesPlugin;
@@ -54,9 +55,23 @@ pub struct Row(i32);
 #[derive(Debug, PartialEq)]
 pub struct Column(char);
 
-struct MapGrid {
-    // TODO: offset, scale, orientation?
+/// GridPosition will follow the bevy ui 2D coordinate system:
+/// top left is origin
+/// y to down is positive
+/// x to right is positive
+#[derive(Component, Default, Debug, PartialEq)]
+struct GridPosition {
+    pub position: Vec2,
 }
+
+#[derive(Resource)]
+struct GridOffset(Vec2);
+
+#[derive(Resource)]
+struct GridScale(f32);
+
+#[derive(Resource)]
+struct GridRotation(f32);
 
 // TODO: find out scaling factor on al mazrah and other maps, just assume a random number for now
 // TODO: making it scaleable later, first go with a fixed version
@@ -97,8 +112,14 @@ fn start_coordinate_system(mut _commands: Commands) {
     debug!("starting {}", NAME);
 }
 
-fn update_coordinate_system() {
+fn update_coordinate_system(
+    mut operators: Query<(&GlobalTransform, &mut GridPosition), With<Operator>>,
+) {
     debug!("updating {}", NAME);
+    for (transform, mut position) in operators.iter_mut() {
+        position.position.x = transform.translation().x;
+        position.position.y = transform.translation().z;
+    }
 }
 
 fn bye_coordinate_system(mut _commands: Commands) {
@@ -110,12 +131,10 @@ fn bye_coordinate_system(mut _commands: Commands) {
 // tests
 #[cfg(test)]
 mod tests {
+    use crate::exfil::Operator;
+
     // Note this useful idiom: importing names from outer (for mod tests) scope.
-    //use super::*;
-
-    use bevy::math::Vec3;
-
-    use crate::coordinates::{Column, Row};
+    use super::*;
 
     #[test]
     fn should_convert_row_from_vec3_positive_range() {
@@ -183,6 +202,38 @@ mod tests {
         // when / then
         assert_eq!(Column('Z'), Column::from(x2550));
         assert_eq!(Column('-'), Column::from(x2650));
+    }
+
+    #[test]
+    fn should_convert_grid_position_from_global_transform_no_modifiers() {
+        // given
+        let mut app = App::new();
+        app.add_systems(Update, update_coordinate_system);
+        let transform = Transform {
+            translation: Vec3 {
+                x: 1.0,
+                y: 0.0,
+                z: 1.0,
+            },
+            ..default()
+        };
+        let operator = app
+            .world_mut()
+            .spawn(Operator)
+            .insert(SpatialBundle {
+                transform,
+                global_transform: GlobalTransform::from(transform),
+                ..default()
+            })
+            .insert(GridPosition::default())
+            .id();
+
+        // when
+        app.update();
+
+        // then
+        let grid_position = app.world().get::<GridPosition>(operator).unwrap();
+        assert_eq!(Vec2 { x: 1.0, y: 1.0 }, grid_position.position);
     }
 
     //#[test]
