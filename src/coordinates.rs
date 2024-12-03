@@ -114,11 +114,14 @@ fn start_coordinate_system(mut _commands: Commands) {
 
 fn update_coordinate_system(
     mut operators: Query<(&GlobalTransform, &mut GridPosition), With<Operator>>,
+    offset: Option<Res<GridOffset>>,
 ) {
     debug!("updating {}", NAME);
     for (transform, mut position) in operators.iter_mut() {
-        position.position.x = transform.translation().x;
-        position.position.y = transform.translation().z;
+        let offset_x = offset.as_ref().map_or(0.0, |o| o.0.x);
+        let offset_y = offset.as_ref().map_or(0.0, |o| o.0.y);
+        position.position.x = transform.translation().x + offset_x;
+        position.position.y = transform.translation().z + offset_y;
     }
 }
 
@@ -234,6 +237,40 @@ mod tests {
         // then
         let grid_position = app.world().get::<GridPosition>(operator).unwrap();
         assert_eq!(Vec2 { x: 1.0, y: 1.0 }, grid_position.position);
+    }
+
+    #[test]
+    fn should_convert_grid_position_from_global_transform_offset_modifier() {
+        // given
+        let mut app = App::new();
+        app.add_systems(Update, update_coordinate_system);
+        let transform = Transform {
+            translation: Vec3 {
+                x: 1.0,
+                y: 0.0,
+                z: 1.0,
+            },
+            ..default()
+        };
+        let offset = GridOffset(Vec2 { x: 1.0, y: 1.0 });
+        app.insert_resource(offset);
+        let operator = app
+            .world_mut()
+            .spawn(Operator)
+            .insert(SpatialBundle {
+                transform,
+                global_transform: GlobalTransform::from(transform),
+                ..default()
+            })
+            .insert(GridPosition::default())
+            .id();
+
+        // when
+        app.update();
+
+        // then
+        let grid_position = app.world().get::<GridPosition>(operator).unwrap();
+        assert_eq!(Vec2 { x: 2.0, y: 2.0 }, grid_position.position);
     }
 
     //#[test]
