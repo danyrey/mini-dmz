@@ -46,6 +46,7 @@ impl Plugin for CoordinatesPlugin {
 /// }
 /// ```
 #[derive(Component)]
+#[allow(dead_code)]
 pub struct GridCoordinate {
     row: Option<Row>,
     column: Option<Column>,
@@ -122,7 +123,7 @@ fn update_coordinate_system(
 ) {
     debug!("updating {}", NAME);
     for (transform, mut position) in operators.iter_mut() {
-        let scale = scale.as_ref().map_or(1.0, |s| s.0.into());
+        let scale = scale.as_ref().map_or(1.0, |s| s.0);
         let offset_x = offset.as_ref().map_or(0.0, |o| o.0.x);
         let offset_y = offset.as_ref().map_or(0.0, |o| o.0.y);
         let rotation = rotation.as_ref().map_or(0.0, |r| r.0.to_radians());
