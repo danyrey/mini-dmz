@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use bevy::app::Plugin;
 
 use crate::exfil::Operator;
@@ -71,7 +73,7 @@ struct GridOffset(Vec2);
 struct GridScale(f32);
 
 #[derive(Resource)]
-struct GridRotation(f32);
+struct GridRotation(f64);
 
 // TODO: find out scaling factor on al mazrah and other maps, just assume a random number for now
 // TODO: making it scaleable later, first go with a fixed version
@@ -115,13 +117,24 @@ fn start_coordinate_system(mut _commands: Commands) {
 fn update_coordinate_system(
     mut operators: Query<(&GlobalTransform, &mut GridPosition), With<Operator>>,
     offset: Option<Res<GridOffset>>,
+    scale: Option<Res<GridScale>>,
+    rotation: Option<Res<GridRotation>>,
 ) {
     debug!("updating {}", NAME);
     for (transform, mut position) in operators.iter_mut() {
+        let scale = scale.as_ref().map_or(1.0, |s| s.0.into());
         let offset_x = offset.as_ref().map_or(0.0, |o| o.0.x);
         let offset_y = offset.as_ref().map_or(0.0, |o| o.0.y);
-        position.position.x = transform.translation().x + offset_x;
-        position.position.y = transform.translation().z + offset_y;
+        let rotation = rotation.as_ref().map_or(0.0, |r| r.0.to_radians());
+        position.position.x = (transform.translation().x + offset_x) * scale;
+        position.position.y = (transform.translation().z + offset_y) * scale;
+
+        let rot_vec = Vec2 {
+            x: f64::sin(rotation + PI / 2.0) as f32,
+            y: f64::cos(rotation + PI / 2.0) as f32,
+        };
+
+        position.position = rot_vec.rotate(position.position);
     }
 }
 
@@ -271,6 +284,74 @@ mod tests {
         // then
         let grid_position = app.world().get::<GridPosition>(operator).unwrap();
         assert_eq!(Vec2 { x: 2.0, y: 2.0 }, grid_position.position);
+    }
+
+    #[test]
+    fn should_convert_grid_position_from_global_transform_scale_modifier() {
+        // given
+        let mut app = App::new();
+        app.add_systems(Update, update_coordinate_system);
+        let transform = Transform {
+            translation: Vec3 {
+                x: 1.0,
+                y: 0.0,
+                z: 1.0,
+            },
+            ..default()
+        };
+        let scale = GridScale(2.0);
+        app.insert_resource(scale);
+        let operator = app
+            .world_mut()
+            .spawn(Operator)
+            .insert(SpatialBundle {
+                transform,
+                global_transform: GlobalTransform::from(transform),
+                ..default()
+            })
+            .insert(GridPosition::default())
+            .id();
+
+        // when
+        app.update();
+
+        // then
+        let grid_position = app.world().get::<GridPosition>(operator).unwrap();
+        assert_eq!(Vec2 { x: 2.0, y: 2.0 }, grid_position.position);
+    }
+
+    #[test]
+    fn should_convert_grid_position_from_global_transform_rotation_modifier() {
+        // given
+        let mut app = App::new();
+        app.add_systems(Update, update_coordinate_system);
+        let transform = Transform {
+            translation: Vec3 {
+                x: 1.0,
+                y: 0.0,
+                z: 1.0,
+            },
+            ..default()
+        };
+        let rotation = GridRotation(90.0);
+        app.insert_resource(rotation);
+        let operator = app
+            .world_mut()
+            .spawn(Operator)
+            .insert(SpatialBundle {
+                transform,
+                global_transform: GlobalTransform::from(transform),
+                ..default()
+            })
+            .insert(GridPosition::default())
+            .id();
+
+        // when
+        app.update();
+
+        // then
+        let grid_position = app.world().get::<GridPosition>(operator).unwrap();
+        assert_eq!(Vec2 { x: 1.0, y: -1.0 }, grid_position.position);
     }
 
     //#[test]
