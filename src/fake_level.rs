@@ -1,3 +1,4 @@
+use crate::coordinates::{GridOffset, GridScale};
 // TODO: how to make sure every operator has a backpack attached to it
 //  TODO: transfer from the active loadout screen should be done
 //  * transfer from state from one appstate to another: active dute layout -> ...load in -> raid
@@ -89,6 +90,9 @@ pub fn start_fake_level(
         texture_01: texture_01.clone(),
         texture_06: texture_06.clone(),
     });
+
+    commands.insert_resource(GridOffset(Vec2 { x: 1.0, y: 1.0 }));
+    commands.insert_resource(GridScale(0.1));
 
     // circular base
     let disc_size = 8.0;

@@ -1,8 +1,10 @@
 use std::f64::consts::PI;
 
 use bevy::app::Plugin;
+use bevy_inspector_egui::{inspector_options::ReflectInspectorOptions, InspectorOptions};
 
 use crate::exfil::Operator;
+use crate::raid::RaidState;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
@@ -16,6 +18,7 @@ pub struct CoordinatesPlugin;
 impl Plugin for CoordinatesPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(Raid), start_coordinate_system)
+            .register_type::<GridPosition>()
             .add_systems(
                 Update,
                 (update_coordinate_system).run_if(in_state(AppState::Raid)),
@@ -45,6 +48,9 @@ impl Plugin for CoordinatesPlugin {
 ///     column: None,
 /// }
 /// ```
+
+// Components
+
 #[derive(Component)]
 #[allow(dead_code)]
 pub struct GridCoordinate {
@@ -62,19 +68,11 @@ pub struct Column(char);
 /// top left is origin
 /// y to down is positive
 /// x to right is positive
-#[derive(Component, Default, Debug, PartialEq)]
-struct GridPosition {
+#[derive(Component, Default, Debug, PartialEq, Reflect, InspectorOptions)]
+#[reflect(Component, InspectorOptions)]
+pub struct GridPosition {
     pub position: Vec2,
 }
-
-#[derive(Resource)]
-struct GridOffset(Vec2);
-
-#[derive(Resource)]
-struct GridScale(f32);
-
-#[derive(Resource)]
-struct GridRotation(f64);
 
 // TODO: find out scaling factor on al mazrah and other maps, just assume a random number for now
 // TODO: making it scaleable later, first go with a fixed version
@@ -104,9 +102,16 @@ impl From<Vec3> for Column {
     }
 }
 
-// Components
-
 // Resources
+
+#[derive(Resource)]
+pub struct GridOffset(pub Vec2);
+
+#[derive(Resource)]
+pub struct GridScale(pub f32);
+
+#[derive(Resource)]
+pub struct GridRotation(pub f64);
 
 // Events
 
@@ -136,6 +141,8 @@ fn update_coordinate_system(
         };
 
         position.position = rot_vec.rotate(position.position);
+        debug!("global transform position {}", transform.translation());
+        debug!("coordinate position {}", position.position);
     }
 }
 

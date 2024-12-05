@@ -5,6 +5,7 @@ use bevy::prelude::*;
 use cache::CachePlugin;
 use choose_location::ChooseLocationScreenPlugin;
 use compass::CompassPlugin;
+use coordinates::CoordinatesPlugin;
 use damage::DamagePlugin;
 use exfil::ExfilPlugin;
 use exfil_timers::ExfilTimersPlugin;
@@ -150,6 +151,7 @@ fn main() {
             FleePlugin,
             CompassPlugin,
             PointOfInterestPlugin,
+            CoordinatesPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, close_on_esc)
