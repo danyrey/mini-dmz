@@ -4,7 +4,6 @@ use bevy::app::Plugin;
 use bevy_inspector_egui::{inspector_options::ReflectInspectorOptions, InspectorOptions};
 
 use crate::exfil::Operator;
-use crate::raid::RaidState;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
@@ -27,6 +26,8 @@ impl Plugin for CoordinatesPlugin {
     }
 }
 
+// Components
+
 // General Structs/Enums
 /// Grid Coordinates that allow for partial coordinates.
 /// examples:
@@ -48,9 +49,6 @@ impl Plugin for CoordinatesPlugin {
 ///     column: None,
 /// }
 /// ```
-
-// Components
-
 #[derive(Component)]
 #[allow(dead_code)]
 pub struct GridCoordinate {

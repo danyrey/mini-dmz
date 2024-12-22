@@ -63,6 +63,7 @@ mod raid_summary;
 mod skybox;
 mod start_screen;
 mod template_plugin;
+mod wallet;
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, States)]
 pub enum AppState {

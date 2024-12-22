@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use bevy::{app::Plugin, input::mouse::MouseMotion};
 
 use crate::compass::Compass;
-use crate::coordinates::{GridCoordinate, GridPosition};
+use crate::coordinates::GridPosition;
 use crate::heightmap::FlatEarth;
 use crate::raid::{RaidState, Volume};
 use crate::AppState;

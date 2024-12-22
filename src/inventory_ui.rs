@@ -11,6 +11,7 @@ use crate::{
     inventory::{Inventory, ItemSlot, ItemSlots, StowLoot, StowedLoot, WeaponSlot, WeaponSlots},
     loot::{Durability, Loot, LootName, LootType, Price, Rarity, Stackable},
     raid::RaidState,
+    wallet::Wallet,
     AppState,
 };
 use bevy::prelude::*;
@@ -662,7 +663,7 @@ fn start_backpack_ui(
     );
 }
 
-fn start_loadout_ui(mut commands: Commands) {
+fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
     debug!("start loadout ui");
 
     // Layout
@@ -731,6 +732,7 @@ fn start_loadout_ui(mut commands: Commands) {
                 })
                 .insert(Name::new("Loadout Main"))
                 .with_children(|builder| {
+                    // WEAPON SLOT 1
                     builder.spawn((
                         NodeBundle {
                             style: Style {
@@ -752,6 +754,31 @@ fn start_loadout_ui(mut commands: Commands) {
                             color: Color::WHITE,
                         },
                     ));
+
+                    // WEAPON SLOT 2
+                    builder.spawn((
+                        NodeBundle {
+                            style: Style {
+                                width: Val::Px(100.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..Default::default()
+                            },
+                            background_color: MAROON.into(),
+                            border_color: RED.into(),
+                            ..Default::default()
+                        },
+                        Outline {
+                            width: Val::Px(6.),
+                            offset: Val::Px(6.),
+                            color: Color::WHITE,
+                        },
+                    ));
+
+                    // WALLET/MONEY SLOT
                     builder.spawn((
                         NodeBundle {
                             style: Style {
@@ -773,6 +800,8 @@ fn start_loadout_ui(mut commands: Commands) {
                             color: Color::WHITE,
                         },
                     ));
+
+                    // TACTICAL SLOT
                     builder.spawn((
                         NodeBundle {
                             style: Style {
@@ -794,6 +823,8 @@ fn start_loadout_ui(mut commands: Commands) {
                             color: Color::WHITE,
                         },
                     ));
+
+                    // LETHAL SLOT
                     builder.spawn((
                         NodeBundle {
                             style: Style {
@@ -815,27 +846,8 @@ fn start_loadout_ui(mut commands: Commands) {
                             color: Color::WHITE,
                         },
                     ));
-                    builder.spawn((
-                        NodeBundle {
-                            style: Style {
-                                width: Val::Px(50.),
-                                height: Val::Px(50.),
-                                border: UiRect::all(Val::Px(10.)),
-                                margin: UiRect::all(Val::Px(20.)),
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
-                                ..Default::default()
-                            },
-                            background_color: MAROON.into(),
-                            border_color: RED.into(),
-                            ..Default::default()
-                        },
-                        Outline {
-                            width: Val::Px(6.),
-                            offset: Val::Px(6.),
-                            color: Color::WHITE,
-                        },
-                    ));
+
+                    // FIELD UPGRADE SLOT
                     builder.spawn((
                         NodeBundle {
                             style: Style {
