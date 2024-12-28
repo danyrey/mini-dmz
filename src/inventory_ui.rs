@@ -1,6 +1,6 @@
 use bevy::{
     app::Plugin,
-    color::palettes::css::{DARK_GREY, GREY, MAROON, RED},
+    color::palettes::css::{DARK_GREY, GREEN, GREY, MAROON, RED},
     window::PrimaryWindow,
 };
 use bevy_inspector_egui::{inspector_options::ReflectInspectorOptions, InspectorOptions};
@@ -733,142 +733,251 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                 .insert(Name::new("Loadout Main"))
                 .with_children(|builder| {
                     // WEAPON SLOT 1
-                    builder.spawn((
-                        NodeBundle {
-                            style: Style {
-                                width: Val::Px(100.),
-                                height: Val::Px(50.),
-                                border: UiRect::all(Val::Px(10.)),
-                                margin: UiRect::all(Val::Px(20.)),
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
+                    builder
+                        .spawn((
+                            NodeBundle {
+                                style: Style {
+                                    width: Val::Px(100.),
+                                    height: Val::Px(50.),
+                                    border: UiRect::all(Val::Px(10.)),
+                                    margin: UiRect::all(Val::Px(20.)),
+                                    align_items: AlignItems::Center,
+                                    justify_content: JustifyContent::Center,
+                                    ..Default::default()
+                                },
+                                background_color: MAROON.into(),
+                                border_color: RED.into(),
                                 ..Default::default()
                             },
-                            background_color: MAROON.into(),
-                            border_color: RED.into(),
-                            ..Default::default()
-                        },
-                        Outline {
-                            width: Val::Px(6.),
-                            offset: Val::Px(6.),
-                            color: Color::WHITE,
-                        },
-                    ));
+                            Outline {
+                                width: Val::Px(6.),
+                                offset: Val::Px(6.),
+                                color: Color::WHITE,
+                            },
+                        ))
+                        .insert(Name::new("Primary Weapon Slot"));
 
                     // WEAPON SLOT 2
-                    builder.spawn((
-                        NodeBundle {
-                            style: Style {
-                                width: Val::Px(100.),
-                                height: Val::Px(50.),
-                                border: UiRect::all(Val::Px(10.)),
-                                margin: UiRect::all(Val::Px(20.)),
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
+                    builder
+                        .spawn((
+                            NodeBundle {
+                                style: Style {
+                                    width: Val::Px(100.),
+                                    height: Val::Px(50.),
+                                    border: UiRect::all(Val::Px(10.)),
+                                    margin: UiRect::all(Val::Px(20.)),
+                                    align_items: AlignItems::Center,
+                                    justify_content: JustifyContent::Center,
+                                    ..Default::default()
+                                },
+                                background_color: MAROON.into(),
+                                border_color: RED.into(),
                                 ..Default::default()
                             },
-                            background_color: MAROON.into(),
-                            border_color: RED.into(),
-                            ..Default::default()
-                        },
-                        Outline {
-                            width: Val::Px(6.),
-                            offset: Val::Px(6.),
-                            color: Color::WHITE,
-                        },
-                    ));
+                            Outline {
+                                width: Val::Px(6.),
+                                offset: Val::Px(6.),
+                                color: Color::WHITE,
+                            },
+                        ))
+                        .insert(Name::new("Secondary Weapon Slot"));
 
                     // WALLET/MONEY SLOT
-                    builder.spawn((
-                        NodeBundle {
-                            style: Style {
-                                width: Val::Px(50.),
-                                height: Val::Px(50.),
-                                border: UiRect::all(Val::Px(10.)),
-                                margin: UiRect::all(Val::Px(20.)),
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
+                    builder
+                        .spawn((
+                            NodeBundle {
+                                style: Style {
+                                    width: Val::Px(50.),
+                                    height: Val::Px(50.),
+                                    border: UiRect::all(Val::Px(10.)),
+                                    margin: UiRect::all(Val::Px(20.)),
+                                    align_items: AlignItems::Center,
+                                    justify_content: JustifyContent::Center,
+                                    ..Default::default()
+                                },
+                                background_color: MAROON.into(),
+                                border_color: RED.into(),
                                 ..Default::default()
                             },
-                            background_color: MAROON.into(),
-                            border_color: RED.into(),
-                            ..Default::default()
-                        },
-                        Outline {
-                            width: Val::Px(6.),
-                            offset: Val::Px(6.),
-                            color: Color::WHITE,
-                        },
-                    ));
+                            Outline {
+                                width: Val::Px(6.),
+                                offset: Val::Px(6.),
+                                color: Color::WHITE,
+                            },
+                        ))
+                        .insert(Name::new("Money Slot"));
 
                     // TACTICAL SLOT
-                    builder.spawn((
-                        NodeBundle {
-                            style: Style {
-                                width: Val::Px(50.),
-                                height: Val::Px(50.),
-                                border: UiRect::all(Val::Px(10.)),
-                                margin: UiRect::all(Val::Px(20.)),
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
+                    builder
+                        .spawn((
+                            NodeBundle {
+                                style: Style {
+                                    width: Val::Px(50.),
+                                    height: Val::Px(50.),
+                                    border: UiRect::all(Val::Px(10.)),
+                                    margin: UiRect::all(Val::Px(20.)),
+                                    align_items: AlignItems::Center,
+                                    justify_content: JustifyContent::Center,
+                                    ..Default::default()
+                                },
+                                background_color: MAROON.into(),
+                                border_color: RED.into(),
                                 ..Default::default()
                             },
-                            background_color: MAROON.into(),
-                            border_color: RED.into(),
-                            ..Default::default()
-                        },
-                        Outline {
-                            width: Val::Px(6.),
-                            offset: Val::Px(6.),
-                            color: Color::WHITE,
-                        },
-                    ));
+                            Outline {
+                                width: Val::Px(6.),
+                                offset: Val::Px(6.),
+                                color: Color::WHITE,
+                            },
+                        ))
+                        .insert(Name::new("Tacticals Slot"));
 
                     // LETHAL SLOT
-                    builder.spawn((
-                        NodeBundle {
-                            style: Style {
-                                width: Val::Px(50.),
-                                height: Val::Px(50.),
-                                border: UiRect::all(Val::Px(10.)),
-                                margin: UiRect::all(Val::Px(20.)),
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
+                    builder
+                        .spawn((
+                            NodeBundle {
+                                style: Style {
+                                    width: Val::Px(50.),
+                                    height: Val::Px(50.),
+                                    border: UiRect::all(Val::Px(10.)),
+                                    margin: UiRect::all(Val::Px(20.)),
+                                    align_items: AlignItems::Center,
+                                    justify_content: JustifyContent::Center,
+                                    ..Default::default()
+                                },
+                                background_color: MAROON.into(),
+                                border_color: RED.into(),
                                 ..Default::default()
                             },
-                            background_color: MAROON.into(),
-                            border_color: RED.into(),
-                            ..Default::default()
-                        },
-                        Outline {
-                            width: Val::Px(6.),
-                            offset: Val::Px(6.),
-                            color: Color::WHITE,
-                        },
-                    ));
+                            Outline {
+                                width: Val::Px(6.),
+                                offset: Val::Px(6.),
+                                color: Color::WHITE,
+                            },
+                        ))
+                        .insert(Name::new("Lethals Slot"));
 
                     // FIELD UPGRADE SLOT
-                    builder.spawn((
-                        NodeBundle {
-                            style: Style {
-                                width: Val::Px(50.),
-                                height: Val::Px(50.),
-                                border: UiRect::all(Val::Px(10.)),
-                                margin: UiRect::all(Val::Px(20.)),
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
+                    builder
+                        .spawn((
+                            NodeBundle {
+                                style: Style {
+                                    width: Val::Px(50.),
+                                    height: Val::Px(50.),
+                                    border: UiRect::all(Val::Px(10.)),
+                                    margin: UiRect::all(Val::Px(20.)),
+                                    align_items: AlignItems::Center,
+                                    justify_content: JustifyContent::Center,
+                                    ..Default::default()
+                                },
+                                background_color: MAROON.into(),
+                                border_color: RED.into(),
                                 ..Default::default()
                             },
-                            background_color: MAROON.into(),
-                            border_color: RED.into(),
-                            ..Default::default()
-                        },
-                        Outline {
-                            width: Val::Px(6.),
-                            offset: Val::Px(6.),
-                            color: Color::WHITE,
-                        },
-                    ));
+                            Outline {
+                                width: Val::Px(6.),
+                                offset: Val::Px(6.),
+                                color: Color::WHITE,
+                            },
+                        ))
+                        .insert(Name::new("Field Upgrade Slot"));
+
+                    // KILLSTREAK SLOT
+                    builder
+                        .spawn((
+                            NodeBundle {
+                                style: Style {
+                                    width: Val::Px(50.),
+                                    height: Val::Px(50.),
+                                    border: UiRect::all(Val::Px(10.)),
+                                    margin: UiRect::all(Val::Px(20.)),
+                                    align_items: AlignItems::Center,
+                                    justify_content: JustifyContent::Center,
+                                    ..Default::default()
+                                },
+                                background_color: MAROON.into(),
+                                border_color: RED.into(),
+                                ..Default::default()
+                            },
+                            Outline {
+                                width: Val::Px(6.),
+                                offset: Val::Px(6.),
+                                color: Color::WHITE,
+                            },
+                        ))
+                        .insert(Name::new("Kill Streak Slot"));
+                    // PLATE SLOT
+                    builder
+                        .spawn((
+                            NodeBundle {
+                                style: Style {
+                                    width: Val::Px(50.),
+                                    height: Val::Px(50.),
+                                    border: UiRect::all(Val::Px(10.)),
+                                    margin: UiRect::all(Val::Px(20.)),
+                                    align_items: AlignItems::Center,
+                                    justify_content: JustifyContent::Center,
+                                    ..Default::default()
+                                },
+                                background_color: MAROON.into(),
+                                border_color: RED.into(),
+                                ..Default::default()
+                            },
+                            Outline {
+                                width: Val::Px(6.),
+                                offset: Val::Px(6.),
+                                color: Color::WHITE,
+                            },
+                        ))
+                        .insert(Name::new("Armor Plate Slot"));
+                    // MASK SLOT
+                    builder
+                        .spawn((
+                            NodeBundle {
+                                style: Style {
+                                    width: Val::Px(50.),
+                                    height: Val::Px(50.),
+                                    border: UiRect::all(Val::Px(10.)),
+                                    margin: UiRect::all(Val::Px(20.)),
+                                    align_items: AlignItems::Center,
+                                    justify_content: JustifyContent::Center,
+                                    ..Default::default()
+                                },
+                                background_color: MAROON.into(),
+                                border_color: RED.into(),
+                                ..Default::default()
+                            },
+                            Outline {
+                                width: Val::Px(6.),
+                                offset: Val::Px(6.),
+                                color: Color::WHITE,
+                            },
+                        ))
+                        .insert(Name::new("Gas Mask Slot"));
+                    // REVIVE SLOT
+                    builder
+                        .spawn((
+                            NodeBundle {
+                                style: Style {
+                                    width: Val::Px(50.),
+                                    height: Val::Px(50.),
+                                    border: UiRect::all(Val::Px(10.)),
+                                    margin: UiRect::all(Val::Px(20.)),
+                                    align_items: AlignItems::Center,
+                                    justify_content: JustifyContent::Center,
+                                    ..Default::default()
+                                },
+                                background_color: MAROON.into(),
+                                border_color: RED.into(),
+                                ..Default::default()
+                            },
+                            Outline {
+                                width: Val::Px(6.),
+                                offset: Val::Px(6.),
+                                color: Color::WHITE,
+                            },
+                        ))
+                        .insert(Name::new("Revive Slot"));
                 });
         })
         .id();

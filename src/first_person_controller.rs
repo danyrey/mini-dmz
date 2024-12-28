@@ -6,6 +6,7 @@ use crate::compass::Compass;
 use crate::coordinates::GridPosition;
 use crate::heightmap::FlatEarth;
 use crate::raid::{RaidState, Volume};
+use crate::wallet::Wallet;
 use crate::AppState;
 use crate::AppState::Raid;
 use crate::{exfil::Operator, heightmap::YProbe};
@@ -107,6 +108,7 @@ pub fn start_first_person_controller_system(
             }
             .into(),
         }))
+        .insert(Wallet::default())
         .add_child(camera)
         .add_child(capsule);
 }

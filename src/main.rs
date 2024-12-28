@@ -29,6 +29,7 @@ use raid::RaidPlugin;
 use raid_summary::RaidSummaryPlugin;
 use skybox::SkyboxPlugin;
 use start_screen::StartScreenPlugin;
+use wallet::WalletPlugin;
 
 mod active_duty_confirmation;
 mod active_missions;
@@ -153,6 +154,7 @@ fn main() {
             CompassPlugin,
             PointOfInterestPlugin,
             CoordinatesPlugin,
+            WalletPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, close_on_esc)

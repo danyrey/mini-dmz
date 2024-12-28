@@ -5,6 +5,7 @@ use bevy::app::Plugin;
 use bevy_inspector_egui::prelude::*;
 
 use crate::loot::{DroppedLoot, Loot, LootType};
+use crate::wallet::StowMoney;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
@@ -96,6 +97,7 @@ fn stow_loot_system(
     inventories_with_weapons: Query<&WeaponSlots, With<Inventory>>,
     inventory_weapons: Query<(&Parent, &WeaponSlot), With<Loot>>,
     mut event: EventWriter<StowedLoot>,
+    mut stow_money: EventWriter<StowMoney>,
 ) {
     debug!("updating stow listener");
 
@@ -132,8 +134,13 @@ fn stow_loot_system(
             | LootType::RadiationProtection
             | LootType::LastStand
             | LootType::Intel
-            | LootType::Cash
-            | LootType::Key => {
+            | LootType::Cash => {
+                stow_money.send(StowMoney {
+                    stowing_entity: c.stowing_entity,
+                    money: c.loot,
+                });
+            }
+            LootType::Key => {
                 if let Some(slot) = calc_stow_item_slot(&inventory_items, item_slots) {
                     stow_item(&mut commands, c.loot, c.stowing_entity, slot, &mut event);
                 }
