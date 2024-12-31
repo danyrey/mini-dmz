@@ -137,7 +137,7 @@ fn stow_loot_system(
             | LootType::Cash => {
                 stow_money.send(StowMoney {
                     stowing_entity: c.stowing_entity,
-                    money: c.loot,
+                    money_entity: c.loot,
                 });
             }
             LootType::Key => {
