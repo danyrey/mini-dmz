@@ -1,6 +1,6 @@
 use bevy::{
     app::Plugin,
-    color::palettes::css::{DARK_GREY, GREEN, GREY, MAROON, RED},
+    color::palettes::css::{DARK_GREY, GREY, MAROON, RED},
     window::PrimaryWindow,
 };
 use bevy_inspector_egui::{inspector_options::ReflectInspectorOptions, InspectorOptions};

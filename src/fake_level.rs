@@ -10,6 +10,7 @@ use crate::interaction::Interactable;
 use crate::inventory::{Inventory, ItemSlot, ItemSlots, WeaponSlot, WeaponSlots};
 use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
 use crate::raid::Enemy;
+use crate::wallet::Money;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::math::Affine2;
@@ -430,6 +431,27 @@ pub fn start_fake_level(
             ..default()
         })
         .insert(Name::new("PointyLight"))
+        .insert(FakeLevelStuff);
+
+    // money
+    commands
+        .spawn(PbrBundle {
+            mesh: loot_cube.clone(),
+            material: materials.add(StandardMaterial {
+                base_color: Color::srgb(0.8, 1.0, 0.0),
+                base_color_texture: Some(texture_06.clone()),
+                uv_transform: Affine2::from_scale(Vec2::new(loot_cube_size, loot_cube_size)),
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(5.0, 1.1, -3.0),
+            ..default()
+        })
+        .insert(Name::new("Dineros"))
+        .insert(Loot)
+        .insert(LootName(String::from("Dineros")))
+        .insert(LootType::Cash)
+        .insert(Money)
+        .insert(Price(100))
         .insert(FakeLevelStuff);
 }
 

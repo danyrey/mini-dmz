@@ -89,6 +89,7 @@ fn start_inventory_system(mut _commands: Commands) {
     debug!("starting {}", NAME);
 }
 
+#[allow(clippy::too_many_arguments)]
 fn stow_loot_system(
     mut commands: Commands,
     mut command: EventReader<StowLoot>,
@@ -134,13 +135,7 @@ fn stow_loot_system(
             | LootType::RadiationProtection
             | LootType::LastStand
             | LootType::Intel
-            | LootType::Cash => {
-                stow_money.send(StowMoney {
-                    stowing_entity: c.stowing_entity,
-                    money_entity: c.loot,
-                });
-            }
-            LootType::Key => {
+            | LootType::Key => {
                 if let Some(slot) = calc_stow_item_slot(&inventory_items, item_slots) {
                     stow_item(&mut commands, c.loot, c.stowing_entity, slot, &mut event);
                 }
@@ -149,6 +144,13 @@ fn stow_loot_system(
                 if let Some(slot) = calc_stow_weapon_slot(&weapons, weapon_slots) {
                     stow_weapon(&mut commands, c.loot, c.stowing_entity, slot, &mut event);
                 }
+            }
+            LootType::Cash => {
+                // TODO: dont send backpack(inventory) to the event, but the parent
+                stow_money.send(StowMoney {
+                    stowing_entity: c.stowing_entity,
+                    money_entity: c.loot,
+                });
             }
         }
     }

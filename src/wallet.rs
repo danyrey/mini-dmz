@@ -17,6 +17,10 @@ impl Plugin for WalletPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(Raid), start_wallet_system)
             .register_type::<Wallet>()
+            .add_event::<StowMoney>()
+            .add_event::<StowedMoney>()
+            .add_event::<DropMoney>()
+            .add_event::<DroppedMoney>()
             .add_systems(
                 Update,
                 (update_wallet_system).run_if(in_state(AppState::Raid)),
@@ -131,10 +135,14 @@ fn stow_money_listener(
 ) {
     debug!("stowing money {}", NAME);
     for c in command.read() {
+        debug!("m: {}, o: {}", c.money_entity, c.stowing_entity);
         let money_query = money_entities.get(c.money_entity);
         let operator_query = operator_entities.get_mut(c.stowing_entity);
+        // TODO: y u no op and monero???
         if let Ok(mut operator) = operator_query {
+            debug!("we got operator, no dinero yet");
             if let Ok(money) = money_query {
+                debug!("we got operator, we got dinero");
                 let amount = (money.1).0;
                 operator.1.money += amount;
                 commands.entity(money.0).despawn_recursive();
