@@ -15,6 +15,7 @@ pub struct LootPlugin;
 impl Plugin for LootPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Durability>()
+            .register_type::<Price>()
             .add_event::<DroppedLoot>()
             .add_systems(OnEnter(Raid), start_loot_system)
             .add_systems(
@@ -84,7 +85,8 @@ pub enum ItemType {
 }
 
 /// price/cash amount per item in cent amount
-#[derive(Component, Debug)]
+#[derive(Component, Reflect, InspectorOptions)]
+#[reflect(Component, InspectorOptions)]
 pub struct Price(pub u32);
 
 #[derive(Component)]
