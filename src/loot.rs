@@ -85,7 +85,7 @@ pub enum ItemType {
 }
 
 /// price/cash amount per item in cent amount
-#[derive(Component, Reflect, InspectorOptions)]
+#[derive(Component, Reflect, InspectorOptions, Debug, PartialEq)]
 #[reflect(Component, InspectorOptions)]
 pub struct Price(pub u32);
 
