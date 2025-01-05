@@ -280,7 +280,8 @@ mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     //use super::*;
 
-    //#[test]
+    /*
+    #[test]
     fn should_test_something() {
         // given
         //let mut app = App::new();
@@ -296,4 +297,5 @@ mod tests {
         //assert!(app.world.get::<Health>(entity).is_some());
         //assert_eq!(app.world.get::<Health>(entity).unwrap().0, 90);
     }
+    */
 }

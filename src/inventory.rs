@@ -308,7 +308,10 @@ fn bye_inventory_system(mut _commands: Commands) {
 // tests
 #[cfg(test)]
 mod tests {
-    use crate::loot::{ItemType, Loot};
+    use crate::{
+        loot::{ItemType, Loot},
+        wallet::StowedMoney,
+    };
 
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
@@ -319,6 +322,8 @@ mod tests {
         let mut app = App::new();
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
+        app.add_event::<StowMoney>();
+        app.add_event::<StowedMoney>();
         app.add_systems(Update, stow_loot_system);
         let loot_entity = app.world_mut().spawn(Loot).id();
         let mut inventory = app.world_mut().spawn(Inventory);
@@ -373,6 +378,8 @@ mod tests {
         let mut app = App::new();
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
+        app.add_event::<StowMoney>();
+        app.add_event::<StowedMoney>();
         app.add_systems(Update, stow_loot_system);
         let loot_entity = app.world_mut().spawn(Loot).id();
         let mut inventory = app.world_mut().spawn(Inventory);
@@ -427,6 +434,8 @@ mod tests {
         let mut app = App::new();
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
+        app.add_event::<StowMoney>();
+        app.add_event::<StowedMoney>();
         app.add_systems(Update, stow_loot_system);
         let loot_entity_1 = app.world_mut().spawn(Loot).id();
         let loot_entity_2 = app.world_mut().spawn(Loot).id();
@@ -533,6 +542,8 @@ mod tests {
         let mut app = App::new();
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
+        app.add_event::<StowMoney>();
+        app.add_event::<StowedMoney>();
         app.add_systems(Update, stow_loot_system);
         let loot_entity_1 = app.world_mut().spawn(Loot).id();
         let loot_entity_2 = app.world_mut().spawn(Loot).id();
@@ -639,6 +650,8 @@ mod tests {
         let mut app = App::new();
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
+        app.add_event::<StowMoney>();
+        app.add_event::<StowedMoney>();
         app.add_systems(Update, stow_loot_system);
         let loot_entity = app.world_mut().spawn(Loot).id();
         let mut inventory = app.world_mut().spawn(Inventory);
@@ -672,6 +685,8 @@ mod tests {
         let mut app = App::new();
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
+        app.add_event::<StowMoney>();
+        app.add_event::<StowedMoney>();
         app.add_systems(Update, stow_loot_system);
         let loot_entity = app.world_mut().spawn(Loot).id();
         let mut inventory = app.world_mut().spawn(Inventory);
@@ -705,6 +720,8 @@ mod tests {
         let mut app = App::new();
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
+        app.add_event::<StowMoney>();
+        app.add_event::<StowedMoney>();
         app.add_systems(Update, stow_loot_system);
         let loot_in_inventory = app.world_mut().spawn(Loot).id();
         let loot_from_ground = app.world_mut().spawn(Loot).id();
@@ -752,6 +769,8 @@ mod tests {
         let mut app = App::new();
         app.add_event::<StowLoot>();
         app.add_event::<StowedLoot>();
+        app.add_event::<StowMoney>();
+        app.add_event::<StowedMoney>();
         app.add_systems(Update, stow_loot_system);
         let loot_in_inventory = app.world_mut().spawn(Loot).id();
         let loot_from_ground = app.world_mut().spawn(Loot).id();

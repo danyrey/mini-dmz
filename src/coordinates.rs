@@ -360,7 +360,8 @@ mod tests {
         assert_eq!(Vec2 { x: 1.0, y: -1.0 }, grid_position.position);
     }
 
-    //#[test]
+    /*
+    #[test]
     fn should_test_something() {
         // given
         //let mut _app = App::new();
@@ -376,4 +377,5 @@ mod tests {
         //assert!(app.world.get::<Health>(entity).is_some());
         //assert_eq!(app.world.get::<Health>(entity).unwrap().0, 90);
     }
+    */
 }
