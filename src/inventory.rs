@@ -93,6 +93,7 @@ fn start_inventory_system(mut _commands: Commands) {
 fn stow_loot_system(
     mut commands: Commands,
     mut command: EventReader<StowLoot>,
+    parents: Query<&Parent>,
     inventories_with_items: Query<&ItemSlots, With<Inventory>>,
     inventory_items: Query<(&Parent, &ItemSlot), With<Loot>>,
     inventories_with_weapons: Query<&WeaponSlots, With<Inventory>>,
@@ -146,11 +147,17 @@ fn stow_loot_system(
                 }
             }
             LootType::Cash => {
-                // TODO: dont send backpack(inventory) to the event, but the parent
-                stow_money.send(StowMoney {
-                    stowing_entity: c.stowing_entity,
-                    money_entity: c.loot,
-                });
+                if let Some(parent) = commands
+                    .get_entity(c.stowing_entity)
+                    .map(|e| e.id())
+                    .map(|inv| parents.get(inv))
+                    .map(|e| e.unwrap())
+                {
+                    stow_money.send(StowMoney {
+                        stowing_entity: **parent,
+                        money_entity: c.loot,
+                    });
+                }
             }
         }
     }
