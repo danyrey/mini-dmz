@@ -358,6 +358,9 @@ mod tests {
         app.update();
 
         // then
+
+        // check for remaining Money entity and value
+
         assert_eq!(
             100,
             app.world().get::<Wallet>(operator_id).unwrap().money,

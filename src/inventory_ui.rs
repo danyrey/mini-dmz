@@ -20,6 +20,7 @@ use bevy::prelude::*;
 const NORMAL_BUTTON: Color = Color::srgb(MAROON.red, MAROON.green, MAROON.blue);
 const HOVERED_BUTTON: Color = Color::srgb(RED.red, RED.green, RED.blue);
 const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
+const RARE_COLOR: Color = Color::srgb(0.5, 0.5, 0.0);
 
 // Plugin
 
@@ -139,6 +140,9 @@ struct Weapon<'a> {
     name: Option<&'a LootName>,
     entity: Entity,
 }
+
+#[derive(Component)]
+struct WalletItem;
 
 #[derive(Component)]
 struct LootCacheItem;
@@ -475,6 +479,7 @@ fn render_backpack_ui(
     backpack_item_slots: usize,
     backpack_weapons: Vec<Weapon>,
     backpack_weapon_slots: usize,
+    wallet_value: u32,
 ) {
     // Layout
     // Top-level grid (app frame)
@@ -563,6 +568,8 @@ fn render_backpack_ui(
                     let mut it_slot = backpack_items.iter();
                     let mut slot = it_slot.next();
 
+                    create_wallet_slot_ui(builder, wallet_value, InventoryUI::Backpack);
+
                     for item_slot_no in 0..backpack_item_slots {
                         debug!("item slot: {:?}", item_slot_no);
                         if let Some(s) = slot {
@@ -584,6 +591,7 @@ fn render_backpack_ui(
 }
 
 #[allow(clippy::type_complexity)]
+#[allow(clippy::too_many_arguments)]
 fn start_backpack_ui(
     mut commands: Commands,
     // MAYBE replace with a query for player controlled inventory for backpack
@@ -605,6 +613,7 @@ fn start_backpack_ui(
     inventories_with_weapons: Query<&WeaponSlots, With<Inventory>>,
     inventory_weapons: Query<(&Parent, &WeaponSlot, Option<&LootName>, Entity), With<Loot>>,
     ui: Query<Entity, With<BackpackUI>>,
+    wallet: Query<&Wallet>,
 ) {
     debug!("start backpack ui");
 
@@ -653,6 +662,9 @@ fn start_backpack_ui(
         .get(backpack)
         .map_or(0, |r| r.0.into());
 
+    // TODO: hack, just get the first one for now, generalize later
+    let money = wallet.get_single().map_or(0, |w| w.money);
+
     render_backpack_ui(
         commands,
         backpack_name.clone(),
@@ -660,6 +672,7 @@ fn start_backpack_ui(
         backpack_item_slots,
         backpack_weapons.clone(),
         backpack_weapon_slots,
+        money,
     );
 }
 
@@ -1202,6 +1215,8 @@ fn update_stowed_loot_backpack_ui(
             backpack_item_slots,
             backpack_weapons.clone(),
             backpack_weapon_slots,
+            // TODO: put in actual value
+            123,
         );
     }
 }
@@ -1316,6 +1331,281 @@ fn create_weapon_slot_ui(builder: &mut ChildBuilder, weapon: Weapon, ui: Invento
     };
 }
 
+fn create_wallet_slot_ui(builder: &mut ChildBuilder, wallet_value: u32, ui: InventoryUI) {
+    // TODO: there must be a better way, this fugly
+    let mut ui_item = builder.spawn((
+        ButtonBundle {
+            style: Style {
+                width: Val::Px(50.),
+                height: Val::Px(50.),
+                border: UiRect::all(Val::Px(10.)),
+                margin: UiRect::all(Val::Px(20.)),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                ..default()
+            },
+            border_color: RED.into(),
+            // same as rare items (gold)
+            background_color: RARE_COLOR.into(),
+            ..default()
+        },
+        Outline {
+            width: Val::Px(6.),
+            offset: Val::Px(6.),
+            color: Color::WHITE,
+        },
+    ));
+
+    ui_item.with_children(|parent| {
+        parent
+            .spawn(NodeBundle {
+                style: Style {
+                    // Make the height of the node fill its parent
+                    height: Val::Percent(100.0),
+                    // Make the grid have a 1:1 aspect ratio meaning it will scale as an exact square
+                    // As the height is set explicitly, this means the width will adjust to match the height
+                    aspect_ratio: Some(1.0),
+                    // Use grid layout for this node
+                    display: Display::Grid,
+                    // Set the grid to have 3 columns all with sizes minmax(0, 1fr)
+                    // This creates 3 exactly evenly sized columns
+                    grid_template_columns: RepeatedGridTrack::flex(3, 1.0),
+                    // Set the grid to have 3 rows all with sizes minmax(0, 1fr)
+                    // This creates 3 exactly evenly sized rows
+                    grid_template_rows: RepeatedGridTrack::flex(3, 1.0),
+                    //border: UiRect::all(Val::Px(1.)),
+                    ..default()
+                },
+                //border_color: Color::WHITE.into(),
+                ..default()
+            })
+            .with_children(|parent| {
+                // TOP
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::FlexStart,
+                            justify_content: JustifyContent::FlexStart,
+                            //border: UiRect::all(Val::Px(1.)),
+                            ..default()
+                        },
+                        //border_color: Color::BLACK.into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                String::from(""),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Left),
+                        );
+                    });
+
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::Center,
+                            justify_content: JustifyContent::FlexStart,
+                            ..default()
+                        },
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                String::from(""),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.1, 0.1, 0.1),
+                                    ..default()
+                                },
+                            )
+                            .with_style(Style {
+                                position_type: PositionType::Relative,
+                                bottom: Val::Percent(200.0),
+                                ..default()
+                            })
+                            .with_background_color(Color::srgb(1.0, 1.0, 1.0))
+                            .with_text_justify(JustifyText::Center),
+                        );
+                    });
+
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::FlexEnd,
+                            justify_content: JustifyContent::FlexStart,
+                            ..default()
+                        },
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                String::from(""),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Right),
+                        );
+                    });
+
+                // MIDDLE
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::FlexStart,
+                            justify_content: JustifyContent::Center,
+                            ..default()
+                        },
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                String::from(""),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Left),
+                        );
+                    });
+
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::Center,
+                            justify_content: JustifyContent::Center,
+                            ..default()
+                        },
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                String::from("$"),
+                                TextStyle {
+                                    font_size: 16.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Center),
+                        );
+                    });
+
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::FlexEnd,
+                            justify_content: JustifyContent::Center,
+                            ..default()
+                        },
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                String::from(""),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Right),
+                        );
+                    });
+
+                // BOTTOM
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::FlexStart,
+                            justify_content: JustifyContent::FlexEnd,
+                            ..default()
+                        },
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                String::from(""),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Left),
+                        );
+                    });
+
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::Center,
+                            justify_content: JustifyContent::FlexEnd,
+                            ..default()
+                        },
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                String::from(""),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.9),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Center),
+                        );
+                    });
+
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            align_content: AlignContent::FlexEnd,
+                            justify_content: JustifyContent::FlexEnd,
+                            ..default()
+                        },
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn(
+                            TextBundle::from_section(
+                                wallet_value.to_string(),
+                                TextStyle {
+                                    font_size: 8.0,
+                                    color: Color::srgb(0.9, 0.9, 0.0),
+                                    ..default()
+                                },
+                            )
+                            .with_text_justify(JustifyText::Right),
+                        );
+                    });
+            });
+    });
+
+    match ui {
+        InventoryUI::Backpack => ui_item.insert(WalletItem),
+        _ => todo!("only backpack implemented currently for wallet items"),
+    };
+}
+
 fn create_empty_item_slot_ui(builder: &mut ChildBuilder) {
     builder.spawn((
         NodeBundle {
@@ -1363,13 +1653,7 @@ fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) 
                 match item.rarity {
                     Some(r) => match r {
                         Rarity::Regular => NORMAL_BUTTON.into(),
-                        Rarity::Rare => Srgba {
-                            red: 0.5,
-                            green: 0.5,
-                            blue: 0.0,
-                            alpha: 1.0,
-                        }
-                        .into(),
+                        Rarity::Rare => RARE_COLOR.into(),
                     },
                     None => NORMAL_BUTTON.into(),
                 }
