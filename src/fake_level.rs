@@ -1,3 +1,4 @@
+use crate::backpack_summary::BackpackSummary;
 use crate::coordinates::{GridOffset, GridScale};
 // TODO: how to make sure every operator has a backpack attached to it
 //  TODO: transfer from the active loadout screen should be done
@@ -28,7 +29,12 @@ impl Plugin for FakeLevelPlugin {
         app.add_systems(OnEnter(Raid), (start_fake_level_ui, start_fake_level))
             .add_systems(
                 Update,
-                (update_fake_level, add_inventory_to_operators, manage_cursor)
+                (
+                    update_fake_level,
+                    add_backpack_summary,
+                    add_inventory_to_operators,
+                    manage_cursor,
+                )
                     .run_if(in_state(AppState::Raid)),
             )
             .add_systems(OnExit(AppState::Raid), bye_fake_level);
@@ -480,6 +486,12 @@ fn start_fake_level_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..default()
             });
         });
+}
+
+fn add_backpack_summary(mut commands: Commands, query: Query<Entity, Added<Operator>>) {
+    for added in query.iter() {
+        commands.entity(added).insert(BackpackSummary::default());
+    }
 }
 
 /// semi init procedure: add inventory cube to Operator entities.

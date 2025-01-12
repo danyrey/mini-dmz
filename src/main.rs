@@ -1,6 +1,7 @@
 use active_duty_confirmation::ActiveDutyConfirmationScreenPlugin;
 use active_missions::ActiveMissionsScreenPlugin;
 use armor::ArmorPlugin;
+use backpack_summary::BackpackSummaryPlugin;
 use bevy::prelude::*;
 use cache::CachePlugin;
 use choose_location::ChooseLocationScreenPlugin;
@@ -34,6 +35,7 @@ use wallet::WalletPlugin;
 mod active_duty_confirmation;
 mod active_missions;
 mod armor;
+mod backpack_summary;
 mod cache;
 mod choose_location;
 mod compass;
@@ -155,6 +157,7 @@ fn main() {
             PointOfInterestPlugin,
             CoordinatesPlugin,
             WalletPlugin,
+            BackpackSummaryPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, close_on_esc)
