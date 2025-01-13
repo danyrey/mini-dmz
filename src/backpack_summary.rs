@@ -72,15 +72,6 @@ fn on_stowed_loot(
                         summary.0 += price.0;
                     }
                 }
-                /*
-                            for (price, maybe_stack) in loot.iter() {
-                                if let Some(stack) = maybe_stack {
-                                    summary.0 += stack.current_stack * price.0;
-                                } else {
-                                    summary.0 += price.0;
-                                }
-                            }
-                */
                 debug!("new backpack summary: {}", summary.0);
             }
         }
@@ -117,7 +108,6 @@ mod tests {
         app.update();
 
         // then
-        assert!(app.world().get::<BackpackSummary>(operator_id).is_some());
         assert_eq!(
             100,
             app.world().get::<BackpackSummary>(operator_id).unwrap().0,
@@ -125,7 +115,41 @@ mod tests {
     }
 
     #[test]
-    fn should_update_on_single_item_priced_loot() {
+    fn should_update_on_solo_item_priced_loot() {
+        // given
+        let mut app = App::new();
+
+        // when
+        app.add_event::<StowedLoot>();
+        app.add_systems(Update, on_stowed_loot);
+
+        let inventory_id = app.world_mut().spawn(Inventory).id();
+        let mut operator = app.world_mut().spawn(Operator);
+        operator.insert(BackpackSummary::default());
+        operator.add_child(inventory_id);
+        let operator_id = operator.id();
+
+        let mut loot = app.world_mut().spawn(Loot);
+        loot.insert(Price(100));
+        let loot_id = loot.id();
+
+        app.world_mut()
+            .resource_mut::<Events<StowedLoot>>()
+            .send(StowedLoot {
+                stowing_entity: inventory_id,
+                loot: loot_id,
+            });
+        app.update();
+
+        // then
+        assert_eq!(
+            100,
+            app.world().get::<BackpackSummary>(operator_id).unwrap().0,
+        );
+    }
+
+    #[test]
+    fn should_update_on_stacked_item_priced_loot() {
         // given
         let mut app = App::new();
 
@@ -156,7 +180,6 @@ mod tests {
         app.update();
 
         // then
-        assert!(app.world().get::<BackpackSummary>(operator_id).is_some());
         assert_eq!(
             200,
             app.world().get::<BackpackSummary>(operator_id).unwrap().0,
