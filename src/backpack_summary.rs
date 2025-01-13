@@ -18,10 +18,12 @@ pub struct BackpackSummaryPlugin;
 
 impl Plugin for BackpackSummaryPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<BackpackSummary>().add_systems(
-            Update,
-            (on_stowed_money, on_stowed_loot).run_if(in_state(AppState::Raid)),
-        );
+        app.register_type::<BackpackSummary>()
+            .add_event::<BackpackSummaryUpdate>()
+            .add_systems(
+                Update,
+                (on_stowed_money, on_stowed_loot).run_if(in_state(AppState::Raid)),
+            );
     }
 }
 
@@ -34,10 +36,17 @@ pub struct BackpackSummary(u32);
 
 // Events
 
+#[derive(Event, Debug, PartialEq)]
+pub struct BackpackSummaryUpdate {
+    old_value: u32,
+    new_value: u32,
+}
+
 // Systems
 fn on_stowed_money(
     mut events: EventReader<StowedMoney>,
     mut operators: Query<&mut BackpackSummary, With<Operator>>,
+    mut notification: EventWriter<BackpackSummaryUpdate>,
 ) {
     for event in events.read() {
         debug!(
@@ -45,7 +54,12 @@ fn on_stowed_money(
             NAME, event.stowing_entity,
         );
         if let Ok(mut summary) = operators.get_mut(event.stowing_entity) {
+            let old_value = summary.0;
             summary.0 += event.amount;
+            notification.send(BackpackSummaryUpdate {
+                old_value,
+                new_value: summary.0,
+            });
             debug!("new backpack summary: {}", summary.0);
         }
     }
@@ -56,21 +70,26 @@ fn on_stowed_loot(
     mut operators: Query<&mut BackpackSummary, With<Operator>>,
     loot: Query<(&Price, Option<&Stackable>), With<Loot>>,
     inventories: Query<&Parent, With<Inventory>>,
+    mut notification: EventWriter<BackpackSummaryUpdate>,
 ) {
     for event in events.read() {
         debug!(
             "{}: received stowed loot event for {}",
             NAME, event.stowing_entity,
         );
-        // TODO: get parent of stowing entity, which is the inventory child of operator
         if let Ok(operator) = inventories.get(event.stowing_entity) {
             if let Ok(mut summary) = operators.get_mut(operator.get()) {
                 if let Ok((price, maybe_stack)) = loot.get(event.loot) {
+                    let old_value = summary.0;
                     if let Some(stack) = maybe_stack {
                         summary.0 += stack.current_stack * price.0;
                     } else {
                         summary.0 += price.0;
                     }
+                    notification.send(BackpackSummaryUpdate {
+                        old_value,
+                        new_value: summary.0,
+                    });
                 }
                 debug!("new backpack summary: {}", summary.0);
             }
@@ -93,6 +112,7 @@ mod tests {
 
         // when
         app.add_event::<StowedMoney>();
+        app.add_event::<BackpackSummaryUpdate>();
         app.add_systems(Update, on_stowed_money);
 
         let mut operator = app.world_mut().spawn(Operator);
@@ -112,6 +132,21 @@ mod tests {
             100,
             app.world().get::<BackpackSummary>(operator_id).unwrap().0,
         );
+
+        // check for update/notification event
+        let notifications = app.world().resource::<Events<BackpackSummaryUpdate>>();
+        let mut notification_reader = notifications.get_reader();
+        let update = notification_reader.read(notifications).next();
+        let expected_update = BackpackSummaryUpdate {
+            old_value: 0,
+            new_value: 100,
+        };
+        assert!(update.is_some(), "event BackpackSummaryUpdate is present");
+        assert_eq!(
+            &expected_update,
+            update.unwrap(),
+            "BackpackSummaryUpdate contains correct old and new value."
+        );
     }
 
     #[test]
@@ -121,6 +156,7 @@ mod tests {
 
         // when
         app.add_event::<StowedLoot>();
+        app.add_event::<BackpackSummaryUpdate>();
         app.add_systems(Update, on_stowed_loot);
 
         let inventory_id = app.world_mut().spawn(Inventory).id();
@@ -146,6 +182,21 @@ mod tests {
             100,
             app.world().get::<BackpackSummary>(operator_id).unwrap().0,
         );
+
+        // check for update/notification event
+        let notifications = app.world().resource::<Events<BackpackSummaryUpdate>>();
+        let mut notification_reader = notifications.get_reader();
+        let update = notification_reader.read(notifications).next();
+        let expected_update = BackpackSummaryUpdate {
+            old_value: 0,
+            new_value: 100,
+        };
+        assert!(update.is_some(), "event BackpackSummaryUpdate is present");
+        assert_eq!(
+            &expected_update,
+            update.unwrap(),
+            "BackpackSummaryUpdate contains correct old and new value."
+        );
     }
 
     #[test]
@@ -155,6 +206,7 @@ mod tests {
 
         // when
         app.add_event::<StowedLoot>();
+        app.add_event::<BackpackSummaryUpdate>();
         app.add_systems(Update, on_stowed_loot);
 
         let inventory_id = app.world_mut().spawn(Inventory).id();
@@ -183,6 +235,21 @@ mod tests {
         assert_eq!(
             200,
             app.world().get::<BackpackSummary>(operator_id).unwrap().0,
+        );
+
+        // check for update/notification event
+        let notifications = app.world().resource::<Events<BackpackSummaryUpdate>>();
+        let mut notification_reader = notifications.get_reader();
+        let update = notification_reader.read(notifications).next();
+        let expected_update = BackpackSummaryUpdate {
+            old_value: 0,
+            new_value: 200,
+        };
+        assert!(update.is_some(), "event BackpackSummaryUpdate is present");
+        assert_eq!(
+            &expected_update,
+            update.unwrap(),
+            "BackpackSummaryUpdate contains correct old and new value."
         );
     }
 }
