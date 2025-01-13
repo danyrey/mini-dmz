@@ -1159,6 +1159,7 @@ fn update_stowed_loot_backpack_ui(
     inventory_weapons: Query<(&Parent, &WeaponSlot, Option<&LootName>, Entity), With<Loot>>,
     mut commands: Commands,
     ui: Query<Entity, With<BackpackUI>>,
+    wallet: Query<&Wallet>,
 ) {
     debug!("update stowed loot backpack ui");
     for _ in stowed_loot.read() {
@@ -1208,6 +1209,9 @@ fn update_stowed_loot_backpack_ui(
             .get(backpack)
             .map_or(0, |r| r.0.into());
 
+        // TODO: hack, just get the first one for now, generalize later
+        let money = wallet.get_single().map_or(0, |w| w.money);
+
         render_backpack_ui(
             commands.reborrow(),
             backpack_name.clone(),
@@ -1215,8 +1219,7 @@ fn update_stowed_loot_backpack_ui(
             backpack_item_slots,
             backpack_weapons.clone(),
             backpack_weapon_slots,
-            // TODO: put in actual value
-            123,
+            money,
         );
     }
 }
