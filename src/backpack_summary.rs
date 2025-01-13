@@ -1,8 +1,10 @@
 use bevy::app::Plugin;
 
-use crate::exfil::Operator;
+use crate::inventory::Inventory;
+use crate::loot::{Loot, Price, Stackable};
 use crate::wallet::StowedMoney;
 use crate::AppState;
+use crate::{exfil::Operator, inventory::StowedLoot};
 use bevy::prelude::*;
 use bevy_inspector_egui::{inspector_options::ReflectInspectorOptions, InspectorOptions};
 
@@ -44,21 +46,43 @@ fn on_stowed_money(
         );
         if let Ok(mut summary) = operators.get_mut(event.stowing_entity) {
             summary.0 += event.amount;
+            debug!("new backpack summary: {}", summary.0);
         }
     }
 }
 
 fn on_stowed_loot(
-    mut events: EventReader<StowedMoney>,
+    mut events: EventReader<StowedLoot>,
     mut operators: Query<&mut BackpackSummary, With<Operator>>,
+    loot: Query<(&Price, Option<&Stackable>), With<Loot>>,
+    inventories: Query<&Parent, With<Inventory>>,
 ) {
     for event in events.read() {
         debug!(
             "{}: received stowed loot event for {}",
             NAME, event.stowing_entity,
         );
-        if let Ok(mut _summary) = operators.get_mut(event.stowing_entity) {
-            debug!("TODO");
+        // TODO: get parent of stowing entity, which is the inventory child of operator
+        if let Ok(operator) = inventories.get(event.stowing_entity) {
+            if let Ok(mut summary) = operators.get_mut(operator.get()) {
+                if let Ok((price, maybe_stack)) = loot.get(event.loot) {
+                    if let Some(stack) = maybe_stack {
+                        summary.0 += stack.current_stack * price.0;
+                    } else {
+                        summary.0 += price.0;
+                    }
+                }
+                /*
+                            for (price, maybe_stack) in loot.iter() {
+                                if let Some(stack) = maybe_stack {
+                                    summary.0 += stack.current_stack * price.0;
+                                } else {
+                                    summary.0 += price.0;
+                                }
+                            }
+                */
+                debug!("new backpack summary: {}", summary.0);
+            }
         }
     }
 }
@@ -79,9 +103,11 @@ mod tests {
         // when
         app.add_event::<StowedMoney>();
         app.add_systems(Update, on_stowed_money);
+
         let mut operator = app.world_mut().spawn(Operator);
         operator.insert(BackpackSummary::default());
         let operator_id = operator.id();
+
         app.world_mut()
             .resource_mut::<Events<StowedMoney>>()
             .send(StowedMoney {
@@ -94,6 +120,45 @@ mod tests {
         assert!(app.world().get::<BackpackSummary>(operator_id).is_some());
         assert_eq!(
             100,
+            app.world().get::<BackpackSummary>(operator_id).unwrap().0,
+        );
+    }
+
+    #[test]
+    fn should_update_on_single_item_priced_loot() {
+        // given
+        let mut app = App::new();
+
+        // when
+        app.add_event::<StowedLoot>();
+        app.add_systems(Update, on_stowed_loot);
+
+        let inventory_id = app.world_mut().spawn(Inventory).id();
+        let mut operator = app.world_mut().spawn(Operator);
+        operator.insert(BackpackSummary::default());
+        operator.add_child(inventory_id);
+        let operator_id = operator.id();
+
+        let mut loot = app.world_mut().spawn(Loot);
+        loot.insert(Price(100));
+        loot.insert(Stackable {
+            max_stack: 2,
+            current_stack: 2,
+        });
+        let loot_id = loot.id();
+
+        app.world_mut()
+            .resource_mut::<Events<StowedLoot>>()
+            .send(StowedLoot {
+                stowing_entity: inventory_id,
+                loot: loot_id,
+            });
+        app.update();
+
+        // then
+        assert!(app.world().get::<BackpackSummary>(operator_id).is_some());
+        assert_eq!(
+            200,
             app.world().get::<BackpackSummary>(operator_id).unwrap().0,
         );
     }
