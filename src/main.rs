@@ -3,7 +3,6 @@ use active_missions::ActiveMissionsScreenPlugin;
 use armor::ArmorPlugin;
 use backpack_summary::BackpackSummaryPlugin;
 use bevy::prelude::*;
-use cache::CachePlugin;
 use choose_location::ChooseLocationScreenPlugin;
 use compass::CompassPlugin;
 use coordinates::CoordinatesPlugin;
@@ -36,7 +35,6 @@ mod active_duty_confirmation;
 mod active_missions;
 mod armor;
 mod backpack_summary;
-mod cache;
 mod choose_location;
 mod compass;
 mod coordinates;
@@ -141,7 +139,6 @@ fn main() {
             ExfilTimersPlugin,
             DamagePlugin,
             LootPlugin,
-            CachePlugin,
             InventoryPlugin,
             RaidSummaryPlugin,
             InventoryTestingPlugin,
