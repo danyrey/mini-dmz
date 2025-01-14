@@ -30,7 +30,7 @@ impl Plugin for BackpackSummaryPlugin {
 // Components
 #[derive(Component, Debug, PartialEq, Reflect, InspectorOptions, Default)]
 #[reflect(Component, InspectorOptions)]
-pub struct BackpackSummary(u32);
+pub struct BackpackSummary(pub u32);
 
 // Resources
 

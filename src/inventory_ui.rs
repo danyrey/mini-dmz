@@ -6,6 +6,7 @@ use bevy::{
 use bevy_inspector_egui::{inspector_options::ReflectInspectorOptions, InspectorOptions};
 
 use crate::{
+    backpack_summary::BackpackSummary,
     fake_level::Crosshair,
     interaction::InventoryInteracted,
     inventory::{Inventory, ItemSlot, ItemSlots, StowLoot, StowedLoot, WeaponSlot, WeaponSlots},
@@ -472,6 +473,7 @@ fn start_loot_cache_ui(
     );
 }
 
+#[allow(clippy::too_many_arguments)]
 fn render_backpack_ui(
     mut commands: Commands,
     backpack_name: String,
@@ -480,6 +482,7 @@ fn render_backpack_ui(
     backpack_weapons: Vec<Weapon>,
     backpack_weapon_slots: usize,
     wallet_value: u32,
+    backpack_summary_value: u32,
 ) {
     // Layout
     // Top-level grid (app frame)
@@ -515,9 +518,11 @@ fn render_backpack_ui(
                     ..default()
                 })
                 .insert(Name::new("Backpack Header"))
+                // TODO: include backpack summary into the header
                 .with_children(|builder| {
+                    let label = format!("{} (${})", backpack_name, backpack_summary_value);
                     builder.spawn(TextBundle::from_section(
-                        backpack_name,
+                        label,
                         TextStyle {
                             font_size: 20.0,
                             color: Color::srgb(0.9, 0.9, 0.9),
@@ -614,6 +619,7 @@ fn start_backpack_ui(
     inventory_weapons: Query<(&Parent, &WeaponSlot, Option<&LootName>, Entity), With<Loot>>,
     ui: Query<Entity, With<BackpackUI>>,
     wallet: Query<&Wallet>,
+    summary: Query<&BackpackSummary>,
 ) {
     debug!("start backpack ui");
 
@@ -662,8 +668,9 @@ fn start_backpack_ui(
         .get(backpack)
         .map_or(0, |r| r.0.into());
 
-    // TODO: hack, just get the first one for now, generalize later
+    // TODO: hacks, just get the first ones for now, generalize later
     let money = wallet.get_single().map_or(0, |w| w.money);
+    let summary = summary.get_single().map_or(0, |w| w.0);
 
     render_backpack_ui(
         commands,
@@ -673,6 +680,7 @@ fn start_backpack_ui(
         backpack_weapons.clone(),
         backpack_weapon_slots,
         money,
+        summary,
     );
 }
 
@@ -1160,6 +1168,7 @@ fn update_stowed_loot_backpack_ui(
     mut commands: Commands,
     ui: Query<Entity, With<BackpackUI>>,
     wallet: Query<&Wallet>,
+    summary: Query<&BackpackSummary>,
 ) {
     debug!("update stowed loot backpack ui");
     for _ in stowed_loot.read() {
@@ -1209,8 +1218,9 @@ fn update_stowed_loot_backpack_ui(
             .get(backpack)
             .map_or(0, |r| r.0.into());
 
-        // TODO: hack, just get the first one for now, generalize later
+        // TODO: hacks, just get the first ones for now, generalize later
         let money = wallet.get_single().map_or(0, |w| w.money);
+        let summary = summary.get_single().map_or(0, |w| w.0);
 
         render_backpack_ui(
             commands.reborrow(),
@@ -1220,6 +1230,7 @@ fn update_stowed_loot_backpack_ui(
             backpack_weapons.clone(),
             backpack_weapon_slots,
             money,
+            summary,
         );
     }
 }
