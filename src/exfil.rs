@@ -349,13 +349,14 @@ fn progress_exfils(
 fn update_exfil(
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor, &Parent),
-        (Changed<Interaction>, With<ExfilButton>),
+        Changed<Interaction>,
     >,
-    exfil_button_query: Query<&CurrentExfil>,
+    exfil_button_query: Query<&CurrentExfil, With<ExfilButton>>,
     mut called: EventWriter<ExfilCalled>,
     player_query: Query<Entity, With<PlayerControlled>>,
 ) {
     // TODO: we need to put the calling/clicking operator to the ExfilCalled event
+    debug!("exfil update called");
     let caller = player_query.single();
     for (interaction, mut color, parent) in &mut interaction_query {
         match *interaction {
