@@ -5,6 +5,7 @@ use backpack_summary::BackpackSummaryPlugin;
 use bevy::prelude::*;
 use choose_location::ChooseLocationScreenPlugin;
 use compass::CompassPlugin;
+use contracts::ContractsPlugin;
 use coordinates::CoordinatesPlugin;
 use damage::DamagePlugin;
 use exfil::ExfilPlugin;
@@ -37,6 +38,7 @@ mod armor;
 mod backpack_summary;
 mod choose_location;
 mod compass;
+mod contracts;
 mod coordinates;
 mod damage;
 mod deploy;
@@ -155,6 +157,7 @@ fn main() {
             CoordinatesPlugin,
             WalletPlugin,
             BackpackSummaryPlugin,
+            ContractsPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, close_on_esc)
