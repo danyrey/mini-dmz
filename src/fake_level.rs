@@ -319,6 +319,20 @@ pub fn start_fake_level(
             current_stack: 1,
         })
         .insert(FakeLevelStuff);
+    // sell station
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Cuboid::new(0.3, 0.6, 0.5)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::srgb(0.5, 0.5, 1.0),
+                base_color_texture: Some(texture_06.clone()),
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(-4.0, 0.3, 2.0),
+            ..default()
+        })
+        .insert(Name::new("Sellstation"))
+        .insert(FakeLevelStuff);
     // loot cache 1
     commands
         .spawn(PbrBundle {
@@ -328,7 +342,7 @@ pub fn start_fake_level(
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
             }),
-            transform: Transform::from_xyz(-4.0, 0.15, -4.0),
+            transform: Transform::from_xyz(-4.0, 0.15, 0.0),
             ..default()
         })
         .insert(Name::new("Toolbox"))
