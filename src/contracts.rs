@@ -21,11 +21,55 @@ impl Plugin for ContractsPlugin {
     }
 }
 
+#[allow(dead_code)]
+#[derive(Debug)]
+pub enum ContractType {
+    SecureSupplies,
+    SecureIntel,
+    EliminateHVT,
+    DestroySupplies,
+    RescueHostage,
+    RaidWeaponStash,
+    CargoDelivery,
+    CargoShipment,
+    SecureNuclearMaterials,
+    SignalIntelligence,
+    HuntSquad,
+}
+
+// contract statemachines
+
+#[allow(dead_code)]
+enum SecureSuppliesState {
+    Started,
+    FirstSupplySecured,
+    SecondSupplySecured,
+    ThirdSupplySecured,
+}
+
+// TODO: remaining statemachines
+
 // Components
+#[allow(dead_code)]
+#[derive(Component)]
+pub struct ContractPhone(pub Contract);
 
 // Resources
+#[allow(dead_code)]
+#[derive(Resource)]
+pub struct Contract {
+    id: u32,
+    contract_type: ContractType,
+    // TODO: define full contract meta data
+}
 
 // Events
+
+#[derive(Event, Debug, PartialEq)]
+pub struct StowMoney {
+    pub stowing_entity: Entity,
+    pub money_entity: Entity,
+}
 
 // Systems
 fn start_contract_system(mut _commands: Commands) {

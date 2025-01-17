@@ -347,6 +347,7 @@ pub fn start_fake_level(
         })
         .insert(Name::new("Toolbox"))
         .insert(Inventory)
+        .insert(Interactable)
         .insert(ItemSlots(4))
         .insert(FakeLevelStuff);
     // loot cache 2
@@ -428,13 +429,13 @@ pub fn start_fake_level(
                         )),
                         ..Default::default()
                     }),
-                    transform: Transform::from_xyz(4.0, 1.1, -2.0),
                     ..default()
                 })
                 .insert(Name::new("Durable Gasmask"))
                 .insert(Loot)
                 .insert(LootName(String::from("Durable Gaskmask")))
                 .insert(LootType::CombatDefense)
+                .insert(ItemSlot(4))
                 .insert(Rarity::Rare)
                 .insert(FakeLevelStuff)
                 .insert(Durability::default());
@@ -472,6 +473,100 @@ pub fn start_fake_level(
         .insert(LootType::Cash)
         .insert(Money)
         .insert(Price(100))
+        .insert(FakeLevelStuff);
+
+    // contract phone
+    // TODO: setup resources and link it to this contract phone
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Cuboid::new(0.05, 0.15, 0.01)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::srgb(1.0, 1.0, 0.0),
+                base_color_texture: Some(texture_06.clone()),
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(16.0, 1.35, 10.0),
+            ..default()
+        })
+        .insert(Name::new("ContractPhone"))
+        .insert(Interactable)
+        .insert(FakeLevelStuff);
+
+    // supply contract loot cache 1
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Cuboid::new(1.0, 0.5, 0.5)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::srgb(0.0, 0.0, 0.75),
+                base_color_texture: Some(texture_06.clone()),
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(16.0, 0.25, 10.0),
+            ..default()
+        })
+        .insert(Name::new("SupplyContractBox1"))
+        .insert(Inventory)
+        .insert(ItemSlots(4))
+        .insert(Interactable)
+        .insert(FakeLevelStuff)
+        .with_children(|parent| {
+            parent
+                .spawn(PbrBundle {
+                    mesh: loot_cube.clone(),
+                    material: materials.add(StandardMaterial {
+                        base_color: Color::srgb(0.0, 1.0, 0.0),
+                        base_color_texture: Some(texture_06.clone()),
+                        uv_transform: Affine2::from_scale(Vec2::new(
+                            loot_cube_size,
+                            loot_cube_size,
+                        )),
+                        ..Default::default()
+                    }),
+                    ..default()
+                })
+                .insert(ItemSlot(0))
+                .insert(Name::new("Durable Gasmask"))
+                .insert(Loot)
+                .insert(LootName(String::from("Durable Gaskmask")))
+                .insert(LootType::CombatDefense)
+                .insert(Rarity::Rare)
+                .insert(FakeLevelStuff)
+                .insert(Durability::default());
+        });
+
+    // supply contract loot cache 2
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Cuboid::new(1.0, 0.5, 0.5)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::srgb(0.0, 0.0, 0.75),
+                base_color_texture: Some(texture_06.clone()),
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(18.0, 0.25, 10.0),
+            ..default()
+        })
+        .insert(Name::new("SupplyContractBox2"))
+        .insert(Inventory)
+        .insert(Interactable)
+        .insert(ItemSlots(4))
+        .insert(FakeLevelStuff);
+    // supply contract loot cache 3
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Cuboid::new(1.0, 0.5, 0.5)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::srgb(0.0, 0.0, 0.75),
+                base_color_texture: Some(texture_06.clone()),
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(20.0, 0.25, 10.0),
+            ..default()
+        })
+        .insert(Name::new("SupplyContractBox3"))
+        .insert(Inventory)
+        .insert(Interactable)
+        .insert(ItemSlots(4))
         .insert(FakeLevelStuff);
 }
 
