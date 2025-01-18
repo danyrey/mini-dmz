@@ -1,4 +1,5 @@
 use crate::backpack_summary::BackpackSummary;
+use crate::contracts::ContractPhone;
 use crate::coordinates::{GridOffset, GridScale};
 // TODO: how to make sure every operator has a backpack attached to it
 //  TODO: transfer from the active loadout screen should be done
@@ -248,6 +249,7 @@ pub fn start_fake_level(
         })
         .insert(Name::new("Loot1"))
         .insert(Loot)
+        .insert(Interactable)
         .insert(LootName(String::from("Wrench")))
         .insert(LootType::Item(ItemType::Item))
         .insert(Price(100))
@@ -271,6 +273,7 @@ pub fn start_fake_level(
         })
         .insert(Name::new("Loot2"))
         .insert(Loot)
+        .insert(Interactable)
         .insert(LootName(String::from("Durable Gaskmask")))
         .insert(LootType::CombatDefense)
         .insert(Rarity::Rare)
@@ -294,6 +297,7 @@ pub fn start_fake_level(
         })
         .insert(Name::new("Loot3"))
         .insert(Loot)
+        .insert(Interactable)
         .insert(LootName(String::from("P890")))
         .insert(LootType::Weapon)
         .insert(FakeLevelStuff);
@@ -314,6 +318,7 @@ pub fn start_fake_level(
         .insert(LootName(String::from("Harddrive")))
         .insert(LootType::Item(ItemType::Item))
         .insert(Loot)
+        .insert(Interactable)
         .insert(Stackable {
             max_stack: 5,
             current_stack: 1,
@@ -332,6 +337,7 @@ pub fn start_fake_level(
             ..default()
         })
         .insert(Name::new("Sellstation"))
+        .insert(Interactable)
         .insert(FakeLevelStuff);
     // loot cache 1
     commands
@@ -386,6 +392,7 @@ pub fn start_fake_level(
                 })
                 .insert(Name::new("WeaponLockerLoot1"))
                 .insert(Loot)
+                .insert(Interactable)
                 .insert(LootName(String::from("M4")))
                 .insert(WeaponSlot(0))
                 .insert(LootType::Weapon)
@@ -407,6 +414,7 @@ pub fn start_fake_level(
                 })
                 .insert(Name::new("WeaponLockerLoot2"))
                 .insert(Loot)
+                .insert(Interactable)
                 .insert(LootName(String::from("Wrench")))
                 .insert(LootType::Item(ItemType::Item))
                 .insert(Price(100))
@@ -433,6 +441,7 @@ pub fn start_fake_level(
                 })
                 .insert(Name::new("Durable Gasmask"))
                 .insert(Loot)
+                .insert(Interactable)
                 .insert(LootName(String::from("Durable Gaskmask")))
                 .insert(LootType::CombatDefense)
                 .insert(ItemSlot(4))
@@ -469,6 +478,7 @@ pub fn start_fake_level(
         })
         .insert(Name::new("Dineros"))
         .insert(Loot)
+        .insert(Interactable)
         .insert(LootName(String::from("Dineros")))
         .insert(LootType::Cash)
         .insert(Money)
@@ -485,11 +495,12 @@ pub fn start_fake_level(
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
             }),
-            transform: Transform::from_xyz(16.0, 1.35, 10.0),
+            transform: Transform::from_xyz(16.0, 1.35, 2.0),
             ..default()
         })
         .insert(Name::new("ContractPhone"))
         .insert(Interactable)
+        .insert(ContractPhone)
         .insert(FakeLevelStuff);
 
     // supply contract loot cache 1
@@ -527,6 +538,7 @@ pub fn start_fake_level(
                 .insert(ItemSlot(0))
                 .insert(Name::new("Durable Gasmask"))
                 .insert(Loot)
+                .insert(Interactable)
                 .insert(LootName(String::from("Durable Gaskmask")))
                 .insert(LootType::CombatDefense)
                 .insert(Rarity::Rare)

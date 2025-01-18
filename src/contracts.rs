@@ -52,7 +52,7 @@ enum SecureSuppliesState {
 // Components
 #[allow(dead_code)]
 #[derive(Component)]
-pub struct ContractPhone(pub Contract);
+pub struct ContractPhone;
 
 // Resources
 #[allow(dead_code)]
