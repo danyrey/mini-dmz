@@ -50,9 +50,10 @@ pub struct Interact {
 
 // Systems
 
-/// system that checks for entities to interact with, render gizmo and sending out a generic command message that can be used to further process the interaction without having to do all the raycasting and stuff again
+/// system that checks for entities to interact with, render gizmo and sending out a generic command message that can be used to further process the interaction without having to do all the raycasting and stuff again.
+/// emits a ```Interact``` command/event
 fn interaction(
-    interact_probe: Query<(&Frustum, &GlobalTransform, Entity), With<FirstPersonCamera>>,
+    interact_probe: Query<(&Frustum, &GlobalTransform, Entity, &Parent), With<FirstPersonCamera>>,
     interactable_query: Query<(Entity, &Aabb, &GlobalTransform, &Name), With<Interactable>>,
     mut gizmos: Gizmos,
     key_input: Res<ButtonInput<KeyCode>>,
@@ -103,7 +104,7 @@ fn interaction(
             debug!("interacting with entity {:?}", name);
             interact_command.send(Interact {
                 interaction_entity: *entity,
-                operator_entity: probe.2,
+                operator_entity: probe.3.get(),
             });
         }
     }
