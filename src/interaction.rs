@@ -20,10 +20,9 @@ impl Plugin for InteractionPlugin {
             .add_event::<Interact>()
             .add_systems(
                 Update,
-                (interaction, update_interaction)
+                (interaction, inventory_interaction)
                     .run_if(in_state(AppState::Raid).and_then(in_state(RaidState::Raid))),
-            )
-            .add_systems(OnExit(AppState::Raid), bye_interaction);
+            );
     }
 }
 
@@ -51,7 +50,7 @@ pub struct Interact {
 // Systems
 
 /// system that checks for entities to interact with, render gizmo and sending out a generic command message that can be used to further process the interaction without having to do all the raycasting and stuff again.
-/// emits a ```Interact``` command/event
+/// emits a ```Interact``` command/event that can be used by other listeners to act on.
 fn interaction(
     interact_probe: Query<(&Frustum, &GlobalTransform, Entity, &Parent), With<FirstPersonCamera>>,
     interactable_query: Query<(Entity, &Aabb, &GlobalTransform, &Name), With<Interactable>>,
@@ -110,67 +109,27 @@ fn interaction(
     }
 }
 
-#[allow(clippy::type_complexity)]
-fn update_interaction(
-    interact_probe: Query<(&Frustum, &GlobalTransform, &Parent), With<FirstPersonCamera>>,
-    interactable_query: Query<
-        (&Aabb, &GlobalTransform, Entity),
-        (With<Interactable>, With<Inventory>),
-    >,
-    operator_inventory_query: Query<(Entity, &Parent), With<Inventory>>,
-    key_input: Res<ButtonInput<KeyCode>>,
-    mut interaction_event: EventWriter<InventoryInteracted>,
+fn inventory_interaction(
+    mut interaction_commands: EventReader<Interact>,
+    inventory_query: Query<(Entity, Option<&Parent>), With<Inventory>>,
+    mut inventory_interacted: EventWriter<InventoryInteracted>,
 ) {
-    debug!("updating {}", NAME);
-    if key_input.just_released(KeyCode::KeyF) {
-        let probe = interact_probe.single();
-        let operator = probe.2.get();
-        let mut closest: Vec<(f32, Entity)> = interactable_query
-            .iter()
-            .filter(|interactable| {
-                probe
-                    .0
-                    .intersects_obb(interactable.0, &interactable.1.affine(), true, true)
-            })
-            .filter_map(|interactable| {
-                let looking_at_direction = probe.0.half_spaces[4].normal();
-                let position = probe.1.translation();
-                let r = RayCast3d::new(
-                    position,
-                    Dir3::new(looking_at_direction.into()).unwrap(),
-                    2.0,
-                );
-                let aabb3d = Aabb3d::new(interactable.1.translation(), interactable.0.half_extents);
-                let intersects = r.aabb_intersection_at(&aabb3d);
-                intersects.map(|f| (f, interactable.2))
-            })
-            .collect();
-        closest.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
-
-        let first = closest.first();
-        debug!("the closest one is: {:?}", first);
-
-        if let Some((_, interactable)) = first {
-            debug!("lets find an operator inventory");
-            let operator_inventory: Option<Entity> = operator_inventory_query
+    for command in interaction_commands.read() {
+        // filter for commands on Inventory entities only
+        if let Ok((interaction_inventory, _)) = inventory_query.get(command.interaction_entity) {
+            inventory_query
                 .iter()
-                .find(|(_, parent)| parent.get().eq(&operator))
-                .map(|(entity, _)| entity);
-            debug!("how about: {:?}", operator_inventory);
-
-            if let Some(operator_inventory) = operator_inventory {
-                debug!("lets send out an event then");
-                interaction_event.send(InventoryInteracted {
-                    interaction_inventory: *interactable,
-                    operator_inventory,
+                .filter(|(_, parent)| parent.is_some())
+                .map(|(backpack, parent)| (backpack, parent.unwrap().get()))
+                .filter(|(_, parent)| parent.eq(&command.operator_entity))
+                .for_each(|(operator_inventory, _operator)| {
+                    inventory_interacted.send(InventoryInteracted {
+                        interaction_inventory,
+                        operator_inventory,
+                    });
                 });
-            }
         }
     }
-}
-
-fn bye_interaction(mut _commands: Commands) {
-    debug!("stopping {}", NAME);
 }
 
 // helper functions
