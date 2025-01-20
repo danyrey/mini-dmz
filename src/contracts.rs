@@ -67,6 +67,7 @@ enum SecureSuppliesState {
 
 // state machine
 
+#[allow(dead_code)]
 trait ContractStateMachine {
     fn next(&mut self) -> ContractState;
 }
