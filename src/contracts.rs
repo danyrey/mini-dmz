@@ -24,6 +24,12 @@ impl Plugin for ContractsPlugin {
     }
 }
 
+// Components
+
+#[allow(dead_code)]
+#[derive(Component, Debug)]
+pub struct ContractPhone;
+
 #[allow(dead_code)]
 #[derive(Component, Clone, Reflect, InspectorOptions, Debug, PartialEq)]
 #[reflect(Component, InspectorOptions)]
@@ -39,6 +45,16 @@ pub enum ContractType {
     SecureNuclearMaterials,
     SignalIntelligence,
     HuntSquad,
+}
+
+#[allow(dead_code)]
+#[derive(Component, Debug)]
+pub struct ContractPayout(u32);
+
+impl Default for ContractPayout {
+    fn default() -> Self {
+        ContractPayout(2000)
+    }
 }
 
 // contract statemachines
@@ -85,18 +101,14 @@ impl ContractStateMachine for SecureSuppliesState {
     }
 }
 
-// Components
-#[allow(dead_code)]
-#[derive(Component, Debug)]
-pub struct ContractPhone;
-
 // Resources
 #[allow(dead_code)]
-#[derive(Resource, Reflect, InspectorOptions, Debug, PartialEq)]
-#[reflect(Resource, InspectorOptions)]
+#[derive(Reflect, InspectorOptions, Debug, PartialEq)]
+#[reflect(InspectorOptions)]
 pub struct Contract {
     contract_type: ContractType,
     contract_state: ContractState,
+    contract_payout: u32,
 }
 
 #[derive(Resource, Default, Reflect, InspectorOptions)]
@@ -116,12 +128,17 @@ fn start_contract_system(mut commands: Commands) {
 /// interaction with contract phone to start a contract
 fn interaction_contract_phone(
     mut interaction_commands: EventReader<Interact>,
-    contract_phone_query: Query<(Entity, &ContractType), With<ContractPhone>>,
+    contract_phone_query: Query<
+        (Entity, &ContractType, Option<&ContractPayout>),
+        With<ContractPhone>,
+    >,
     mut contracts: ResMut<Contracts>,
 ) {
     for command in interaction_commands.read() {
         // filter for commands on ContractPhone entities only
-        if let Ok((phone, contract_type)) = contract_phone_query.get(command.interaction_entity) {
+        if let Ok((phone, contract_type, payout)) =
+            contract_phone_query.get(command.interaction_entity)
+        {
             debug!(
                 "interacted with contract phone: {:?}, type: {:?}",
                 phone, contract_type
@@ -131,6 +148,7 @@ fn interaction_contract_phone(
                 Contract {
                     contract_type: contract_type.clone(),
                     contract_state: initial_state(contract_type.clone()),
+                    contract_payout: payout.unwrap_or(&ContractPayout::default()).0, // TODO: modify by user upgrade level later
                 },
             );
             debug!("added contract to contracts resource");
