@@ -14,18 +14,18 @@ pub struct ContractsPlugin;
 
 impl Plugin for ContractsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Raid), start_contract_system)
+        app.register_type::<Contracts>()
+            .add_systems(OnEnter(Raid), start_contract_system)
             .add_systems(
                 Update,
-                (update_contract_system, interaction_contract_phone)
-                    .run_if(in_state(AppState::Raid)),
+                interaction_contract_phone.run_if(in_state(AppState::Raid)),
             )
             .add_systems(OnExit(AppState::Raid), bye_contract_system);
     }
 }
 
 #[allow(dead_code)]
-#[derive(Component, Reflect, InspectorOptions, Debug, PartialEq)]
+#[derive(Component, Clone, Reflect, InspectorOptions, Debug, PartialEq)]
 #[reflect(Component, InspectorOptions)]
 pub enum ContractType {
     SecureSupplies,
@@ -44,7 +44,8 @@ pub enum ContractType {
 // contract statemachines
 
 #[allow(dead_code)]
-#[derive(Default)]
+#[derive(Component, Default, Reflect, InspectorOptions, Debug, PartialEq)]
+#[reflect(Component, InspectorOptions)]
 enum ContractState {
     #[default]
     Started,
@@ -54,7 +55,8 @@ enum ContractState {
 }
 
 #[allow(dead_code)]
-#[derive(Default)]
+#[derive(Default, Reflect, InspectorOptions, Debug, PartialEq)]
+#[reflect(InspectorOptions)]
 enum SecureSuppliesState {
     #[default]
     Started,
@@ -94,7 +96,7 @@ pub struct ContractPhone;
 #[reflect(Resource, InspectorOptions)]
 pub struct Contract {
     contract_type: ContractType,
-    // TODO: define full contract meta data
+    contract_state: ContractState,
 }
 
 #[derive(Resource, Default, Reflect, InspectorOptions)]
@@ -106,16 +108,16 @@ struct Contracts {
 // Events
 
 // Systems
-fn start_contract_system(mut _commands: Commands) {
+fn start_contract_system(mut commands: Commands) {
     debug!("starting {}", NAME);
-}
-fn update_contract_system() {
-    debug!("updating {}", NAME);
+    commands.insert_resource(Contracts::default());
 }
 
+/// interaction with contract phone to start a contract
 fn interaction_contract_phone(
     mut interaction_commands: EventReader<Interact>,
     contract_phone_query: Query<(Entity, &ContractType), With<ContractPhone>>,
+    mut contracts: ResMut<Contracts>,
 ) {
     for command in interaction_commands.read() {
         // filter for commands on ContractPhone entities only
@@ -124,15 +126,42 @@ fn interaction_contract_phone(
                 "interacted with contract phone: {:?}, type: {:?}",
                 phone, contract_type
             );
+            contracts.map.insert(
+                phone,
+                Contract {
+                    contract_type: contract_type.clone(),
+                    contract_state: initial_state(contract_type.clone()),
+                },
+            );
+            debug!("added contract to contracts resource");
+            // TODO: maybe emit event ContractPhoneInteracted so another systems can do stuff like animation, sound and phone despawning
         }
     }
 }
 
-fn bye_contract_system(mut _commands: Commands) {
+fn bye_contract_system(mut commands: Commands) {
     debug!("stopping {}", NAME);
+    commands.remove_resource::<Contracts>();
 }
 
 // helper functions
+fn initial_state(contract_type: ContractType) -> ContractState {
+    match contract_type {
+        ContractType::SecureSupplies => {
+            ContractState::SecureSupplies(SecureSuppliesState::default())
+        }
+        ContractType::SecureIntel => todo!(),
+        ContractType::EliminateHVT => todo!(),
+        ContractType::DestroySupplies => todo!(),
+        ContractType::RescueHostage => todo!(),
+        ContractType::RaidWeaponStash => todo!(),
+        ContractType::CargoDelivery => todo!(),
+        ContractType::CargoShipment => todo!(),
+        ContractType::SecureNuclearMaterials => todo!(),
+        ContractType::SignalIntelligence => todo!(),
+        ContractType::HuntSquad => todo!(),
+    }
+}
 
 // tests
 #[cfg(test)]
