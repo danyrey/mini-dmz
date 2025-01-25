@@ -28,7 +28,7 @@ impl Plugin for ContractsPlugin {
 // Components
 
 #[allow(dead_code)]
-#[derive(Component, Clone, Debug, Eq, Hash, PartialEq, Reflect)]
+#[derive(Component, Copy, Clone, Debug, Eq, Hash, PartialEq, Reflect)]
 pub struct ContractId(pub u32);
 
 #[allow(dead_code)]
@@ -156,7 +156,7 @@ fn interaction_contract_phone(
                 phone, contract_type
             );
             contracts.map.insert(
-                contract_id.clone(),
+                *contract_id,
                 Contract {
                     contract_type: contract_type.clone(),
                     contract_state: initial_state(contract_type.clone()),
@@ -165,7 +165,7 @@ fn interaction_contract_phone(
             );
             debug!("added contract to contracts resource");
             interacted.send(ContractPhoneInteracted {
-                contract_id: contract_id.clone(),
+                contract_id: *contract_id,
                 operator_entity: command.operator_entity,
             });
         }

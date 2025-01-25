@@ -41,17 +41,17 @@ pub struct SquadId(pub u32);
 
 // Resources
 #[allow(dead_code)]
-#[derive(Reflect, Default, InspectorOptions, Debug, PartialEq)]
+#[derive(Reflect, Clone, Default, InspectorOptions, Debug, PartialEq)]
 #[reflect(InspectorOptions)]
 pub struct Squad {
     max_size: u32,
+    current_contract: Option<ContractId>,
 }
 
 #[derive(Resource, Default, Reflect, InspectorOptions)]
 #[reflect(Resource, InspectorOptions)]
 struct Squads {
     map: HashMap<SquadId, Squad>,
-    current_contract: Option<ContractId>,
 }
 
 // Events
@@ -84,9 +84,18 @@ fn update_squad_system() {
     debug!("updating {}", NAME);
 }
 
-fn contract_phone_interacted(mut contract_phone_interacted: EventReader<ContractPhoneInteracted>) {
+fn contract_phone_interacted(
+    mut contract_phone_interacted: EventReader<ContractPhoneInteracted>,
+    operators: Query<(Entity, &SquadId), With<Operator>>,
+    mut squads: ResMut<Squads>,
+) {
     for event in contract_phone_interacted.read() {
         debug!("contract phone interacted {:?}", event);
+        if let Ok((_operator, squad_id)) = operators.get(event.operator_entity) {
+            if let Some(squad) = squads.map.get_mut(squad_id) {
+                squad.current_contract.get_or_insert(event.contract_id);
+            }
+        }
     }
 }
 
