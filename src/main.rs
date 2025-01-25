@@ -29,6 +29,7 @@ use point_of_interest::PointOfInterestPlugin;
 use raid::RaidPlugin;
 use raid_summary::RaidSummaryPlugin;
 use skybox::SkyboxPlugin;
+use squad::SquadPlugin;
 use start_screen::StartScreenPlugin;
 use wallet::WalletPlugin;
 
@@ -64,6 +65,7 @@ mod point_of_interest;
 mod raid;
 mod raid_summary;
 mod skybox;
+mod squad;
 mod start_screen;
 mod template_plugin;
 mod wallet;
@@ -158,6 +160,7 @@ fn main() {
             WalletPlugin,
             BackpackSummaryPlugin,
             ContractsPlugin,
+            SquadPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, close_on_esc)
