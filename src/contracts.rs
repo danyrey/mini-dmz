@@ -16,10 +16,11 @@ impl Plugin for ContractsPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Contracts>()
             .add_event::<ContractPhoneInteracted>()
+            .add_event::<ContractAccepted>()
             .add_systems(OnEnter(Raid), start_contract_system)
             .add_systems(
                 Update,
-                interaction_contract_phone.run_if(in_state(AppState::Raid)),
+                (interaction_contract_phone, contract_accepted).run_if(in_state(AppState::Raid)),
             )
             .add_systems(OnExit(AppState::Raid), bye_contract_system);
     }
@@ -130,6 +131,11 @@ pub struct ContractPhoneInteracted {
     pub operator_entity: Entity,
 }
 
+#[derive(Event, Debug, PartialEq)]
+pub struct ContractAccepted {
+    pub contract_id: ContractId,
+}
+
 // Systems
 fn start_contract_system(mut commands: Commands) {
     debug!("starting {}", NAME);
@@ -169,6 +175,20 @@ fn interaction_contract_phone(
                 operator_entity: command.operator_entity,
             });
         }
+    }
+}
+
+fn contract_accepted(
+    mut commands: Commands,
+    mut contract_accepted: EventReader<ContractAccepted>,
+    phones: Query<(Entity, &ContractId), With<ContractPhone>>,
+) {
+    for accepted in contract_accepted.read() {
+        phones
+            .iter()
+            .map(|(phone, id)| (phone, *id))
+            .filter(|(_, id)| accepted.contract_id.eq(id))
+            .for_each(|(phone, _)| commands.entity(phone).despawn_recursive());
     }
 }
 

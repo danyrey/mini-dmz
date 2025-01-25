@@ -1,7 +1,7 @@
 use bevy::app::Plugin;
 use bevy::utils::HashMap;
 
-use crate::contracts::{ContractId, ContractPhoneInteracted};
+use crate::contracts::{ContractAccepted, ContractId, ContractPhoneInteracted};
 use crate::exfil::Operator;
 use crate::AppState;
 use crate::AppState::Raid;
@@ -88,12 +88,19 @@ fn contract_phone_interacted(
     mut contract_phone_interacted: EventReader<ContractPhoneInteracted>,
     operators: Query<(Entity, &SquadId), With<Operator>>,
     mut squads: ResMut<Squads>,
+    mut contract_accepted: EventWriter<ContractAccepted>,
 ) {
     for event in contract_phone_interacted.read() {
         debug!("contract phone interacted {:?}", event);
         if let Ok((_operator, squad_id)) = operators.get(event.operator_entity) {
             if let Some(squad) = squads.map.get_mut(squad_id) {
-                squad.current_contract.get_or_insert(event.contract_id);
+                let contract_id = squad.current_contract.get_or_insert(event.contract_id);
+                if contract_id.0 == event.contract_id.0 {
+                    // contract accepted, otherwise you would have a contract already with different id
+                    contract_accepted.send(ContractAccepted {
+                        contract_id: *contract_id,
+                    });
+                }
             }
         }
     }
