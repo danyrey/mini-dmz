@@ -68,6 +68,7 @@ fn start_squad_system(mut commands: Commands) {
     commands.insert_resource(Squads::default());
 }
 
+#[allow(clippy::type_complexity)]
 fn operator_added_to_squad(
     added: Query<(Entity, &SquadId), (With<Operator>, Added<SquadId>)>,
     mut squads: ResMut<Squads>,
