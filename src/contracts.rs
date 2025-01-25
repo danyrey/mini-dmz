@@ -27,6 +27,10 @@ impl Plugin for ContractsPlugin {
 // Components
 
 #[allow(dead_code)]
+#[derive(Component, Clone, Debug, Eq, Hash, PartialEq, Reflect)]
+pub struct ContractId(u32);
+
+#[allow(dead_code)]
 #[derive(Component, Debug)]
 pub struct ContractPhone;
 
@@ -114,10 +118,16 @@ pub struct Contract {
 #[derive(Resource, Default, Reflect, InspectorOptions)]
 #[reflect(Resource, InspectorOptions)]
 struct Contracts {
-    map: HashMap<Entity, Contract>,
+    map: HashMap<ContractId, Contract>,
 }
 
 // Events
+
+#[derive(Event, Debug, PartialEq)]
+pub struct ContractPhoneInteracted {
+    pub contract_id: ContractId,
+    pub operator_entity: Entity,
+}
 
 // Systems
 fn start_contract_system(mut commands: Commands) {
@@ -129,14 +139,15 @@ fn start_contract_system(mut commands: Commands) {
 fn interaction_contract_phone(
     mut interaction_commands: EventReader<Interact>,
     contract_phone_query: Query<
-        (Entity, &ContractType, Option<&ContractPayout>),
+        (Entity, &ContractId, &ContractType, Option<&ContractPayout>),
         With<ContractPhone>,
     >,
     mut contracts: ResMut<Contracts>,
+    mut interacted: EventWriter<ContractPhoneInteracted>,
 ) {
     for command in interaction_commands.read() {
         // filter for commands on ContractPhone entities only
-        if let Ok((phone, contract_type, payout)) =
+        if let Ok((phone, contract_id, contract_type, payout)) =
             contract_phone_query.get(command.interaction_entity)
         {
             debug!(
@@ -144,15 +155,18 @@ fn interaction_contract_phone(
                 phone, contract_type
             );
             contracts.map.insert(
-                phone,
+                contract_id.clone(),
                 Contract {
                     contract_type: contract_type.clone(),
                     contract_state: initial_state(contract_type.clone()),
-                    contract_payout: payout.unwrap_or(&ContractPayout::default()).0, // TODO: modify by user upgrade level later
+                    contract_payout: payout.unwrap_or(&ContractPayout::default()).0, // TODO: apply user upgrade level modifier later
                 },
             );
             debug!("added contract to contracts resource");
-            // TODO: maybe emit event ContractPhoneInteracted so another systems can do stuff like animation, sound and phone despawning
+            interacted.send(ContractPhoneInteracted {
+                contract_id: contract_id.clone(),
+                operator_entity: command.operator_entity,
+            });
         }
     }
 }
