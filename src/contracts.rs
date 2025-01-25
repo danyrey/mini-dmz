@@ -15,6 +15,7 @@ pub struct ContractsPlugin;
 impl Plugin for ContractsPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Contracts>()
+            .add_event::<ContractPhoneInteracted>()
             .add_systems(OnEnter(Raid), start_contract_system)
             .add_systems(
                 Update,
@@ -28,7 +29,7 @@ impl Plugin for ContractsPlugin {
 
 #[allow(dead_code)]
 #[derive(Component, Clone, Debug, Eq, Hash, PartialEq, Reflect)]
-pub struct ContractId(u32);
+pub struct ContractId(pub u32);
 
 #[allow(dead_code)]
 #[derive(Component, Debug)]
