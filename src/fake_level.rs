@@ -12,6 +12,7 @@ use crate::interaction::Interactable;
 use crate::inventory::{Inventory, ItemSlot, ItemSlots, WeaponSlot, WeaponSlots};
 use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
 use crate::raid::Enemy;
+use crate::squad::SquadId;
 use crate::wallet::Money;
 use crate::AppState;
 use crate::AppState::Raid;
@@ -614,6 +615,7 @@ fn start_fake_level_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
 fn add_backpack_summary(mut commands: Commands, query: Query<Entity, Added<Operator>>) {
     for added in query.iter() {
         commands.entity(added).insert(BackpackSummary::default());
+        commands.entity(added).insert(SquadId(111)); // TODO: just 111 for now for everybody, all friends in fake level for now
     }
 }
 

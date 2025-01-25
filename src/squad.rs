@@ -2,6 +2,7 @@ use bevy::app::Plugin;
 use bevy::utils::HashMap;
 
 use crate::contracts::{ContractId, ContractPhoneInteracted};
+use crate::exfil::Operator;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
@@ -15,23 +16,32 @@ pub struct SquadPlugin;
 
 impl Plugin for SquadPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Raid), start_squad_system)
+        app.register_type::<SquadId>()
+            .register_type::<Squads>()
+            .add_systems(OnEnter(Raid), start_squad_system)
             .add_systems(
                 Update,
-                (update_squad_system, contract_phone_interacted).run_if(in_state(AppState::Raid)),
+                (
+                    operator_added_to_squad,
+                    update_squad_system,
+                    contract_phone_interacted,
+                )
+                    .run_if(in_state(AppState::Raid)),
             )
             .add_systems(OnExit(AppState::Raid), bye_squad_system);
     }
 }
 
 // Components
+
+/// squad id component to group squads and items/vehicles/contracts together by id
 #[allow(dead_code)]
 #[derive(Component, Clone, Debug, Eq, Hash, PartialEq, Reflect)]
 pub struct SquadId(pub u32);
 
 // Resources
 #[allow(dead_code)]
-#[derive(Reflect, InspectorOptions, Debug, PartialEq)]
+#[derive(Reflect, Default, InspectorOptions, Debug, PartialEq)]
 #[reflect(InspectorOptions)]
 pub struct Squad {
     max_size: u32,
@@ -46,15 +56,27 @@ struct Squads {
 
 // Events
 
-// TODO: squad created
+// TODO: squad created/added
 // TODO: joined squad
 // TODO: left squad
 // TODO: squad terminated
 // ...
 
 // Systems
-fn start_squad_system(mut _commands: Commands) {
+fn start_squad_system(mut commands: Commands) {
     debug!("starting {}", NAME);
+    commands.insert_resource(Squads::default());
+}
+
+fn operator_added_to_squad(
+    added: Query<(Entity, &SquadId), (With<Operator>, Added<SquadId>)>,
+    mut squads: ResMut<Squads>,
+) {
+    for new_squad_member in added.iter() {
+        debug!("new squadmember added {:?}", new_squad_member);
+        // TODO: check for squad limit, create a new squad if necessary or just add it regardless for now, not sure
+        squads.map.entry(new_squad_member.1.clone()).or_default();
+    }
 }
 
 fn update_squad_system() {
