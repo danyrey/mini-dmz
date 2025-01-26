@@ -1,5 +1,5 @@
 use crate::backpack_summary::BackpackSummary;
-use crate::contracts::{ContractId, ContractPhone, ContractType};
+use crate::contracts::{ContractId, ContractPhone, ContractSpotlight, ContractType};
 use crate::coordinates::{GridOffset, GridScale};
 // TODO: how to make sure every operator has a backpack attached to it
 //  TODO: transfer from the active loadout screen should be done
@@ -502,6 +502,7 @@ pub fn start_fake_level(
         .insert(Name::new("ContractPhone"))
         .insert(Interactable)
         .insert(ContractPhone)
+        .insert(ContractSpotlight)
         .insert(ContractId(123))
         .insert(ContractType::SecureSupplies)
         .insert(FakeLevelStuff);
@@ -522,6 +523,7 @@ pub fn start_fake_level(
         .insert(Inventory)
         .insert(ItemSlots(4))
         .insert(Interactable)
+        .insert(ContractId(123))
         .insert(FakeLevelStuff)
         .with_children(|parent| {
             parent
@@ -564,6 +566,7 @@ pub fn start_fake_level(
         .insert(Name::new("SupplyContractBox2"))
         .insert(Inventory)
         .insert(Interactable)
+        .insert(ContractId(123))
         .insert(ItemSlots(4))
         .insert(FakeLevelStuff);
     // supply contract loot cache 3
@@ -581,6 +584,7 @@ pub fn start_fake_level(
         .insert(Name::new("SupplyContractBox3"))
         .insert(Inventory)
         .insert(Interactable)
+        .insert(ContractId(123))
         .insert(ItemSlots(4))
         .insert(FakeLevelStuff);
 }

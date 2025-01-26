@@ -41,11 +41,20 @@ pub struct SquadId(pub u32);
 
 // Resources
 #[allow(dead_code)]
-#[derive(Reflect, Clone, Default, InspectorOptions, Debug, PartialEq)]
+#[derive(Reflect, Clone, InspectorOptions, Debug, PartialEq)]
 #[reflect(InspectorOptions)]
 pub struct Squad {
     max_size: u32,
     current_contract: Option<ContractId>,
+}
+
+impl Default for Squad {
+    fn default() -> Self {
+        Squad {
+            max_size: 4,
+            current_contract: None,
+        }
+    }
 }
 
 #[derive(Resource, Default, Reflect, InspectorOptions)]

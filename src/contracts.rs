@@ -1,8 +1,8 @@
 use bevy::app::Plugin;
 
-use crate::interaction::Interact;
 use crate::AppState;
 use crate::AppState::Raid;
+use crate::{interaction::Interact, inventory::Inventory};
 use bevy::{prelude::*, utils::HashMap};
 use bevy_inspector_egui::prelude::*;
 
@@ -17,10 +17,16 @@ impl Plugin for ContractsPlugin {
         app.register_type::<Contracts>()
             .add_event::<ContractPhoneInteracted>()
             .add_event::<ContractAccepted>()
+            .add_event::<SecureSuppliesStarted>()
             .add_systems(OnEnter(Raid), start_contract_system)
             .add_systems(
                 Update,
-                (interaction_contract_phone, contract_accepted).run_if(in_state(AppState::Raid)),
+                (
+                    interaction_contract_phone,
+                    contract_accepted,
+                    start_secure_supplies,
+                )
+                    .run_if(in_state(AppState::Raid)),
             )
             .add_systems(OnExit(AppState::Raid), bye_contract_system);
     }
@@ -35,6 +41,27 @@ pub struct ContractId(pub u32);
 #[allow(dead_code)]
 #[derive(Component, Debug)]
 pub struct ContractPhone;
+
+/// a precise highlight of a contract objective. marker for an entity to be used to render a location icon on tacmap or overlay hud icon in first person view
+#[allow(dead_code)]
+#[derive(Component, Debug)]
+pub struct ContractSpotlight;
+
+// TODO: maybe refactor this into its own, more generic plugin later.
+/// a general, unprecise are of a contract objective around its general position.
+/// important: the center of the area does not represent its actual location, only that somewhere within the radius the objective is to be found.
+#[allow(dead_code)]
+#[derive(Component, Debug)]
+pub struct ContractGeneralArea {
+    /// radius around the objective in meters
+    radius: f32,
+}
+
+impl Default for ContractGeneralArea {
+    fn default() -> Self {
+        ContractGeneralArea { radius: 15.0 }
+    }
+}
 
 #[allow(dead_code)]
 #[derive(Component, Clone, Reflect, InspectorOptions, Debug, PartialEq)]
@@ -66,8 +93,8 @@ impl Default for ContractPayout {
 // contract statemachines
 
 #[allow(dead_code)]
-#[derive(Component, Default, Reflect, InspectorOptions, Debug, PartialEq)]
-#[reflect(Component, InspectorOptions)]
+#[derive(Default, Reflect, InspectorOptions, Debug, PartialEq)]
+#[reflect(InspectorOptions)]
 enum ContractState {
     #[default]
     Started,
@@ -136,6 +163,12 @@ pub struct ContractAccepted {
     pub contract_id: ContractId,
 }
 
+#[derive(Event, Debug, PartialEq)]
+pub struct SecureSuppliesStarted {
+    pub global_transform: GlobalTransform,
+    pub contract_id: ContractId,
+}
+
 // Systems
 fn start_contract_system(mut commands: Commands) {
     debug!("starting {}", NAME);
@@ -181,16 +214,64 @@ fn interaction_contract_phone(
 fn contract_accepted(
     mut commands: Commands,
     mut contract_accepted: EventReader<ContractAccepted>,
-    phones: Query<(Entity, &ContractId), With<ContractPhone>>,
+    phones: Query<(Entity, &ContractId, &GlobalTransform), With<ContractPhone>>,
+    contracts: Res<Contracts>,
+    mut secure_supplies_started: EventWriter<SecureSuppliesStarted>,
 ) {
     for accepted in contract_accepted.read() {
         phones
             .iter()
-            .map(|(phone, id)| (phone, *id))
-            .filter(|(_, id)| accepted.contract_id.eq(id))
-            .for_each(|(phone, _)| commands.entity(phone).despawn_recursive());
+            .map(|(phone, id, transform)| (phone, *id, *transform))
+            .filter(|(_, id, _)| accepted.contract_id.eq(id))
+            .for_each(|(phone, contract_id, global_transform)| {
+                commands.entity(phone).despawn_recursive();
+                match contracts.map.get(&contract_id) {
+                    Some(contract) => match contract.contract_type {
+                        ContractType::SecureSupplies => {
+                            secure_supplies_started.send(SecureSuppliesStarted {
+                                global_transform,
+                                contract_id,
+                            });
+                        }
+                        ContractType::SecureIntel => todo!(),
+                        ContractType::EliminateHVT => todo!(),
+                        ContractType::DestroySupplies => todo!(),
+                        ContractType::RescueHostage => todo!(),
+                        ContractType::RaidWeaponStash => todo!(),
+                        ContractType::CargoDelivery => todo!(),
+                        ContractType::CargoShipment => todo!(),
+                        ContractType::SecureNuclearMaterials => todo!(),
+                        ContractType::SignalIntelligence => todo!(),
+                        ContractType::HuntSquad => todo!(),
+                    },
+                    None => todo!(),
+                }
+            });
     }
 }
+
+fn start_secure_supplies(
+    mut commands: Commands,
+    mut events: EventReader<SecureSuppliesStarted>,
+    mut supplies: Query<(Entity, &ContractId, &GlobalTransform), With<Inventory>>,
+) {
+    for event in events.read() {
+        let mut supplies: Vec<(Entity, &GlobalTransform)> = supplies
+            .iter_mut()
+            .filter(|supply| supply.1.eq(&event.contract_id))
+            .map(|(entity, _, transform)| (entity, transform))
+            .collect();
+        supplies
+            .iter_mut()
+            // TODO: add spotlight on the nearest inventory, just take the first one for now
+            .take(1)
+            .for_each(|(entity, _global_transform)| {
+                commands.entity(*entity).insert(ContractSpotlight);
+            });
+    }
+}
+
+// TODO: maybe implement a system for each contract that reacts to state changes
 
 fn bye_contract_system(mut commands: Commands) {
     debug!("stopping {}", NAME);
