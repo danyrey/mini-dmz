@@ -44,8 +44,8 @@ pub struct SquadId(pub u32);
 #[derive(Reflect, Clone, InspectorOptions, Debug, PartialEq)]
 #[reflect(InspectorOptions)]
 pub struct Squad {
-    max_size: u32,
-    current_contract: Option<ContractId>,
+    pub max_size: u32,
+    pub current_contract: Option<ContractId>,
 }
 
 impl Default for Squad {
@@ -59,8 +59,8 @@ impl Default for Squad {
 
 #[derive(Resource, Default, Reflect, InspectorOptions)]
 #[reflect(Resource, InspectorOptions)]
-struct Squads {
-    map: HashMap<SquadId, Squad>,
+pub struct Squads {
+    pub map: HashMap<SquadId, Squad>,
 }
 
 // Events

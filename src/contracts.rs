@@ -1,5 +1,8 @@
 use bevy::app::Plugin;
 
+use crate::exfil::Operator;
+use crate::interaction::InventoryInteracted;
+use crate::squad::{SquadId, Squads};
 use crate::AppState;
 use crate::AppState::Raid;
 use crate::{interaction::Interact, inventory::Inventory};
@@ -25,6 +28,7 @@ impl Plugin for ContractsPlugin {
                     interaction_contract_phone,
                     contract_accepted,
                     start_secure_supplies,
+                    secure_supplies_interacted,
                 )
                     .run_if(in_state(AppState::Raid)),
             )
@@ -46,6 +50,11 @@ pub struct ContractPhone;
 #[allow(dead_code)]
 #[derive(Component, Debug)]
 pub struct ContractSpotlight;
+
+/// marks current contract objectie entity
+#[allow(dead_code)]
+#[derive(Component, Debug)]
+pub struct CurrentContractObjective;
 
 // TODO: maybe refactor this into its own, more generic plugin later.
 /// a general, unprecise are of a contract objective around its general position.
@@ -263,15 +272,60 @@ fn start_secure_supplies(
             .collect();
         supplies
             .iter_mut()
-            // TODO: add spotlight on the nearest inventory, just take the first one for now
+            // TODO: add current objective and spotlight on the nearest inventory, just take the first one for now
             .take(1)
             .for_each(|(entity, _global_transform)| {
                 commands.entity(*entity).insert(ContractSpotlight);
+                commands.entity(*entity).insert(CurrentContractObjective);
             });
     }
 }
 
-// TODO: maybe implement a system for each contract that reacts to state changes
+/// checks for squad/contract and removes spotlight/current marker and assign it to one remaining supply
+#[allow(clippy::type_complexity)]
+fn secure_supplies_interacted(
+    mut commands: Commands,
+    mut interacted: EventReader<InventoryInteracted>,
+    supplies: Query<
+        (
+            Entity,
+            &ContractId,
+            Option<&ContractSpotlight>,
+            Option<&CurrentContractObjective>,
+        ),
+        With<Inventory>,
+    >,
+    squads: Res<Squads>,
+    operators: Query<(Entity, &SquadId), With<Operator>>,
+) {
+    for interact in interacted.read() {
+        if let (Ok((supply, contract_id, spotlight, current)), Ok((_, squad_id))) = (
+            supplies.get(interact.interaction_inventory),
+            operators.get(interact.operator),
+        ) {
+            if let Some(squad) = squads.map.get(squad_id) {
+                if squad
+                    .current_contract
+                    .filter(|c| c.eq(contract_id))
+                    .is_some()
+                {
+                    // remove contract id as it was interacted with
+                    commands.entity(supply).remove::<ContractId>();
+
+                    if spotlight.is_some() {
+                        commands.entity(supply).remove::<ContractSpotlight>();
+                    }
+
+                    if current.is_some() {
+                        commands.entity(supply).remove::<CurrentContractObjective>();
+                    }
+                }
+            }
+        }
+    }
+}
+
+// TODO: maybe implement a system for each other contract that reacts to state changes similar to the one above
 
 fn bye_contract_system(mut commands: Commands) {
     debug!("stopping {}", NAME);

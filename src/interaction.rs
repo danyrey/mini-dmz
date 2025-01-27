@@ -38,6 +38,7 @@ pub struct Interactable;
 pub struct InventoryInteracted {
     pub interaction_inventory: Entity,
     pub operator_inventory: Entity,
+    pub operator: Entity,
 }
 
 /// generic comand message for further interaction processing
@@ -122,10 +123,11 @@ fn inventory_interaction(
                 .filter(|(_, parent)| parent.is_some())
                 .map(|(backpack, parent)| (backpack, parent.unwrap().get()))
                 .filter(|(_, parent)| parent.eq(&command.operator_entity))
-                .for_each(|(operator_inventory, _operator)| {
+                .for_each(|(operator_inventory, operator)| {
                     inventory_interacted.send(InventoryInteracted {
                         interaction_inventory,
                         operator_inventory,
+                        operator,
                     });
                 });
         }
