@@ -286,7 +286,7 @@ fn start_secure_supplies(
 fn secure_supplies_interacted(
     mut commands: Commands,
     mut interacted: EventReader<InventoryInteracted>,
-    supplies: Query<
+    mut supplies: Query<
         (
             Entity,
             &ContractId,
@@ -312,12 +312,21 @@ fn secure_supplies_interacted(
                     // remove contract id as it was interacted with
                     commands.entity(supply).remove::<ContractId>();
 
-                    if spotlight.is_some() {
+                    if spotlight.is_some() && current.is_some() {
                         commands.entity(supply).remove::<ContractSpotlight>();
-                    }
-
-                    if current.is_some() {
                         commands.entity(supply).remove::<CurrentContractObjective>();
+
+                        supplies
+                            .iter_mut()
+                            // TODO: add current objective and spotlight on the nearest inventory, just take the first one for now
+                            // TODO: fix case where the last one was taken and it just assigns it to a random one again. query does not update with the removal of components
+                            // ... or move this piece to a different system altogether, reacting to
+                            // the removal of components
+                            .take(1)
+                            .for_each(|(supply, _, _, _)| {
+                                commands.entity(supply).insert(ContractSpotlight);
+                                commands.entity(supply).insert(CurrentContractObjective);
+                            });
                     }
                 }
             }
