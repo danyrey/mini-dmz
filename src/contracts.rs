@@ -102,9 +102,9 @@ impl Default for ContractPayout {
 // contract statemachines
 
 #[allow(dead_code)]
-#[derive(Default, Reflect, InspectorOptions, Debug, PartialEq)]
+#[derive(Default, Copy, Clone, Reflect, InspectorOptions, Debug, PartialEq)]
 #[reflect(InspectorOptions)]
-enum ContractState {
+pub enum ContractState {
     #[default]
     Started,
     SecureSupplies(SecureSuppliesState),
@@ -113,9 +113,9 @@ enum ContractState {
 }
 
 #[allow(dead_code)]
-#[derive(Default, Reflect, InspectorOptions, Debug, PartialEq)]
+#[derive(Default, Copy, Clone, Reflect, InspectorOptions, Debug, PartialEq)]
 #[reflect(InspectorOptions)]
-enum SecureSuppliesState {
+pub enum SecureSuppliesState {
     #[default]
     Started,
     FirstSupplySecured,
@@ -148,9 +148,9 @@ impl ContractStateMachine for SecureSuppliesState {
 #[derive(Reflect, InspectorOptions, Debug, PartialEq)]
 #[reflect(InspectorOptions)]
 pub struct Contract {
-    contract_type: ContractType,
-    contract_state: ContractState,
-    contract_payout: u32,
+    pub contract_type: ContractType,
+    pub contract_state: ContractState,
+    pub contract_payout: u32,
 }
 
 #[derive(Resource, Default, Reflect, InspectorOptions)]
@@ -296,6 +296,7 @@ fn secure_supplies_interacted(
         With<Inventory>,
     >,
     squads: Res<Squads>,
+    mut contracts: ResMut<Contracts>,
     operators: Query<(Entity, &SquadId), With<Operator>>,
 ) {
     for interact in interacted.read() {
@@ -311,6 +312,12 @@ fn secure_supplies_interacted(
                 {
                     // remove contract id as it was interacted with
                     commands.entity(supply).remove::<ContractId>();
+
+                    if let Some(contract) = contracts.map.get_mut(contract_id) {
+                        if let ContractState::SecureSupplies(mut state) = &contract.contract_state {
+                            contract.contract_state = state.next();
+                        }
+                    }
 
                     if spotlight.is_some() && current.is_some() {
                         commands.entity(supply).remove::<ContractSpotlight>();
