@@ -20,14 +20,14 @@ impl Plugin for ContractsPlugin {
         app.register_type::<Contracts>()
             .add_event::<ContractPhoneInteracted>()
             .add_event::<ContractAccepted>()
-            .add_event::<SecureSuppliesStarted>()
+            .add_event::<SecureSuppliesUpdated>()
             .add_systems(OnEnter(Raid), start_contract_system)
             .add_systems(
                 Update,
                 (
                     interaction_contract_phone,
                     contract_accepted,
-                    start_secure_supplies,
+                    update_secure_supplies,
                     secure_supplies_interacted,
                 )
                     .run_if(in_state(AppState::Raid)),
@@ -173,7 +173,7 @@ pub struct ContractAccepted {
 }
 
 #[derive(Event, Debug, PartialEq)]
-pub struct SecureSuppliesStarted {
+pub struct SecureSuppliesUpdated {
     pub global_transform: GlobalTransform,
     pub contract_id: ContractId,
 }
@@ -225,7 +225,7 @@ fn contract_accepted(
     mut contract_accepted: EventReader<ContractAccepted>,
     phones: Query<(Entity, &ContractId, &GlobalTransform), With<ContractPhone>>,
     contracts: Res<Contracts>,
-    mut secure_supplies_started: EventWriter<SecureSuppliesStarted>,
+    mut secure_supplies_updated: EventWriter<SecureSuppliesUpdated>,
 ) {
     for accepted in contract_accepted.read() {
         phones
@@ -237,7 +237,7 @@ fn contract_accepted(
                 match contracts.map.get(&contract_id) {
                     Some(contract) => match contract.contract_type {
                         ContractType::SecureSupplies => {
-                            secure_supplies_started.send(SecureSuppliesStarted {
+                            secure_supplies_updated.send(SecureSuppliesUpdated {
                                 global_transform,
                                 contract_id,
                             });
@@ -259,25 +259,63 @@ fn contract_accepted(
     }
 }
 
-fn start_secure_supplies(
+#[allow(clippy::type_complexity)]
+fn update_secure_supplies(
     mut commands: Commands,
-    mut events: EventReader<SecureSuppliesStarted>,
-    mut supplies: Query<(Entity, &ContractId, &GlobalTransform), With<Inventory>>,
+    mut update_events: EventReader<SecureSuppliesUpdated>,
+    mut current_supply: Query<
+        (Entity, &ContractId, &GlobalTransform),
+        (
+            With<Inventory>,
+            With<CurrentContractObjective>,
+            With<ContractSpotlight>,
+        ),
+    >,
+    mut supplies: Query<
+        (Entity, &ContractId, &GlobalTransform),
+        (
+            With<Inventory>,
+            Without<CurrentContractObjective>,
+            Without<ContractSpotlight>,
+        ),
+    >,
+    contracts: Res<Contracts>,
 ) {
-    for event in events.read() {
-        let mut supplies: Vec<(Entity, &GlobalTransform)> = supplies
-            .iter_mut()
-            .filter(|supply| supply.1.eq(&event.contract_id))
-            .map(|(entity, _, transform)| (entity, transform))
-            .collect();
-        supplies
-            .iter_mut()
-            // TODO: add current objective and spotlight on the nearest inventory, just take the first one for now
-            .take(1)
-            .for_each(|(entity, _global_transform)| {
-                commands.entity(*entity).insert(ContractSpotlight);
-                commands.entity(*entity).insert(CurrentContractObjective);
-            });
+    for event in update_events.read() {
+        if let Some(contract) = contracts.map.get(&event.contract_id) {
+            current_supply
+                .iter_mut()
+                .filter(|supply| supply.1.eq(&event.contract_id))
+                .map(|(entity, _, transform)| (entity, transform))
+                .for_each(|(entity, _global_transform)| {
+                    commands.entity(entity).remove::<ContractSpotlight>();
+                    commands.entity(entity).remove::<CurrentContractObjective>();
+                });
+
+            match contract.contract_state {
+                ContractState::SecureSupplies(SecureSuppliesState::Started)
+                | ContractState::SecureSupplies(SecureSuppliesState::FirstSupplySecured)
+                | ContractState::SecureSupplies(SecureSuppliesState::SecondSupplySecured) => {
+                    debug!("update secure supplies contract");
+                    supplies
+                        .iter_mut()
+                        .filter(|supply| supply.1.eq(&event.contract_id))
+                        .map(|(entity, _, transform)| (entity, transform))
+                        // TODO: add current objective and spotlight on the nearest inventory, just take the first one for now
+                        .take(1)
+                        .for_each(|(entity, _global_transform)| {
+                            commands.entity(entity).insert(ContractSpotlight);
+                            commands.entity(entity).insert(CurrentContractObjective);
+                        });
+                }
+                ContractState::SecureSupplies(SecureSuppliesState::ThirdSupplySecured) => {
+                    debug!(
+                        "secure supplies contract considered finished, do cleanup and payout next!"
+                    );
+                }
+                _ => (),
+            }
+        }
     }
 }
 
@@ -286,21 +324,26 @@ fn start_secure_supplies(
 fn secure_supplies_interacted(
     mut commands: Commands,
     mut interacted: EventReader<InventoryInteracted>,
-    mut supplies: Query<
+    supplies: Query<
         (
             Entity,
             &ContractId,
             Option<&ContractSpotlight>,
             Option<&CurrentContractObjective>,
+            &GlobalTransform,
         ),
         With<Inventory>,
     >,
     squads: Res<Squads>,
     mut contracts: ResMut<Contracts>,
     operators: Query<(Entity, &SquadId), With<Operator>>,
+    mut update_event: EventWriter<SecureSuppliesUpdated>,
 ) {
     for interact in interacted.read() {
-        if let (Ok((supply, contract_id, spotlight, current)), Ok((_, squad_id))) = (
+        if let (
+            Ok((supply, contract_id, spotlight, current, global_transform)),
+            Ok((_, squad_id)),
+        ) = (
             supplies.get(interact.interaction_inventory),
             operators.get(interact.operator),
         ) {
@@ -322,19 +365,12 @@ fn secure_supplies_interacted(
                     if spotlight.is_some() && current.is_some() {
                         commands.entity(supply).remove::<ContractSpotlight>();
                         commands.entity(supply).remove::<CurrentContractObjective>();
-
-                        supplies
-                            .iter_mut()
-                            // TODO: add current objective and spotlight on the nearest inventory, just take the first one for now
-                            // TODO: fix case where the last one was taken and it just assigns it to a random one again. query does not update with the removal of components
-                            // ... or move this piece to a different system altogether, reacting to
-                            // the removal of components
-                            .take(1)
-                            .for_each(|(supply, _, _, _)| {
-                                commands.entity(supply).insert(ContractSpotlight);
-                                commands.entity(supply).insert(CurrentContractObjective);
-                            });
                     }
+
+                    update_event.send(SecureSuppliesUpdated {
+                        global_transform: *global_transform,
+                        contract_id: *contract_id,
+                    });
                 }
             }
         }
