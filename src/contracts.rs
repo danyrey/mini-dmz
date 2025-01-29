@@ -3,6 +3,7 @@ use bevy::app::Plugin;
 use crate::exfil::Operator;
 use crate::interaction::InventoryInteracted;
 use crate::squad::{SquadId, Squads};
+use crate::wallet::Wallet;
 use crate::AppState;
 use crate::AppState::Raid;
 use crate::{interaction::Interact, inventory::Inventory};
@@ -21,6 +22,7 @@ impl Plugin for ContractsPlugin {
             .add_event::<ContractPhoneInteracted>()
             .add_event::<ContractAccepted>()
             .add_event::<SecureSuppliesUpdated>()
+            .add_event::<SecureSuppliesFinished>()
             .add_systems(OnEnter(Raid), start_contract_system)
             .add_systems(
                 Update,
@@ -29,6 +31,7 @@ impl Plugin for ContractsPlugin {
                     contract_accepted,
                     update_secure_supplies,
                     secure_supplies_interacted,
+                    finish_secure_supply,
                 )
                     .run_if(in_state(AppState::Raid)),
             )
@@ -178,6 +181,11 @@ pub struct SecureSuppliesUpdated {
     pub contract_id: ContractId,
 }
 
+#[derive(Event, Debug, PartialEq)]
+pub struct SecureSuppliesFinished {
+    pub contract_id: ContractId,
+}
+
 // Systems
 fn start_contract_system(mut commands: Commands) {
     debug!("starting {}", NAME);
@@ -280,6 +288,7 @@ fn update_secure_supplies(
         ),
     >,
     contracts: Res<Contracts>,
+    mut finish: EventWriter<SecureSuppliesFinished>,
 ) {
     for event in update_events.read() {
         if let Some(contract) = contracts.map.get(&event.contract_id) {
@@ -309,11 +318,44 @@ fn update_secure_supplies(
                         });
                 }
                 ContractState::SecureSupplies(SecureSuppliesState::ThirdSupplySecured) => {
-                    debug!(
-                        "secure supplies contract considered finished, do cleanup and payout next!"
-                    );
+                    finish.send(SecureSuppliesFinished {
+                        contract_id: event.contract_id,
+                    });
                 }
                 _ => (),
+            }
+        }
+    }
+}
+
+/// payout to each squad member, finish contract
+fn finish_secure_supply(
+    mut events: EventReader<SecureSuppliesFinished>,
+    contracts: Res<Contracts>,
+    squads: Res<Squads>,
+    mut squad_operators: Query<(Entity, &SquadId, &mut Wallet), With<Operator>>,
+) {
+    for finish in events.read() {
+        debug!("secure supplies contract considered finished, do cleanup, payout next and finish the contract state!");
+        if let (Some(contract), contract_id) =
+            (contracts.map.get(&finish.contract_id), finish.contract_id)
+        {
+            if let Some(squad) = squads
+                .map
+                .iter()
+                .filter(|(_, squad)| squad.current_contract.is_some())
+                .map(|(id, squad)| (id, squad.current_contract.unwrap()))
+                .find(|(_, current_contract)| current_contract.eq(&contract_id))
+            {
+                squad_operators
+                    .iter_mut()
+                    .filter(|(_operator, squad_id, _wallet)| (*squad_id).eq(squad.0))
+                    .for_each(|(_operator, _squad_id, mut wallet)| {
+                        // TODO: maybe better of done via event towards Wallet plugin, pragmatic
+                        // for now. wallet system could better check for limits n stuff. Also
+                        // notifications need to be triggered via some kind of event.
+                        wallet.money += contract.contract_payout;
+                    });
             }
         }
     }
