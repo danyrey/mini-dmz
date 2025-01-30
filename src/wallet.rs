@@ -21,13 +21,16 @@ impl Plugin for WalletPlugin {
             .add_event::<StowedMoney>()
             .add_event::<DropMoney>()
             .add_event::<DroppedMoney>()
+            .add_event::<ReceiveMoney>()
+            .add_event::<ReceivedMoney>()
             .add_systems(
                 Update,
                 (update_wallet_system).run_if(in_state(AppState::Raid)),
             )
             .add_systems(
                 Update,
-                (stow_money_listener, drop_money_listener).run_if(in_state(AppState::Raid)),
+                (stow_money_listener, drop_money_listener, receive_money)
+                    .run_if(in_state(AppState::Raid)),
             )
             .add_systems(OnExit(AppState::Raid), bye_wallet_system);
     }
@@ -82,6 +85,18 @@ pub struct DroppedMoney {
     pub dropping_entity: Entity,
     pub dropped_position: Vec3,
     pub money: Entity,
+}
+
+#[derive(Event, Debug, PartialEq)]
+pub struct ReceiveMoney {
+    pub amount: u32,
+    pub receiver: Entity,
+}
+
+#[derive(Event, Debug, PartialEq)]
+pub struct ReceivedMoney {
+    pub amount: u32,
+    pub receiver: Entity,
 }
 
 // Systems
@@ -163,6 +178,30 @@ fn stow_money_listener(
                     });
                 }
             }
+        }
+    }
+}
+
+fn receive_money(
+    mut command: EventReader<ReceiveMoney>,
+    mut operator_wallets: Query<&mut Wallet, With<Operator>>,
+    mut event: EventWriter<ReceivedMoney>,
+) {
+    for command in command.read() {
+        debug!("receiving money {}", NAME);
+        if let Ok(mut wallet) = operator_wallets.get_mut(command.receiver) {
+            let sum = wallet.money + command.amount;
+            let received_money = if sum <= wallet.limit {
+                wallet.money = sum;
+                command.amount
+            } else {
+                wallet.money = wallet.limit;
+                wallet.limit - sum
+            };
+            event.send(ReceivedMoney {
+                amount: received_money,
+                receiver: command.receiver,
+            });
         }
     }
 }
@@ -389,6 +428,122 @@ mod tests {
             &expected_stowed_money,
             actual_stowed_money.unwrap(),
             "StowedMoney contains correct operator entity and amount"
+        );
+    }
+
+    #[test]
+    fn should_receive_money_bellow_limit() {
+        // given
+        let mut app = App::new();
+
+        app.add_event::<ReceiveMoney>();
+        app.add_event::<ReceivedMoney>();
+        app.add_systems(Update, receive_money);
+
+        // when
+        let mut operator = app.world_mut().spawn(Operator);
+        let wallet = Wallet {
+            money: 0,
+            limit: 100,
+        };
+        operator.insert(wallet);
+        let operator_id = operator.id();
+
+        app.world_mut()
+            .resource_mut::<Events<ReceiveMoney>>()
+            .send(ReceiveMoney {
+                amount: 99,
+                receiver: operator_id,
+            });
+
+        // run an update on the app
+        app.update();
+
+        // then
+
+        // check for remaining Money entity and value
+
+        assert_eq!(
+            99,
+            app.world().get::<Wallet>(operator_id).unwrap().money,
+            "amount in wallet should be 99"
+        );
+
+        // check for event StowedMoney
+
+        let received_money_events = app.world().resource::<Events<ReceivedMoney>>();
+        let mut received_money_reader = received_money_events.get_reader();
+        let actual_received_money = received_money_reader.read(received_money_events).next();
+        let expected_received_money = ReceivedMoney {
+            amount: 99,
+            receiver: operator_id,
+        };
+        assert!(
+            actual_received_money.is_some(),
+            "event StowedMoney is present"
+        );
+        assert_eq!(
+            &expected_received_money,
+            actual_received_money.unwrap(),
+            "Received contains correct operator entity and amount"
+        );
+    }
+
+    #[test]
+    fn should_receive_money_above_limit() {
+        // given
+        let mut app = App::new();
+
+        app.add_event::<ReceiveMoney>();
+        app.add_event::<ReceivedMoney>();
+        app.add_systems(Update, receive_money);
+
+        // when
+        let mut operator = app.world_mut().spawn(Operator);
+        let wallet = Wallet {
+            money: 10,
+            limit: 100,
+        };
+        operator.insert(wallet);
+        let operator_id = operator.id();
+
+        app.world_mut()
+            .resource_mut::<Events<ReceiveMoney>>()
+            .send(ReceiveMoney {
+                amount: 90,
+                receiver: operator_id,
+            });
+
+        // run an update on the app
+        app.update();
+
+        // then
+
+        // check for remaining Money entity and value
+
+        assert_eq!(
+            100,
+            app.world().get::<Wallet>(operator_id).unwrap().money,
+            "amount in wallet should be 100"
+        );
+
+        // check for event StowedMoney
+
+        let received_money_events = app.world().resource::<Events<ReceivedMoney>>();
+        let mut received_money_reader = received_money_events.get_reader();
+        let actual_received_money = received_money_reader.read(received_money_events).next();
+        let expected_received_money = ReceivedMoney {
+            amount: 90,
+            receiver: operator_id,
+        };
+        assert!(
+            actual_received_money.is_some(),
+            "event StowedMoney is present"
+        );
+        assert_eq!(
+            &expected_received_money,
+            actual_received_money.unwrap(),
+            "Received contains correct operator entity and amount"
         );
     }
 }

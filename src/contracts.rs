@@ -3,7 +3,7 @@ use bevy::app::Plugin;
 use crate::exfil::Operator;
 use crate::interaction::InventoryInteracted;
 use crate::squad::{SquadId, Squads};
-use crate::wallet::Wallet;
+use crate::wallet::ReceiveMoney;
 use crate::AppState;
 use crate::AppState::Raid;
 use crate::{interaction::Interact, inventory::Inventory};
@@ -333,10 +333,11 @@ fn finish_secure_supply(
     mut events: EventReader<SecureSuppliesFinished>,
     contracts: Res<Contracts>,
     squads: Res<Squads>,
-    mut squad_operators: Query<(Entity, &SquadId, &mut Wallet), With<Operator>>,
+    mut squad_operators: Query<(Entity, &SquadId), With<Operator>>,
+    mut receive_money: EventWriter<ReceiveMoney>,
 ) {
     for finish in events.read() {
-        debug!("secure supplies contract considered finished, do cleanup, payout next and finish the contract state!");
+        debug!("secure supplies contract considered finished, trigger payout and finish the contract state!");
         if let (Some(contract), contract_id) =
             (contracts.map.get(&finish.contract_id), finish.contract_id)
         {
@@ -349,12 +350,12 @@ fn finish_secure_supply(
             {
                 squad_operators
                     .iter_mut()
-                    .filter(|(_operator, squad_id, _wallet)| (*squad_id).eq(squad.0))
-                    .for_each(|(_operator, _squad_id, mut wallet)| {
-                        // TODO: maybe better of done via event towards Wallet plugin, pragmatic
-                        // for now. wallet system could better check for limits n stuff. Also
-                        // notifications need to be triggered via some kind of event.
-                        wallet.money += contract.contract_payout;
+                    .filter(|(_operator, squad_id)| (*squad_id).eq(squad.0))
+                    .for_each(|(operator, _squad_id)| {
+                        receive_money.send(ReceiveMoney {
+                            amount: contract.contract_payout,
+                            receiver: operator,
+                        });
                     });
             }
         }
