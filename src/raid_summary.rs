@@ -1,10 +1,13 @@
 use bevy::app::Plugin;
 
+use crate::contracts::{Contracts, FinishedContract};
 use crate::exfil::{ExfilExitedAO, Operator};
 use crate::inventory::{Inventory, ItemSlot, WeaponSlot};
+use crate::squad::{SquadId, Squads};
 use crate::AppState;
 use crate::AppState::Raid;
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
+use bevy_inspector_egui::prelude::*;
 
 // Constants
 const NAME: &str = "raid_summary";
@@ -14,10 +17,17 @@ pub struct RaidSummaryPlugin;
 
 impl Plugin for RaidSummaryPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Raid), start_raid_summary_system)
+        app.register_type::<RaidSummaries>()
+            .add_systems(OnEnter(Raid), start_raid_summary_system)
             .add_systems(
                 Update,
-                (update_raid_summary_system, exit_ao_received).run_if(in_state(AppState::Raid)),
+                (
+                    operator_added,
+                    update_raid_summary_system,
+                    exit_ao_received,
+                    finished_contract_received,
+                )
+                    .run_if(in_state(AppState::Raid)),
             )
             .add_systems(OnExit(AppState::Raid), bye_raid_summary_system);
     }
@@ -27,15 +37,77 @@ impl Plugin for RaidSummaryPlugin {
 
 // Resources
 
+#[allow(dead_code)]
+#[derive(Resource, Default, Reflect, InspectorOptions)]
+#[reflect(Resource, InspectorOptions)]
+pub struct RaidSummaries {
+    pub map: HashMap<Entity, RaidSummary>,
+}
+
+#[allow(dead_code)]
+#[derive(Default, Reflect, InspectorOptions, Debug, PartialEq)]
+#[reflect(InspectorOptions)]
+pub struct RaidSummary {
+    // TODO: contracts, operator kills, money extracted
+    // can be updated mid game via events and only at the end screen printed out somehow
+    // items:
+    // AI Kills
+    // Loot Containers Opened
+    // POIs visited
+    // Misc Items extracted (do this one at the end)
+    // Cash Value Extracted (included cooldown calculation, also at the end)
+    pub contract_counter: u32,
+}
+
 // Events
 
 // Systems
-fn start_raid_summary_system(mut _commands: Commands) {
+
+fn start_raid_summary_system(mut commands: Commands) {
     debug!("starting {}", NAME);
+    commands.insert_resource(RaidSummaries::default());
+}
+
+fn operator_added(added: Query<Entity, Added<Operator>>, mut summaries: ResMut<RaidSummaries>) {
+    for operator in added.iter() {
+        summaries.map.insert(operator, RaidSummary::default());
+    }
 }
 
 fn update_raid_summary_system() {
     debug!("updating {}", NAME);
+}
+
+fn finished_contract_received(
+    mut finished_contract: EventReader<FinishedContract>,
+    squads: Res<Squads>,
+    contracts: Res<Contracts>,
+    operators: Query<(Entity, &SquadId), With<Operator>>,
+    mut summaries: ResMut<RaidSummaries>,
+) {
+    for event in finished_contract.read() {
+        if let Some((contract_id, _)) = contracts
+            .map
+            .iter()
+            .find(|(id, _)| event.contract_id.eq(id))
+        {
+            squads
+                .map
+                .iter()
+                .filter(|(_, squad)| squad.current_contract.is_some())
+                .map(|(id, squad)| (id, squad, squad.current_contract.unwrap()))
+                .filter(|(_, _, current_contract_id)| contract_id.eq(current_contract_id))
+                .for_each(|(squad_id, _, _)| {
+                    operators.iter().filter(|(_, id)| squad_id.eq(id)).for_each(
+                        |(operator, _id)| {
+                            if let Some(summary) = summaries.map.get_mut(&operator) {
+                                summary.contract_counter += 1;
+                            }
+                        },
+                    );
+                });
+        }
+    }
 }
 
 // TODO: query for the actual exfilled operator

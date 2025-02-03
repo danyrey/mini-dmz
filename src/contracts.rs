@@ -23,6 +23,7 @@ impl Plugin for ContractsPlugin {
             .add_event::<ContractAccepted>()
             .add_event::<SecureSuppliesUpdated>()
             .add_event::<SecureSuppliesFinished>()
+            .add_event::<FinishedContract>()
             .add_systems(OnEnter(Raid), start_contract_system)
             .add_systems(
                 Update,
@@ -31,7 +32,7 @@ impl Plugin for ContractsPlugin {
                     contract_accepted,
                     update_secure_supplies,
                     secure_supplies_interacted,
-                    finish_secure_supply,
+                    finished_secure_supply,
                 )
                     .run_if(in_state(AppState::Raid)),
             )
@@ -158,8 +159,8 @@ pub struct Contract {
 
 #[derive(Resource, Default, Reflect, InspectorOptions)]
 #[reflect(Resource, InspectorOptions)]
-struct Contracts {
-    map: HashMap<ContractId, Contract>,
+pub struct Contracts {
+    pub map: HashMap<ContractId, Contract>,
 }
 
 // Events
@@ -183,6 +184,11 @@ pub struct SecureSuppliesUpdated {
 
 #[derive(Event, Debug, PartialEq)]
 pub struct SecureSuppliesFinished {
+    pub contract_id: ContractId,
+}
+
+#[derive(Event, Debug, PartialEq)]
+pub struct FinishedContract {
     pub contract_id: ContractId,
 }
 
@@ -329,12 +335,13 @@ fn update_secure_supplies(
 }
 
 /// payout to each squad member, finish contract
-fn finish_secure_supply(
+fn finished_secure_supply(
     mut events: EventReader<SecureSuppliesFinished>,
     contracts: Res<Contracts>,
     squads: Res<Squads>,
     mut squad_operators: Query<(Entity, &SquadId), With<Operator>>,
     mut receive_money: EventWriter<ReceiveMoney>,
+    mut finished_contract: EventWriter<FinishedContract>,
 ) {
     for finish in events.read() {
         debug!("secure supplies contract considered finished, trigger payout and finish the contract state!");
@@ -356,6 +363,7 @@ fn finish_secure_supply(
                             amount: contract.contract_payout,
                             receiver: operator,
                         });
+                        finished_contract.send(FinishedContract { contract_id });
                     });
             }
         }
