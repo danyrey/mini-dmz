@@ -10,7 +10,9 @@ use crate::flee::Ghost;
 use crate::follow::Zombie;
 use crate::interaction::Interactable;
 use crate::inventory::{Inventory, ItemSlot, ItemSlots, WeaponSlot, WeaponSlots};
-use crate::loot::{Durability, ItemType, Loot, LootName, LootType, Price, Rarity, Stackable};
+use crate::loot::{
+    Durability, ItemType, Loot, LootCacheState, LootName, LootType, Price, Rarity, Stackable,
+};
 use crate::raid::Enemy;
 use crate::squad::SquadId;
 use crate::wallet::Money;
@@ -354,6 +356,7 @@ pub fn start_fake_level(
         })
         .insert(Name::new("Toolbox"))
         .insert(Inventory)
+        .insert(LootCacheState::Locked)
         .insert(Interactable)
         .insert(ItemSlots(4))
         .insert(FakeLevelStuff);

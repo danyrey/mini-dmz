@@ -16,6 +16,7 @@ impl Plugin for LootPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Durability>()
             .register_type::<Price>()
+            .register_type::<LootCacheState>()
             .add_event::<DroppedLoot>()
             .add_systems(OnEnter(Raid), start_loot_system)
             .add_systems(
@@ -153,9 +154,9 @@ impl Durability {
     }
 }
 
-// TODO: maybe listener for Inventor components to attach LootCacheState automatically?
 /// loot cache state machine enum
-#[derive(Component, Default, Debug, PartialEq)]
+#[derive(Component, Default, Debug, PartialEq, Clone, Reflect, InspectorOptions)]
+#[reflect(Component, InspectorOptions)]
 #[allow(dead_code)] // not dead code i use it in unit tests!
 pub enum LootCacheState {
     Locked,

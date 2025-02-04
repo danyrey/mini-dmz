@@ -4,7 +4,7 @@ use std::ops::Range;
 use bevy::app::Plugin;
 use bevy_inspector_egui::prelude::*;
 
-use crate::loot::{DroppedLoot, Loot, LootType};
+use crate::loot::{DroppedLoot, Loot, LootCacheState, LootType};
 use crate::wallet::StowMoney;
 use crate::AppState;
 use crate::AppState::Raid;
@@ -28,7 +28,8 @@ impl Plugin for InventoryPlugin {
             .add_systems(OnEnter(Raid), start_inventory_system)
             .add_systems(
                 Update,
-                (stow_loot_system, drop_loot_system).run_if(in_state(AppState::Raid)),
+                (inventory_added, stow_loot_system, drop_loot_system)
+                    .run_if(in_state(AppState::Raid)),
             )
             .add_systems(OnExit(AppState::Raid), bye_inventory_system);
     }
@@ -87,6 +88,18 @@ pub struct DropLoot {
 // Systems
 fn start_inventory_system(mut _commands: Commands) {
     debug!("starting {}", NAME);
+}
+
+/// add a loot cache state to inventories
+/// TODO: i put this system into the update schedule. not sure if inventories added during setup will trigger this system.
+fn inventory_added(
+    mut commands: Commands,
+    inventory_added: Query<Entity, (Added<Inventory>, Without<LootCacheState>)>,
+) {
+    for added in inventory_added.iter() {
+        commands.entity(added).insert(LootCacheState::default());
+        debug!("added LootStateCache to added inventory");
+    }
 }
 
 #[allow(clippy::too_many_arguments)]

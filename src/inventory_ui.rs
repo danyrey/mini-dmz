@@ -259,6 +259,7 @@ fn start_loot_cache_interaction(
     raid_state: Res<State<RaidState>>,
     mut next_raid_state: ResMut<NextState<RaidState>>,
 ) {
+    // TODO: take loot cache states into consideration, for example locked loot caches need unlocking before becomming accessible
     for interacted in loot_cache_interaction.read() {
         debug!("i received the event, TODO: time to popluate the ui");
         debug!("loot cache: {:?}", interacted.interaction_inventory);

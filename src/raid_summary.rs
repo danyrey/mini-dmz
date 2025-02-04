@@ -52,11 +52,15 @@ pub struct RaidSummary {
     // can be updated mid game via events and only at the end screen printed out somehow
     // items:
     // AI Kills
+    // player revives
     // Loot Containers Opened
     // POIs visited
     // Misc Items extracted (do this one at the end)
     // Cash Value Extracted (included cooldown calculation, also at the end)
+    /// contracts done
     pub contract_counter: u32,
+    /// loot container opened
+    pub loot_container_counter: u32,
 }
 
 // Events
