@@ -21,6 +21,7 @@ use inventory::InventoryPlugin;
 use inventory_testing::InventoryTestingPlugin;
 use inventory_ui::InventoryUIPlugin;
 use loading_screen::MatchLoadingScreenPlugin;
+use lock::LockPlugin;
 use loot::LootPlugin;
 use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
 use mission_objective_screen::MissionObjectivesScreenPlugin;
@@ -57,6 +58,7 @@ mod inventory_testing;
 mod inventory_ui;
 mod loading_screen;
 mod loadout;
+mod lock;
 mod loot;
 mod matchmake;
 mod mission_objective_screen;
@@ -161,6 +163,7 @@ fn main() {
             BackpackSummaryPlugin,
             ContractsPlugin,
             SquadPlugin,
+            LockPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, close_on_esc)
