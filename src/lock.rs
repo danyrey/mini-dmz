@@ -15,7 +15,9 @@ pub struct LockPlugin;
 
 impl Plugin for LockPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Raid), start_lock_system)
+        app.add_event::<Unlocked>()
+            .add_event::<StillLocked>()
+            .add_systems(OnEnter(Raid), start_lock_system)
             .add_systems(
                 Update,
                 (update_lock_system, unlock_system).run_if(in_state(AppState::Raid)),
