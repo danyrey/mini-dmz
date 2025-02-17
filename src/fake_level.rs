@@ -10,6 +10,7 @@ use crate::flee::Ghost;
 use crate::follow::Zombie;
 use crate::interaction::Interactable;
 use crate::inventory::{Inventory, ItemSlot, ItemSlots, WeaponSlot, WeaponSlots};
+use crate::lock::{Key, Lock};
 use crate::loot::{
     Durability, ItemType, Loot, LootCacheState, LootName, LootType, Price, Rarity, Stackable,
 };
@@ -243,6 +244,24 @@ pub fn start_fake_level(
             mesh: loot_cube.clone(),
             material: materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
+                base_color: Color::srgb(0.5, 0.75, 0.0),
+                uv_transform: Affine2::from_scale(Vec2::new(loot_cube_size, loot_cube_size)),
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(6.0, 1.1, -2.0),
+            ..default()
+        })
+        .insert(Name::new("Toolbox Key"))
+        .insert(Loot)
+        .insert(Interactable)
+        .insert(LootName(String::from("Toolbox Key")))
+        .insert(Key::RegularKey(crate::lock::RegularKey { code: 123 }))
+        .insert(LootType::Key);
+    commands
+        .spawn(PbrBundle {
+            mesh: loot_cube.clone(),
+            material: materials.add(StandardMaterial {
+                base_color_texture: Some(texture_06.clone()),
                 base_color: Color::srgb(0.0, 1.0, 0.0),
                 uv_transform: Affine2::from_scale(Vec2::new(loot_cube_size, loot_cube_size)),
                 ..Default::default()
@@ -356,7 +375,6 @@ pub fn start_fake_level(
         })
         .insert(Name::new("Toolbox"))
         .insert(Inventory)
-        .insert(LootCacheState::Locked)
         .insert(Interactable)
         .insert(ItemSlots(4))
         .insert(FakeLevelStuff);
@@ -369,7 +387,7 @@ pub fn start_fake_level(
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
             }),
-            transform: Transform::from_xyz(-4.0, 1.0, -2.0),
+            transform: Transform::from_xyz(-3.0, 1.0, 0.0),
             ..default()
         })
         .insert(Name::new("Weapon Locker"))
@@ -428,7 +446,6 @@ pub fn start_fake_level(
                     current_stack: 2,
                 })
                 .insert(FakeLevelStuff);
-
             parent
                 .spawn(PbrBundle {
                     mesh: loot_cube.clone(),
@@ -453,6 +470,25 @@ pub fn start_fake_level(
                 .insert(FakeLevelStuff)
                 .insert(Durability::default());
         });
+    // loot cache locked
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Cuboid::new(0.3, 0.3, 0.5)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::srgb(0.75, 0.0, 0.0),
+                base_color_texture: Some(texture_06.clone()),
+                ..Default::default()
+            }),
+            transform: Transform::from_xyz(-2.0, 0.15, 0.0),
+            ..default()
+        })
+        .insert(Name::new("Toolbox Locked"))
+        .insert(Inventory)
+        .insert(LootCacheState::Locked)
+        .insert(Lock { code: 123 })
+        .insert(Interactable)
+        .insert(ItemSlots(4))
+        .insert(FakeLevelStuff);
 
     // light
     commands

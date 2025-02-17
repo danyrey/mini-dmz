@@ -6,6 +6,7 @@ use crate::inventory::Inventory;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
+use bevy_inspector_egui::prelude::*;
 
 // Constants
 const NAME: &str = "lock";
@@ -17,6 +18,8 @@ impl Plugin for LockPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<Unlocked>()
             .add_event::<StillLocked>()
+            .register_type::<Key>()
+            .register_type::<Lock>()
             .add_systems(OnEnter(Raid), start_lock_system)
             .add_systems(
                 Update,
@@ -29,20 +32,22 @@ impl Plugin for LockPlugin {
 // Components
 
 #[allow(dead_code)]
-#[derive(Component)]
+#[derive(Component, Reflect, InspectorOptions)]
+#[reflect(Component, InspectorOptions)]
 pub struct Lock {
     pub code: u32,
 }
 
 #[allow(dead_code)]
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Reflect, InspectorOptions)]
+#[reflect(Component, InspectorOptions)]
 pub enum Key {
     RegularKey(RegularKey),
     SkeletonKey,
 }
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Reflect)]
 pub struct RegularKey {
     pub code: u32,
 }
