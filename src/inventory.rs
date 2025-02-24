@@ -22,9 +22,11 @@ impl Plugin for InventoryPlugin {
             .register_type::<ItemSlots>()
             .register_type::<WeaponSlot>()
             .register_type::<WeaponSlots>()
+            .register_type::<AccessToken>()
             .add_event::<StowLoot>()
             .add_event::<StowedLoot>()
             .add_event::<DropLoot>()
+            .add_event::<InventoryAccessed>()
             .add_systems(OnEnter(Raid), start_inventory_system)
             .add_systems(
                 Update,
@@ -39,6 +41,10 @@ impl Plugin for InventoryPlugin {
 
 #[derive(Component)]
 pub struct Inventory;
+
+#[derive(Component, Clone, Reflect, InspectorOptions)]
+#[reflect(Component, InspectorOptions)]
+pub struct AccessToken(Entity);
 
 /// number of item slots
 #[derive(Component, Clone, Reflect, InspectorOptions)]
@@ -83,6 +89,13 @@ pub struct StowedLoot {
 pub struct DropLoot {
     pub dropping_entity: Entity,
     pub loot: Entity,
+}
+
+#[derive(Event, Debug, PartialEq)]
+pub struct InventoryAccessed {
+    pub operator: Entity,
+    pub backpack: Entity,
+    pub inventory: Entity,
 }
 
 // Systems

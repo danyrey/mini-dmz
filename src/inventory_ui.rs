@@ -8,8 +8,10 @@ use bevy_inspector_egui::{inspector_options::ReflectInspectorOptions, InspectorO
 use crate::{
     backpack_summary::BackpackSummary,
     fake_level::Crosshair,
-    interaction::InventoryInteracted,
-    inventory::{Inventory, ItemSlot, ItemSlots, StowLoot, StowedLoot, WeaponSlot, WeaponSlots},
+    inventory::{
+        Inventory, InventoryAccessed, ItemSlot, ItemSlots, StowLoot, StowedLoot, WeaponSlot,
+        WeaponSlots,
+    },
     loot::{Durability, Loot, LootName, LootType, Price, Rarity, Stackable},
     raid::RaidState,
     wallet::Wallet,
@@ -254,23 +256,15 @@ fn startup_cursor_crosshair(
 }
 
 fn start_loot_cache_interaction(
-    mut loot_cache_interaction: EventReader<InventoryInteracted>,
+    mut loot_cache_access: EventReader<InventoryAccessed>,
     mut commands: Commands,
     raid_state: Res<State<RaidState>>,
     mut next_raid_state: ResMut<NextState<RaidState>>,
 ) {
-    // TODO: take loot cache states into consideration, for example locked loot caches need unlocking before becomming accessible
-    for interacted in loot_cache_interaction.read() {
-        debug!("i received the event, TODO: time to popluate the ui");
-        debug!("loot cache: {:?}", interacted.interaction_inventory);
-        debug!(
-            "operator inventory(backpack): {:?}",
-            interacted.operator_inventory
-        );
-
+    for accessed in loot_cache_access.read() {
         commands.insert_resource(LootCacheEntities {
-            loot_cache: interacted.interaction_inventory,
-            backpack: interacted.operator_inventory,
+            loot_cache: accessed.inventory,
+            backpack: accessed.backpack,
         });
 
         if raid_state.get() == &RaidState::Raid {

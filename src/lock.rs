@@ -23,9 +23,11 @@ impl Plugin for LockPlugin {
             .add_systems(OnEnter(Raid), start_lock_system)
             .add_systems(
                 Update,
-                (update_lock_system, unlock_system).run_if(in_state(AppState::Raid)),
-            )
-            .add_systems(OnExit(AppState::Raid), bye_lock_system);
+                (unlock_system)
+                    .chain()
+                    .run_if(in_state(AppState::Raid))
+                    .run_if(on_event::<Interact>()),
+            );
     }
 }
 
@@ -140,14 +142,6 @@ fn unlock_system(
             }
         }
     }
-}
-
-fn update_lock_system() {
-    debug!("updating {}", NAME);
-}
-
-fn bye_lock_system(mut _commands: Commands) {
-    debug!("stopping {}", NAME);
 }
 
 // helper functions

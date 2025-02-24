@@ -3,7 +3,8 @@ use bevy::math::bounding::{Aabb3d, RayCast3d};
 use bevy::render::primitives::{Aabb, Frustum};
 
 use crate::first_person_controller::FirstPersonCamera;
-use crate::inventory::Inventory;
+use crate::inventory::{Inventory, InventoryAccessed};
+use crate::loot::LootCacheState;
 use crate::raid::RaidState;
 use crate::AppState;
 use bevy::prelude::*;
@@ -111,24 +112,50 @@ fn interaction(
 }
 
 fn inventory_interaction(
+    mut commands: Commands,
     mut interaction_commands: EventReader<Interact>,
-    inventory_query: Query<(Entity, Option<&Parent>), With<Inventory>>,
+    interaction_inventory_query: Query<(Entity, &LootCacheState), With<Inventory>>,
+    backpack_query: Query<(Entity, &Parent), With<Inventory>>,
     mut inventory_interacted: EventWriter<InventoryInteracted>,
+    mut inventory_opened: EventWriter<InventoryAccessed>,
 ) {
     for command in interaction_commands.read() {
         // filter for commands on Inventory entities only
-        if let Ok((interaction_inventory, _)) = inventory_query.get(command.interaction_entity) {
-            inventory_query
+        if let Ok((interaction_inventory, loot_cache_state)) =
+            interaction_inventory_query.get(command.interaction_entity)
+        {
+            backpack_query
                 .iter()
-                .filter(|(_, parent)| parent.is_some())
-                .map(|(backpack, parent)| (backpack, parent.unwrap().get()))
+                .map(|(backpack, parent)| (backpack, parent.get()))
                 .filter(|(_, parent)| parent.eq(&command.operator_entity))
-                .for_each(|(operator_inventory, operator)| {
+                .for_each(|(backpack, operator)| {
+                    // this event we send regardless of locked inventories
                     inventory_interacted.send(InventoryInteracted {
                         interaction_inventory,
-                        operator_inventory,
+                        operator_inventory: backpack,
                         operator,
                     });
+                    // TODO: put in token so only one operator can access loot caches at once
+                    match loot_cache_state {
+                        LootCacheState::Closed => {
+                            commands
+                                .entity(interaction_inventory)
+                                .insert(LootCacheState::Open);
+                            inventory_opened.send(InventoryAccessed {
+                                operator,
+                                backpack,
+                                inventory: interaction_inventory,
+                            });
+                        }
+                        LootCacheState::Open => {
+                            inventory_opened.send(InventoryAccessed {
+                                operator,
+                                backpack,
+                                inventory: interaction_inventory,
+                            });
+                        }
+                        _ => (),
+                    }
                 });
         }
     }
