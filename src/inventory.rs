@@ -4,6 +4,7 @@ use std::ops::Range;
 use bevy::app::Plugin;
 use bevy_inspector_egui::prelude::*;
 
+use crate::lock::Lock;
 use crate::loot::{DroppedLoot, Loot, LootCacheState, LootType};
 use crate::wallet::StowMoney;
 use crate::AppState;
@@ -30,7 +31,12 @@ impl Plugin for InventoryPlugin {
             .add_systems(OnEnter(Raid), start_inventory_system)
             .add_systems(
                 Update,
-                (inventory_added, stow_loot_system, drop_loot_system)
+                (
+                    inventory_added,
+                    stow_loot_system,
+                    drop_loot_system,
+                    lock_removed,
+                )
                     .run_if(in_state(AppState::Raid)),
             )
             .add_systems(OnExit(AppState::Raid), bye_inventory_system);
@@ -320,6 +326,20 @@ fn drop_loot_system(
                         loot: c.loot,
                     });
                 };
+            }
+        }
+    }
+}
+
+fn lock_removed(
+    mut removed_locks: RemovedComponents<Lock>,
+    inventories: Query<&LootCacheState, With<Inventory>>,
+    mut commands: Commands,
+) {
+    for entity in removed_locks.read() {
+        if let Ok(loot_cache_state) = inventories.get(entity) {
+            if LootCacheState::Locked.eq(loot_cache_state) {
+                commands.entity(entity).insert(LootCacheState::Closed);
             }
         }
     }
