@@ -46,6 +46,11 @@ impl Plugin for ContractsPlugin {
 #[derive(Component, Copy, Clone, Debug, Eq, Hash, PartialEq, Reflect)]
 pub struct ContractId(pub u32);
 
+/// this access lock can be put on to limit access to only members of a contract
+#[allow(dead_code)]
+#[derive(Component, Copy, Clone, Debug, Eq, Hash, PartialEq, Reflect)]
+pub struct ContractAccessLock(pub ContractId);
+
 #[allow(dead_code)]
 #[derive(Component, Debug)]
 pub struct ContractPhone;
@@ -371,6 +376,8 @@ fn finished_secure_supply(
 }
 
 /// checks for squad/contract and removes spotlight/current marker and assign it to one remaining supply
+// TODO: decide where to implement the check for the current contract holder. InventoryInteracted
+// seems a bit late to do this. see ContractAccessLock component.
 #[allow(clippy::type_complexity)]
 fn secure_supplies_interacted(
     mut commands: Commands,

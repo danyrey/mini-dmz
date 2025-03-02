@@ -4,8 +4,10 @@ use std::ops::Range;
 use bevy::app::Plugin;
 use bevy_inspector_egui::prelude::*;
 
+use crate::interaction::{Interact, InventoryInteracted};
 use crate::lock::Lock;
 use crate::loot::{DroppedLoot, Loot, LootCacheState, LootType};
+use crate::raid::RaidState;
 use crate::wallet::StowMoney;
 use crate::AppState;
 use crate::AppState::Raid;
@@ -39,10 +41,63 @@ impl Plugin for InventoryPlugin {
                 )
                     .run_if(in_state(AppState::Raid)),
             )
-            .add_systems(OnExit(AppState::Raid), bye_inventory_system);
+            .add_systems(
+                Update,
+                (inventory_interaction)
+                    .run_if(in_state(AppState::Raid).and_then(in_state(RaidState::Raid))),
+            );
     }
 }
 
+fn inventory_interaction(
+    mut commands: Commands,
+    mut interaction_commands: EventReader<Interact>,
+    interaction_inventory_query: Query<(Entity, &LootCacheState), With<Inventory>>,
+    backpack_query: Query<(Entity, &Parent), With<Inventory>>,
+    mut inventory_interacted: EventWriter<InventoryInteracted>,
+    mut inventory_opened: EventWriter<InventoryAccessed>,
+) {
+    for command in interaction_commands.read() {
+        // filter for commands on Inventory entities only
+        if let Ok((interaction_inventory, loot_cache_state)) =
+            interaction_inventory_query.get(command.interaction_entity)
+        {
+            backpack_query
+                .iter()
+                .map(|(backpack, parent)| (backpack, parent.get()))
+                .filter(|(_, parent)| parent.eq(&command.operator_entity))
+                .for_each(|(backpack, operator)| {
+                    // this event we send regardless of locked inventories
+                    inventory_interacted.send(InventoryInteracted {
+                        interaction_inventory,
+                        operator_inventory: backpack,
+                        operator,
+                    });
+                    // TODO: put in token so only one operator can access loot caches at once
+                    match loot_cache_state {
+                        LootCacheState::Closed => {
+                            commands
+                                .entity(interaction_inventory)
+                                .insert(LootCacheState::Open);
+                            inventory_opened.send(InventoryAccessed {
+                                operator,
+                                backpack,
+                                inventory: interaction_inventory,
+                            });
+                        }
+                        LootCacheState::Open => {
+                            inventory_opened.send(InventoryAccessed {
+                                operator,
+                                backpack,
+                                inventory: interaction_inventory,
+                            });
+                        }
+                        _ => (),
+                    }
+                });
+        }
+    }
+}
 // Components
 
 #[derive(Component)]
@@ -336,17 +391,13 @@ fn lock_removed(
     inventories: Query<&LootCacheState, With<Inventory>>,
     mut commands: Commands,
 ) {
-    for entity in removed_locks.read() {
-        if let Ok(loot_cache_state) = inventories.get(entity) {
+    for inventory in removed_locks.read() {
+        if let Ok(loot_cache_state) = inventories.get(inventory) {
             if LootCacheState::Locked.eq(loot_cache_state) {
-                commands.entity(entity).insert(LootCacheState::Closed);
+                commands.entity(inventory).insert(LootCacheState::Closed);
             }
         }
     }
-}
-
-fn bye_inventory_system(mut _commands: Commands) {
-    debug!("stopping {}", NAME);
 }
 
 // helper functions
