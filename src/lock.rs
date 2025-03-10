@@ -26,7 +26,7 @@ impl Plugin for LockPlugin {
                 (unlock_system)
                     .chain()
                     .run_if(in_state(AppState::Raid))
-                    .run_if(on_event::<Interact>()),
+                    .run_if(on_event::<Interact>),
             );
     }
 }

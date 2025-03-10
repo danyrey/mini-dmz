@@ -112,13 +112,16 @@ pub enum DeployScreen {
 struct ButtonTargetState(AppState);
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle {
-        camera: Camera {
-            order: 1,
-            ..default()
-        },
-        ..Default::default()
-    });
+    commands.spawn(Camera2d);
+    /* TODO: not sure how to port the order attribute
+        commands.spawn(Camera2dBundle {
+            camera: Camera {
+                order: 1,
+                ..default()
+            },
+            ..Default::default()
+        });
+    */
 }
 
 fn main() {

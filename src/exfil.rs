@@ -251,40 +251,37 @@ pub struct Operator;
 fn start_exfil(mut commands: Commands) {
     debug!("starting exfil called");
     let exfil_button_entity = commands
-        .spawn(NodeBundle {
-            style: Style {
-                // center button
-                width: Val::Percent(80.),
-                height: Val::Percent(120.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            visibility: Visibility::Hidden,
+        .spawn(Node {
+            // center button
+            width: Val::Percent(80.),
+            height: Val::Percent(120.),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
             ..default()
         })
+        .insert(Visibility::Hidden)
         .with_children(|parent| {
             parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(150.),
-                        height: Val::Px(110.),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: NORMAL_BUTTON.into(),
+                .spawn(Button)
+                .insert(Node {
+                    width: Val::Px(150.),
+                    height: Val::Px(110.),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    ..default()
+                })
+                .insert(ImageNode {
+                    color: NORMAL_BUTTON.into(),
                     ..default()
                 })
                 .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "EXFIL",
-                        TextStyle {
+                    parent
+                        .spawn(Text::new("EXFIL"))
+                        .insert(TextFont {
                             font_size: 40.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
-                        },
-                    ));
+                        })
+                        .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
                 })
                 .insert(ButtonTargetState(StartScreen));
         })

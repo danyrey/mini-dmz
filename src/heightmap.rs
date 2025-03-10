@@ -1,7 +1,5 @@
 use bevy::app::Plugin;
-use bevy::render::texture::{
-    ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor,
-};
+use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
 
 use crate::AppState;
 use crate::AppState::Raid;
@@ -74,16 +72,14 @@ fn start_heightmap_system(mut commands: Commands, asset_server: Res<AssetServer>
 
     // terrain
     commands
-        .spawn(SceneBundle {
-            scene: asset_server
-                .load(GltfAssetLabel::Scene(0).from_asset("models/terrain/Mountains.gltf")),
-            transform: Transform {
-                scale: Vec3 {
-                    x: 16.0,
-                    y: 16.0,
-                    z: 16.0,
-                },
-                ..Default::default()
+        .spawn(SceneRoot(asset_server.load(
+            GltfAssetLabel::Scene(0).from_asset("models/terrain/Mountains.gltf"),
+        )))
+        .insert(Transform {
+            scale: Vec3 {
+                x: 16.0,
+                y: 16.0,
+                z: 16.0,
             },
             ..default()
         })

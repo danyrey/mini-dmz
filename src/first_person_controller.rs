@@ -35,7 +35,7 @@ impl Plugin for FirstPersonControllerPlugin {
             .add_systems(
                 Update,
                 (update_camera_look_yaw, update_camera_look_pitch)
-                    .run_if(in_state(AppState::Raid).and_then(in_state(RaidState::Raid))),
+                    .run_if(in_state(AppState::Raid).and(in_state(RaidState::Raid))),
             )
             .add_systems(OnExit(AppState::Raid), bye_first_person_controller_system);
     }
@@ -66,23 +66,21 @@ pub fn start_first_person_controller_system(
     let camera = commands
         .spawn(FirstPersonCamera)
         .insert(Name::new("FirstPersonCamera"))
-        .insert(Camera3dBundle {
-            transform: Transform::from_translation(operator_position)
-                .looking_at(operator_looking_at, Vec3::Y),
-            ..default()
-        })
+        .insert(Camera3d::default())
+        .insert(
+            Transform::from_translation(operator_position).looking_at(operator_looking_at, Vec3::Y),
+        )
         .id();
 
     let capsule = commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Capsule3d::new(0.25, 1.5)),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(meshes.add(Capsule3d::new(0.25, 1.5))),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: Color::srgb(0.0, 1.0, 0.0),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(0.0, 1.0, 0.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(0.0, 1.0, 0.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
+        ))
         .id();
 
     let transform = Transform::from_translation(Vec3::ZERO).looking_at(-Vec3::Z, Vec3::Y);
@@ -120,7 +118,7 @@ fn update_camera_move(
     mut query: Query<&mut Transform, (With<PlayerControlled>, With<Operator>)>,
 ) {
     debug!("updating {}", NAME);
-    let dt = time.delta_seconds();
+    let dt = time.delta_secs();
 
     if let Ok(mut transform) = query.get_single_mut() {
         let mut axis_input = Vec3::ZERO;

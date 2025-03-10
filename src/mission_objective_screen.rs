@@ -39,164 +39,144 @@ const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
 fn start_mission_objectives_screen(mut commands: Commands) {
     debug!("starting mission objectives screen");
     let missions_button_entity = commands
-        .spawn(NodeBundle {
-            style: Style {
-                // center button
-                width: Val::Percent(30.),
-                height: Val::Percent(120.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
+        .spawn(Node {
+            // center button
+            width: Val::Percent(30.),
+            height: Val::Percent(120.),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
             ..default()
         })
         .with_children(|parent| {
             parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(150.),
-                        height: Val::Px(110.),
-                        // horizontally center child text
-                        justify_content: JustifyContent::Center,
-                        // vertically center child text
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: NORMAL_BUTTON.into(),
+                .spawn(Button)
+                .insert(Node {
+                    width: Val::Px(150.),
+                    height: Val::Px(110.),
+                    // horizontally center child text
+                    justify_content: JustifyContent::Center,
+                    // vertically center child text
+                    align_items: AlignItems::Center,
+                    // TODO: redo
+                    //background_color: NORMAL_BUTTON.into(),
                     ..default()
                 })
                 .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "Missions",
-                        TextStyle {
+                    parent
+                        .spawn(Text::new("Missions"))
+                        .insert(TextFont {
                             font_size: 40.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
-                        },
-                    ));
+                        })
+                        .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
                 })
                 .insert(ButtonTargetState(MissionObjectives(Missions)));
         })
         .id();
 
     let upgrades_button_entity = commands
-        .spawn(NodeBundle {
-            style: Style {
-                // center button
-                width: Val::Percent(50.),
-                height: Val::Percent(120.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
+        .spawn(Node {
+            // center button
+            width: Val::Percent(50.),
+            height: Val::Percent(120.),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
             ..default()
         })
         .with_children(|parent| {
             parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(220.),
-                        height: Val::Px(110.),
-                        // horizontally center child text
-                        justify_content: JustifyContent::Center,
-                        // vertically center child text
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: NORMAL_BUTTON.into(),
+                .spawn(Button)
+                .insert(Node {
+                    width: Val::Px(220.),
+                    height: Val::Px(110.),
+                    // horizontally center child text
+                    justify_content: JustifyContent::Center,
+                    // vertically center child text
+                    align_items: AlignItems::Center,
+                    // TODO: redo
+                    //background_color: NORMAL_BUTTON.into(),
                     ..default()
                 })
                 .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "Upgrades",
-                        TextStyle {
+                    parent
+                        .spawn(Text::new("Upgrades"))
+                        .insert(TextFont {
                             font_size: 40.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
-                        },
-                    ));
+                        })
+                        .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
                 })
                 .insert(ButtonTargetState(MissionObjectives(Upgrades)));
         })
         .id();
 
     let location_objectives_button_entity = commands
-        .spawn(NodeBundle {
-            style: Style {
-                // center button
-                width: Val::Percent(80.),
-                height: Val::Percent(120.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
+        .spawn(Node {
+            // center button
+            width: Val::Percent(80.),
+            height: Val::Percent(120.),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
             ..default()
         })
         .with_children(|parent| {
             parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(220.),
-                        height: Val::Px(110.),
-                        // horizontally center child text
-                        justify_content: JustifyContent::Center,
-                        // vertically center child text
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: NORMAL_BUTTON.into(),
+                .spawn(Button)
+                .insert(Node {
+                    width: Val::Px(220.),
+                    height: Val::Px(110.),
+                    // horizontally center child text
+                    justify_content: JustifyContent::Center,
+                    // vertically center child text
+                    align_items: AlignItems::Center,
+                    // TODO: redo
+                    //background_color: NORMAL_BUTTON.into(),
                     ..default()
                 })
                 .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "Location Objectives",
-                        TextStyle {
+                    parent
+                        .spawn(Text::new("Location Objectives"))
+                        .insert(TextFont {
                             font_size: 40.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
-                        },
-                    ));
+                        })
+                        .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
                 })
                 .insert(ButtonTargetState(MissionObjectives(LocationObjectives)));
         })
         .id();
 
     let notes_button_entity = commands
-        .spawn(NodeBundle {
-            style: Style {
-                // center button
-                width: Val::Percent(110.),
-                height: Val::Percent(120.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
+        .spawn(Node {
+            // center button
+            width: Val::Percent(110.),
+            height: Val::Percent(120.),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
             ..default()
         })
         .with_children(|parent| {
             parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(220.),
-                        height: Val::Px(110.),
-                        // horizontally center child text
-                        justify_content: JustifyContent::Center,
-                        // vertically center child text
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: NORMAL_BUTTON.into(),
+                .spawn(Button)
+                .insert(Node {
+                    width: Val::Px(220.),
+                    height: Val::Px(110.),
+                    // horizontally center child text
+                    justify_content: JustifyContent::Center,
+                    // vertically center child text
+                    align_items: AlignItems::Center,
+                    // TODO: redo
+                    //background_color: NORMAL_BUTTON.into(),
                     ..default()
                 })
                 .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "Notes",
-                        TextStyle {
+                    parent
+                        .spawn(Text::new("Notes"))
+                        .insert(TextFont {
                             font_size: 40.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
-                        },
-                    ));
+                        })
+                        .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
                 })
                 .insert(ButtonTargetState(MissionObjectives(Notes)));
         })

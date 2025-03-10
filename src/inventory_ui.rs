@@ -1,6 +1,6 @@
 use bevy::{
     app::Plugin,
-    color::palettes::css::{DARK_GREY, GREY, MAROON, RED},
+    color::palettes::css::{MAROON, RED},
     window::PrimaryWindow,
 };
 use bevy_inspector_egui::{inspector_options::ReflectInspectorOptions, InspectorOptions};
@@ -88,7 +88,7 @@ impl Plugin for InventoryUIPlugin {
                     .run_if(in_state(AppState::Raid))
                     .run_if(in_state(RaidState::AccessLootCache))
                     .run_if(resource_exists::<LootCacheEntities>)
-                    .run_if(on_event::<StowedLoot>()),
+                    .run_if(on_event::<StowedLoot>),
             )
             .add_systems(
                 Update,
@@ -251,7 +251,7 @@ fn startup_cursor_crosshair(
 ) {
     let mut primary_window = windows.single_mut();
     let crosshair_vis = crosshair.single();
-    primary_window.cursor.visible = true;
+    primary_window.cursor_options.visible = true;
     commands.entity(crosshair_vis).insert(Visibility::Hidden);
 }
 
@@ -284,17 +284,14 @@ fn render_loot_cache_ui(
     // Layout
     // Top-level grid (app frame)
     commands
-        .spawn(NodeBundle {
-            style: Style {
-                display: Display::Flex,
-                flex_direction: FlexDirection::Column,
-                padding: UiRect {
-                    top: Val::Percent(10.),
-                    ..Default::default()
-                },
-                justify_self: JustifySelf::Center,
-                ..default()
+        .spawn(Node {
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+            padding: UiRect {
+                top: Val::Percent(10.),
+                ..Default::default()
             },
+            justify_self: JustifySelf::Center,
             ..default()
         })
         .insert(LootCacheUI)
@@ -302,43 +299,35 @@ fn render_loot_cache_ui(
         .with_children(|builder| {
             // Header
             builder
-                .spawn(NodeBundle {
-                    style: Style {
-                        display: Display::Flex,
-                        flex_direction: FlexDirection::Row,
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        padding: UiRect::all(Val::Px(12.0)),
-                        ..default()
-                    },
+                .spawn(Node {
+                    display: Display::Flex,
+                    flex_direction: FlexDirection::Row,
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    padding: UiRect::all(Val::Px(12.0)),
                     //background_color: DARK_GREEN.into(),
                     ..default()
                 })
                 .insert(Name::new("Loot Cache Header"))
                 .with_children(|builder| {
-                    builder.spawn(TextBundle::from_section(
-                        //"Loot Cache Header",
-                        loot_cache_name,
-                        TextStyle {
+                    builder
+                        .spawn(Text::new(loot_cache_name))
+                        .insert(TextFont {
                             font_size: 20.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
-                        },
-                    ));
+                        })
+                        .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
                 });
             // Main
             builder
-                .spawn(NodeBundle {
-                    style: Style {
-                        display: Display::Flex,
-                        flex_direction: FlexDirection::Row,
-                        justify_content: JustifyContent::Center,
-                        padding: UiRect::all(Val::Px(12.0)),
-                        border: UiRect {
-                            left: Val::Px(100.0),
-                            right: Val::Px(100.0),
-                            ..default()
-                        },
+                .spawn(Node {
+                    display: Display::Flex,
+                    flex_direction: FlexDirection::Row,
+                    justify_content: JustifyContent::Center,
+                    padding: UiRect::all(Val::Px(12.0)),
+                    border: UiRect {
+                        left: Val::Px(100.0),
+                        right: Val::Px(100.0),
                         ..default()
                     },
                     //background_color: GREEN.into(),
@@ -482,17 +471,14 @@ fn render_backpack_ui(
     // Layout
     // Top-level grid (app frame)
     commands
-        .spawn(NodeBundle {
-            style: Style {
-                display: Display::Flex,
-                flex_direction: FlexDirection::Column,
-                padding: UiRect {
-                    top: Val::Percent(25.),
-                    ..Default::default()
-                },
-                justify_self: JustifySelf::Center,
-                ..default()
+        .spawn(Node {
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+            padding: UiRect {
+                top: Val::Percent(25.),
+                ..Default::default()
             },
+            justify_self: JustifySelf::Center,
             ..default()
         })
         .insert(BackpackUI)
@@ -500,44 +486,36 @@ fn render_backpack_ui(
         .with_children(|builder| {
             // Header
             builder
-                .spawn(NodeBundle {
-                    style: Style {
-                        display: Display::Flex,
-                        flex_direction: FlexDirection::Row,
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        padding: UiRect::all(Val::Px(12.0)),
-                        ..default()
-                    },
-                    //background_color: DARK_GREEN.into(),
+                .spawn(Node {
+                    display: Display::Flex,
+                    flex_direction: FlexDirection::Row,
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    padding: UiRect::all(Val::Px(12.0)),
                     ..default()
                 })
                 .insert(Name::new("Backpack Header"))
                 // TODO: include backpack summary into the header
                 .with_children(|builder| {
                     let label = format!("{} (${})", backpack_name, backpack_summary_value);
-                    builder.spawn(TextBundle::from_section(
-                        label,
-                        TextStyle {
+                    builder
+                        .spawn(Text::new(label))
+                        .insert(TextFont {
                             font_size: 20.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
-                        },
-                    ));
+                        })
+                        .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
                 });
             // Main
             builder
-                .spawn(NodeBundle {
-                    style: Style {
-                        display: Display::Flex,
-                        flex_direction: FlexDirection::Row,
-                        justify_content: JustifyContent::Center,
-                        padding: UiRect::all(Val::Px(12.0)),
-                        border: UiRect {
-                            left: Val::Px(100.0),
-                            right: Val::Px(100.0),
-                            ..default()
-                        },
+                .spawn(Node {
+                    display: Display::Flex,
+                    flex_direction: FlexDirection::Row,
+                    justify_content: JustifyContent::Center,
+                    padding: UiRect::all(Val::Px(12.0)),
+                    border: UiRect {
+                        left: Val::Px(100.0),
+                        right: Val::Px(100.0),
                         ..default()
                     },
                     //background_color: GREEN.into(),
@@ -685,65 +663,52 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
     // Layout
     // Top-level grid (app frame)
     let loadout_ui = commands
-        .spawn(NodeBundle {
-            style: Style {
-                display: Display::Grid,
-                flex_direction: FlexDirection::Column,
-                padding: UiRect {
-                    top: Val::Percent(40.),
-                    //left: Val::Percent(20.),
-                    //right: Val::Percent(20.),
-                    ..Default::default()
-                },
-                justify_self: JustifySelf::Center,
-                ..default()
+        .spawn(Node {
+            display: Display::Grid,
+            flex_direction: FlexDirection::Column,
+            padding: UiRect {
+                top: Val::Percent(40.),
+                //left: Val::Percent(20.),
+                //right: Val::Percent(20.),
+                ..Default::default()
             },
-            //background_color: BLUE.into(),
+            justify_self: JustifySelf::Center,
             ..default()
         })
         .insert(Name::new("Main Loadout Layout"))
         .with_children(|builder| {
             // Header
             builder
-                .spawn(NodeBundle {
-                    style: Style {
-                        display: Display::Flex,
-                        flex_direction: FlexDirection::Row,
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        padding: UiRect::all(Val::Px(12.0)),
-                        ..default()
-                    },
-                    //background_color: DARK_GREEN.into(),
+                .spawn(Node {
+                    display: Display::Flex,
+                    flex_direction: FlexDirection::Row,
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    padding: UiRect::all(Val::Px(12.0)),
                     ..default()
                 })
                 .insert(Name::new("Loadout Header"))
                 .with_children(|builder| {
-                    builder.spawn(TextBundle::from_section(
-                        "Loadout Header",
-                        TextStyle {
+                    builder
+                        .spawn(Text::new("Loadout Header"))
+                        .insert(TextFont {
                             font_size: 20.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
-                        },
-                    ));
+                        })
+                        .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
                 });
             // Main
             builder
-                .spawn(NodeBundle {
-                    style: Style {
-                        display: Display::Flex,
-                        flex_direction: FlexDirection::Row,
-                        justify_content: JustifyContent::Center,
-                        padding: UiRect::all(Val::Px(12.0)),
-                        border: UiRect {
-                            left: Val::Px(50.0),
-                            right: Val::Px(50.0),
-                            ..default()
-                        },
+                .spawn(Node {
+                    display: Display::Flex,
+                    flex_direction: FlexDirection::Row,
+                    justify_content: JustifyContent::Center,
+                    padding: UiRect::all(Val::Px(12.0)),
+                    border: UiRect {
+                        left: Val::Px(50.0),
+                        right: Val::Px(50.0),
                         ..default()
                     },
-                    //background_color: GREEN.into(),
                     ..default()
                 })
                 .insert(Name::new("Loadout Main"))
@@ -751,18 +716,16 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                     // WEAPON SLOT 1
                     builder
                         .spawn((
-                            NodeBundle {
-                                style: Style {
-                                    width: Val::Px(100.),
-                                    height: Val::Px(50.),
-                                    border: UiRect::all(Val::Px(10.)),
-                                    margin: UiRect::all(Val::Px(20.)),
-                                    align_items: AlignItems::Center,
-                                    justify_content: JustifyContent::Center,
-                                    ..Default::default()
-                                },
-                                background_color: MAROON.into(),
-                                border_color: RED.into(),
+                            Node {
+                                width: Val::Px(100.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                // TODO: how to customize styling here?
+                                //background_color: MAROON.into(),
+                                //border_color: RED.into(),
                                 ..Default::default()
                             },
                             Outline {
@@ -776,18 +739,16 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                     // WEAPON SLOT 2
                     builder
                         .spawn((
-                            NodeBundle {
-                                style: Style {
-                                    width: Val::Px(100.),
-                                    height: Val::Px(50.),
-                                    border: UiRect::all(Val::Px(10.)),
-                                    margin: UiRect::all(Val::Px(20.)),
-                                    align_items: AlignItems::Center,
-                                    justify_content: JustifyContent::Center,
-                                    ..Default::default()
-                                },
-                                background_color: MAROON.into(),
-                                border_color: RED.into(),
+                            Node {
+                                width: Val::Px(100.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                // TODO: how to customize styling here?
+                                //background_color: MAROON.into(),
+                                //border_color: RED.into(),
                                 ..Default::default()
                             },
                             Outline {
@@ -801,18 +762,16 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                     // WALLET/MONEY SLOT
                     builder
                         .spawn((
-                            NodeBundle {
-                                style: Style {
-                                    width: Val::Px(50.),
-                                    height: Val::Px(50.),
-                                    border: UiRect::all(Val::Px(10.)),
-                                    margin: UiRect::all(Val::Px(20.)),
-                                    align_items: AlignItems::Center,
-                                    justify_content: JustifyContent::Center,
-                                    ..Default::default()
-                                },
-                                background_color: MAROON.into(),
-                                border_color: RED.into(),
+                            Node {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                // TODO: how to customize styling here?
+                                //background_color: MAROON.into(),
+                                //border_color: RED.into(),
                                 ..Default::default()
                             },
                             Outline {
@@ -826,18 +785,16 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                     // TACTICAL SLOT
                     builder
                         .spawn((
-                            NodeBundle {
-                                style: Style {
-                                    width: Val::Px(50.),
-                                    height: Val::Px(50.),
-                                    border: UiRect::all(Val::Px(10.)),
-                                    margin: UiRect::all(Val::Px(20.)),
-                                    align_items: AlignItems::Center,
-                                    justify_content: JustifyContent::Center,
-                                    ..Default::default()
-                                },
-                                background_color: MAROON.into(),
-                                border_color: RED.into(),
+                            Node {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                // TODO: how to customize styling here?
+                                //background_color: MAROON.into(),
+                                //border_color: RED.into(),
                                 ..Default::default()
                             },
                             Outline {
@@ -851,18 +808,16 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                     // LETHAL SLOT
                     builder
                         .spawn((
-                            NodeBundle {
-                                style: Style {
-                                    width: Val::Px(50.),
-                                    height: Val::Px(50.),
-                                    border: UiRect::all(Val::Px(10.)),
-                                    margin: UiRect::all(Val::Px(20.)),
-                                    align_items: AlignItems::Center,
-                                    justify_content: JustifyContent::Center,
-                                    ..Default::default()
-                                },
-                                background_color: MAROON.into(),
-                                border_color: RED.into(),
+                            Node {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                // TODO: how to customize styling here?
+                                //background_color: MAROON.into(),
+                                //border_color: RED.into(),
                                 ..Default::default()
                             },
                             Outline {
@@ -876,18 +831,16 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                     // FIELD UPGRADE SLOT
                     builder
                         .spawn((
-                            NodeBundle {
-                                style: Style {
-                                    width: Val::Px(50.),
-                                    height: Val::Px(50.),
-                                    border: UiRect::all(Val::Px(10.)),
-                                    margin: UiRect::all(Val::Px(20.)),
-                                    align_items: AlignItems::Center,
-                                    justify_content: JustifyContent::Center,
-                                    ..Default::default()
-                                },
-                                background_color: MAROON.into(),
-                                border_color: RED.into(),
+                            Node {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                // TODO: how to customize styling here?
+                                //background_color: MAROON.into(),
+                                //border_color: RED.into(),
                                 ..Default::default()
                             },
                             Outline {
@@ -901,18 +854,16 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                     // KILLSTREAK SLOT
                     builder
                         .spawn((
-                            NodeBundle {
-                                style: Style {
-                                    width: Val::Px(50.),
-                                    height: Val::Px(50.),
-                                    border: UiRect::all(Val::Px(10.)),
-                                    margin: UiRect::all(Val::Px(20.)),
-                                    align_items: AlignItems::Center,
-                                    justify_content: JustifyContent::Center,
-                                    ..Default::default()
-                                },
-                                background_color: MAROON.into(),
-                                border_color: RED.into(),
+                            Node {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                // TODO: how to customize styling here?
+                                //background_color: MAROON.into(),
+                                //border_color: RED.into(),
                                 ..Default::default()
                             },
                             Outline {
@@ -925,18 +876,16 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                     // PLATE SLOT
                     builder
                         .spawn((
-                            NodeBundle {
-                                style: Style {
-                                    width: Val::Px(50.),
-                                    height: Val::Px(50.),
-                                    border: UiRect::all(Val::Px(10.)),
-                                    margin: UiRect::all(Val::Px(20.)),
-                                    align_items: AlignItems::Center,
-                                    justify_content: JustifyContent::Center,
-                                    ..Default::default()
-                                },
-                                background_color: MAROON.into(),
-                                border_color: RED.into(),
+                            Node {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                // TODO: how to customize styling here?
+                                //background_color: MAROON.into(),
+                                //border_color: RED.into(),
                                 ..Default::default()
                             },
                             Outline {
@@ -949,18 +898,16 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                     // MASK SLOT
                     builder
                         .spawn((
-                            NodeBundle {
-                                style: Style {
-                                    width: Val::Px(50.),
-                                    height: Val::Px(50.),
-                                    border: UiRect::all(Val::Px(10.)),
-                                    margin: UiRect::all(Val::Px(20.)),
-                                    align_items: AlignItems::Center,
-                                    justify_content: JustifyContent::Center,
-                                    ..Default::default()
-                                },
-                                background_color: MAROON.into(),
-                                border_color: RED.into(),
+                            Node {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                // TODO: how to customize styling here?
+                                //background_color: MAROON.into(),
+                                //border_color: RED.into(),
                                 ..Default::default()
                             },
                             Outline {
@@ -973,18 +920,16 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                     // REVIVE SLOT
                     builder
                         .spawn((
-                            NodeBundle {
-                                style: Style {
-                                    width: Val::Px(50.),
-                                    height: Val::Px(50.),
-                                    border: UiRect::all(Val::Px(10.)),
-                                    margin: UiRect::all(Val::Px(20.)),
-                                    align_items: AlignItems::Center,
-                                    justify_content: JustifyContent::Center,
-                                    ..Default::default()
-                                },
-                                background_color: MAROON.into(),
-                                border_color: RED.into(),
+                            Node {
+                                width: Val::Px(50.),
+                                height: Val::Px(50.),
+                                border: UiRect::all(Val::Px(10.)),
+                                margin: UiRect::all(Val::Px(20.)),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                // TODO: how to customize styling here?
+                                //background_color: MAROON.into(),
+                                //border_color: RED.into(),
                                 ..Default::default()
                             },
                             Outline {
@@ -1247,7 +1192,7 @@ fn cleanup_cursor_crosshair(
 ) {
     let mut primary_window = windows.single_mut();
     let crosshair_vis = crosshair.single();
-    primary_window.cursor.visible = false;
+    primary_window.cursor_options.visible = false;
     commands.entity(crosshair_vis).insert(Visibility::Visible);
 }
 
@@ -1273,18 +1218,16 @@ fn bye_loadout_ui(mut commands: Commands, loadout_ui: Res<LoadoutUI>) {
 // helper functions
 fn create_empty_weapon_slot_ui(builder: &mut ChildBuilder) {
     builder.spawn((
-        NodeBundle {
-            style: Style {
-                width: Val::Px(100.),
-                height: Val::Px(50.),
-                border: UiRect::all(Val::Px(10.)),
-                margin: UiRect::all(Val::Px(20.)),
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                ..Default::default()
-            },
-            background_color: DARK_GREY.into(),
-            border_color: GREY.into(),
+        Node {
+            width: Val::Px(100.),
+            height: Val::Px(50.),
+            border: UiRect::all(Val::Px(10.)),
+            margin: UiRect::all(Val::Px(20.)),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            // TODO: how to customize styling here?
+            //background_color: DARK_GREY.into(),
+            //border_color: GREY.into(),
             ..Default::default()
         },
         Outline {
@@ -1299,18 +1242,17 @@ fn create_weapon_slot_ui(builder: &mut ChildBuilder, weapon: Weapon, ui: Invento
     // TODO: there must be a better way, this fugly
     let label: String = weapon.name.map(|x| x.0.clone()).unwrap_or("".to_string());
     let mut ui_weapon = builder.spawn((
-        ButtonBundle {
-            style: Style {
-                width: Val::Px(100.),
-                height: Val::Px(50.),
-                border: UiRect::all(Val::Px(10.)),
-                margin: UiRect::all(Val::Px(20.)),
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                ..default()
-            },
-            border_color: RED.into(),
-            background_color: NORMAL_BUTTON.into(),
+        Button,
+        Node {
+            width: Val::Px(100.),
+            height: Val::Px(50.),
+            border: UiRect::all(Val::Px(10.)),
+            margin: UiRect::all(Val::Px(20.)),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            // TODO: redo
+            //border_color: RED.into(),
+            //background_color: NORMAL_BUTTON.into(),
             ..default()
         },
         Outline {
@@ -1321,14 +1263,13 @@ fn create_weapon_slot_ui(builder: &mut ChildBuilder, weapon: Weapon, ui: Invento
     ));
 
     ui_weapon.with_children(|parent| {
-        parent.spawn(TextBundle::from_section(
-            label,
-            TextStyle {
+        parent
+            .spawn(Text::new(label))
+            .insert(TextFont {
                 font_size: 8.0,
-                color: Color::srgb(0.9, 0.9, 0.9),
                 ..default()
-            },
-        ));
+            })
+            .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
     });
 
     ui_weapon.insert(EntityReference(weapon.entity));
@@ -1343,19 +1284,17 @@ fn create_weapon_slot_ui(builder: &mut ChildBuilder, weapon: Weapon, ui: Invento
 fn create_wallet_slot_ui(builder: &mut ChildBuilder, wallet_value: u32, ui: InventoryUI) {
     // TODO: there must be a better way, this fugly
     let mut ui_item = builder.spawn((
-        ButtonBundle {
-            style: Style {
-                width: Val::Px(50.),
-                height: Val::Px(50.),
-                border: UiRect::all(Val::Px(10.)),
-                margin: UiRect::all(Val::Px(20.)),
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                ..default()
-            },
-            border_color: RED.into(),
+        Button,
+        Node {
+            width: Val::Px(50.),
+            height: Val::Px(50.),
+            border: UiRect::all(Val::Px(10.)),
+            margin: UiRect::all(Val::Px(20.)),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            //border_color: RED.into(),
             // same as rare items (gold)
-            background_color: RARE_COLOR.into(),
+            //background_color: RARE_COLOR.into(),
             ..default()
         },
         Outline {
@@ -1367,244 +1306,200 @@ fn create_wallet_slot_ui(builder: &mut ChildBuilder, wallet_value: u32, ui: Inve
 
     ui_item.with_children(|parent| {
         parent
-            .spawn(NodeBundle {
-                style: Style {
-                    // Make the height of the node fill its parent
-                    height: Val::Percent(100.0),
-                    // Make the grid have a 1:1 aspect ratio meaning it will scale as an exact square
-                    // As the height is set explicitly, this means the width will adjust to match the height
-                    aspect_ratio: Some(1.0),
-                    // Use grid layout for this node
-                    display: Display::Grid,
-                    // Set the grid to have 3 columns all with sizes minmax(0, 1fr)
-                    // This creates 3 exactly evenly sized columns
-                    grid_template_columns: RepeatedGridTrack::flex(3, 1.0),
-                    // Set the grid to have 3 rows all with sizes minmax(0, 1fr)
-                    // This creates 3 exactly evenly sized rows
-                    grid_template_rows: RepeatedGridTrack::flex(3, 1.0),
-                    //border: UiRect::all(Val::Px(1.)),
-                    ..default()
-                },
+            .spawn(Node {
+                // Make the height of the node fill its parent
+                height: Val::Percent(100.0),
+                // Make the grid have a 1:1 aspect ratio meaning it will scale as an exact square
+                // As the height is set explicitly, this means the width will adjust to match the height
+                aspect_ratio: Some(1.0),
+                // Use grid layout for this node
+                display: Display::Grid,
+                // Set the grid to have 3 columns all with sizes minmax(0, 1fr)
+                // This creates 3 exactly evenly sized columns
+                grid_template_columns: RepeatedGridTrack::flex(3, 1.0),
+                // Set the grid to have 3 rows all with sizes minmax(0, 1fr)
+                // This creates 3 exactly evenly sized rows
+                grid_template_rows: RepeatedGridTrack::flex(3, 1.0),
+                //border: UiRect::all(Val::Px(1.)),
                 //border_color: Color::WHITE.into(),
                 ..default()
             })
             .with_children(|parent| {
                 // TOP
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::FlexStart,
-                            justify_content: JustifyContent::FlexStart,
-                            //border: UiRect::all(Val::Px(1.)),
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::FlexStart,
+                        justify_content: JustifyContent::FlexStart,
+                        //border: UiRect::all(Val::Px(1.)),
                         //border_color: Color::BLACK.into(),
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                String::from(""),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Left),
-                        );
-                    });
-
-                parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::Center,
-                            justify_content: JustifyContent::FlexStart,
-                            ..default()
-                        },
-                        ..default()
-                    })
-                    .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                String::from(""),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.1, 0.1, 0.1),
-                                    ..default()
-                                },
-                            )
-                            .with_style(Style {
-                                position_type: PositionType::Relative,
-                                bottom: Val::Percent(200.0),
+                        parent
+                            .spawn(Text::new(String::from("")))
+                            // TODO: how to translate JustifyText to Justify*?
+                            //.insert(JustifySelf::Start)
+                            .insert(TextFont {
+                                font_size: 8.0,
                                 ..default()
                             })
-                            .with_background_color(Color::srgb(1.0, 1.0, 1.0))
-                            .with_text_justify(JustifyText::Center),
-                        );
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
+                        // TODO: how to justify now?
+                        //.with_text_justify(JustifyText::Left),
                     });
 
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::FlexEnd,
-                            justify_content: JustifyContent::FlexStart,
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::Center,
+                        justify_content: JustifyContent::FlexStart,
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                String::from(""),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Right),
-                        );
+                        parent
+                            .spawn(Text::new(String::from("")))
+                            .insert(TextFont {
+                                font_size: 8.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.1, 0.1, 0.1)));
+                        // TODO: styling needs to be redone postfix
+                        /*
+                                                    .with_style(Style {
+                                                        position_type: PositionType::Relative,
+                                                        bottom: Val::Percent(200.0),
+                                                        ..default()
+                                                    })
+                                                    .with_background_color(Color::srgb(1.0, 1.0, 1.0))
+                                                    .with_text_justify(JustifyText::Center),
+                        */
+                    });
+
+                parent
+                    .spawn(Node {
+                        align_content: AlignContent::FlexEnd,
+                        justify_content: JustifyContent::FlexStart,
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent
+                            .spawn(Text::new(String::from("")))
+                            .insert(TextFont {
+                                font_size: 8.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
+                        // TODO: redo
+                        //.with_text_justify(JustifyText::Right),
                     });
 
                 // MIDDLE
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::FlexStart,
-                            justify_content: JustifyContent::Center,
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::FlexStart,
+                        justify_content: JustifyContent::Center,
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                String::from(""),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Left),
-                        );
+                        parent
+                            .spawn(Text::new(String::from("")))
+                            .insert(TextFont {
+                                font_size: 8.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
+                        // TODO: redo
+                        //.with_text_justify(JustifyText::Left),
                     });
 
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::Center,
-                            justify_content: JustifyContent::Center,
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::Center,
+                        justify_content: JustifyContent::Center,
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                String::from("$"),
-                                TextStyle {
-                                    font_size: 16.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Center),
-                        );
+                        parent
+                            .spawn(Text::new(String::from("$")))
+                            .insert(TextFont {
+                                font_size: 16.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
+                        // TODO: redo
+                        //.with_text_justify(JustifyText::Center),
                     });
 
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::FlexEnd,
-                            justify_content: JustifyContent::Center,
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::FlexEnd,
+                        justify_content: JustifyContent::Center,
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                String::from(""),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Right),
-                        );
+                        parent
+                            .spawn(Text::new(String::from("")))
+                            .insert(TextFont {
+                                font_size: 8.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
+                        // TODO: redo
+                        //.with_text_justify(JustifyText::Right),
                     });
 
                 // BOTTOM
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::FlexStart,
-                            justify_content: JustifyContent::FlexEnd,
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::FlexStart,
+                        justify_content: JustifyContent::FlexEnd,
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                String::from(""),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Left),
-                        );
+                        parent
+                            .spawn(Text::new(String::from("")))
+                            .insert(TextFont {
+                                font_size: 8.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
+                        // TODO: redo
+                        //.with_text_justify(JustifyText::Left),
                     });
 
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::Center,
-                            justify_content: JustifyContent::FlexEnd,
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::Center,
+                        justify_content: JustifyContent::FlexEnd,
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                String::from(""),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Center),
-                        );
+                        parent
+                            .spawn(Text::new(String::from("")))
+                            .insert(TextFont {
+                                font_size: 8.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
+                        // TODO: redo
+                        //.with_text_justify(JustifyText::Center),
                     });
 
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::FlexEnd,
-                            justify_content: JustifyContent::FlexEnd,
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::FlexEnd,
+                        justify_content: JustifyContent::FlexEnd,
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                wallet_value.to_string(),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.0),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Right),
-                        );
+                        parent
+                            .spawn(Text::new(wallet_value.to_string()))
+                            .insert(TextFont {
+                                font_size: 8.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.0)));
+                        // TODO: redo
+                        //.with_text_justify(JustifyText::Right),
                     });
             });
     });
@@ -1617,18 +1512,16 @@ fn create_wallet_slot_ui(builder: &mut ChildBuilder, wallet_value: u32, ui: Inve
 
 fn create_empty_item_slot_ui(builder: &mut ChildBuilder) {
     builder.spawn((
-        NodeBundle {
-            style: Style {
-                width: Val::Px(50.),
-                height: Val::Px(50.),
-                border: UiRect::all(Val::Px(10.)),
-                margin: UiRect::all(Val::Px(20.)),
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                ..Default::default()
-            },
-            background_color: DARK_GREY.into(),
-            border_color: GREY.into(),
+        Node {
+            width: Val::Px(50.),
+            height: Val::Px(50.),
+            border: UiRect::all(Val::Px(10.)),
+            margin: UiRect::all(Val::Px(20.)),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            // TODO: how to do this now?
+            //background_color: DARK_GREY.into(),
+            //border_color: GREY.into(),
             ..Default::default()
         },
         Outline {
@@ -1647,26 +1540,27 @@ fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) 
         .map(|x| x.current_stack.to_string())
         .unwrap_or("".to_string());
     let mut ui_item = builder.spawn((
-        ButtonBundle {
-            style: Style {
-                width: Val::Px(50.),
-                height: Val::Px(50.),
-                border: UiRect::all(Val::Px(10.)),
-                margin: UiRect::all(Val::Px(20.)),
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                ..default()
-            },
-            border_color: RED.into(),
-            background_color: {
-                match item.rarity {
-                    Some(r) => match r {
-                        Rarity::Regular => NORMAL_BUTTON.into(),
-                        Rarity::Rare => RARE_COLOR.into(),
-                    },
-                    None => NORMAL_BUTTON.into(),
-                }
-            },
+        Button,
+        Node {
+            width: Val::Px(50.),
+            height: Val::Px(50.),
+            border: UiRect::all(Val::Px(10.)),
+            margin: UiRect::all(Val::Px(20.)),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            // TODO: how to do this now?
+            /*
+                        border_color: RED.into(),
+                        background_color: {
+                            match item.rarity {
+                                Some(r) => match r {
+                                    Rarity::Regular => NORMAL_BUTTON.into(),
+                                    Rarity::Rare => RARE_COLOR.into(),
+                                },
+                                None => NORMAL_BUTTON.into(),
+                            }
+                        },
+            */
             ..default()
         },
         Outline {
@@ -1678,255 +1572,201 @@ fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) 
 
     ui_item.with_children(|parent| {
         parent
-            .spawn(NodeBundle {
-                style: Style {
-                    // Make the height of the node fill its parent
-                    height: Val::Percent(100.0),
-                    // Make the grid have a 1:1 aspect ratio meaning it will scale as an exact square
-                    // As the height is set explicitly, this means the width will adjust to match the height
-                    aspect_ratio: Some(1.0),
-                    // Use grid layout for this node
-                    display: Display::Grid,
-                    // Set the grid to have 3 columns all with sizes minmax(0, 1fr)
-                    // This creates 3 exactly evenly sized columns
-                    grid_template_columns: RepeatedGridTrack::flex(3, 1.0),
-                    // Set the grid to have 3 rows all with sizes minmax(0, 1fr)
-                    // This creates 3 exactly evenly sized rows
-                    grid_template_rows: RepeatedGridTrack::flex(3, 1.0),
-                    //border: UiRect::all(Val::Px(1.)),
-                    ..default()
-                },
+            .spawn(Node {
+                // Make the height of the node fill its parent
+                height: Val::Percent(100.0),
+                // Make the grid have a 1:1 aspect ratio meaning it will scale as an exact square
+                // As the height is set explicitly, this means the width will adjust to match the height
+                aspect_ratio: Some(1.0),
+                // Use grid layout for this node
+                display: Display::Grid,
+                // Set the grid to have 3 columns all with sizes minmax(0, 1fr)
+                // This creates 3 exactly evenly sized columns
+                grid_template_columns: RepeatedGridTrack::flex(3, 1.0),
+                // Set the grid to have 3 rows all with sizes minmax(0, 1fr)
+                // This creates 3 exactly evenly sized rows
+                grid_template_rows: RepeatedGridTrack::flex(3, 1.0),
+                //border: UiRect::all(Val::Px(1.)),
                 //border_color: Color::WHITE.into(),
                 ..default()
             })
             .with_children(|parent| {
                 // TOP
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::FlexStart,
-                            justify_content: JustifyContent::FlexStart,
-                            //border: UiRect::all(Val::Px(1.)),
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::FlexStart,
+                        justify_content: JustifyContent::FlexStart,
+                        //border: UiRect::all(Val::Px(1.)),
                         //border_color: Color::BLACK.into(),
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                //String::from("1"),
-                                String::from(""),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Left),
-                        );
-                    });
-
-                parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::Center,
-                            justify_content: JustifyContent::FlexStart,
-                            //border: UiRect::all(Val::Px(1.)),
-                            ..default()
-                        },
-                        //border_color: Color::BLACK.into(),
-                        ..default()
-                    })
-                    .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                label,
-                                //String::from("2"),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.1, 0.1, 0.1),
-                                    //color: Color::srgb(0.9, 0.9, 0.9),
-                                    ..default()
-                                },
-                            )
-                            .with_style(Style {
-                                position_type: PositionType::Relative,
-                                bottom: Val::Percent(200.0),
+                        parent
+                            .spawn(Text::new(String::from("")))
+                            .insert(TextFont {
+                                font_size: 8.0,
                                 ..default()
                             })
-                            .with_background_color(Color::srgb(1.0, 1.0, 1.0))
-                            .with_text_justify(JustifyText::Center),
-                        );
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
+                        //TODO: redo
+                        //.with_text_justify(JustifyText::Left),
                     });
 
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::FlexEnd,
-                            justify_content: JustifyContent::FlexStart,
-                            //border: UiRect::all(Val::Px(1.)),
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::Center,
+                        justify_content: JustifyContent::FlexStart,
+                        //border: UiRect::all(Val::Px(1.)),
                         //border_color: Color::BLACK.into(),
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                //String::from("3"),
-                                stack_label,
-                                //String::from(""),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Right),
-                        );
+                        parent
+                            .spawn(Text::new(label))
+                            .insert(TextFont {
+                                font_size: 8.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.1, 0.1, 0.1)));
+                        //TODO: redo
+                        /*
+                                                    .with_style(Style {
+                                                        position_type: PositionType::Relative,
+                                                        bottom: Val::Percent(200.0),
+                                                        ..default()
+                                                    })
+                                                    .with_background_color(Color::srgb(1.0, 1.0, 1.0))
+                                                    .with_text_justify(JustifyText::Center),
+                        */
+                    });
+
+                parent
+                    .spawn(Node {
+                        align_content: AlignContent::FlexEnd,
+                        justify_content: JustifyContent::FlexStart,
+                        //border: UiRect::all(Val::Px(1.)),
+                        //border_color: Color::BLACK.into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        parent
+                            .spawn(Text::new(stack_label))
+                            .insert(TextFont {
+                                font_size: 8.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
+                        //TODO: redo
+                        //.with_text_justify(JustifyText::Right),
                     });
 
                 // MIDDLE
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::FlexStart,
-                            justify_content: JustifyContent::Center,
-                            //border: UiRect::all(Val::Px(1.)),
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::FlexStart,
+                        justify_content: JustifyContent::Center,
+                        //border: UiRect::all(Val::Px(1.)),
                         //border_color: Color::BLACK.into(),
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                //String::from("4"),
-                                String::from(""),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Left),
-                        );
+                        parent
+                            .spawn(Text::new(String::from("")))
+                            .insert(TextFont {
+                                font_size: 8.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
+                        // TODO: redo
+                        //.with_text_justify(JustifyText::Left),
                     });
 
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::Center,
-                            justify_content: JustifyContent::Center,
-                            //border: UiRect::all(Val::Px(1.)),
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::Center,
+                        justify_content: JustifyContent::Center,
+                        //border: UiRect::all(Val::Px(1.)),
                         //border_color: Color::BLACK.into(),
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                //String::from("5"),
-                                String::from(""),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Center),
-                        );
+                        parent
+                            .spawn(Text::new(String::from("")))
+                            .insert(TextFont {
+                                font_size: 8.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
+                        // TODO: redo
+                        //.with_text_justify(JustifyText::Center),
                     });
 
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::FlexEnd,
-                            justify_content: JustifyContent::Center,
-                            //border: UiRect::all(Val::Px(1.)),
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::FlexEnd,
+                        justify_content: JustifyContent::Center,
+                        //border: UiRect::all(Val::Px(1.)),
                         //border_color: Color::BLACK.into(),
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                //String::from("6"),
-                                String::from(""),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Right),
-                        );
+                        parent
+                            .spawn(Text::new(String::from("")))
+                            .insert(TextFont {
+                                font_size: 8.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
+                        // TODO: redo
+                        //.with_text_justify(JustifyText::Right),
                     });
 
                 // BOTTOM
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::FlexStart,
-                            justify_content: JustifyContent::FlexEnd,
-                            //border: UiRect::all(Val::Px(1.)),
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::FlexStart,
+                        justify_content: JustifyContent::FlexEnd,
+                        //border: UiRect::all(Val::Px(1.)),
                         //border_color: Color::BLACK.into(),
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                //String::from("7"),
-                                String::from(""),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Left),
-                        );
+                        parent
+                            .spawn(Text::new(String::from("")))
+                            .insert(TextFont {
+                                font_size: 8.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
+                        // TODO: redo
+                        //.with_text_justify(JustifyText::Left),
                     });
 
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::Center,
-                            justify_content: JustifyContent::FlexEnd,
-                            //border: UiRect::all(Val::Px(1.)),
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::Center,
+                        justify_content: JustifyContent::FlexEnd,
+                        //border: UiRect::all(Val::Px(1.)),
                         //border_color: Color::BLACK.into(),
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                //String::from("8"),
-                                String::from(""),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.9),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Center),
-                        );
+                        parent
+                            .spawn(Text::new(String::from("")))
+                            .insert(TextFont {
+                                font_size: 8.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
+                        // TODO: redo
+                        //.with_text_justify(JustifyText::Center),
                     });
 
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_content: AlignContent::FlexEnd,
-                            justify_content: JustifyContent::FlexEnd,
-                            //border: UiRect::all(Val::Px(1.)),
-                            ..default()
-                        },
+                    .spawn(Node {
+                        align_content: AlignContent::FlexEnd,
+                        justify_content: JustifyContent::FlexEnd,
+                        //border: UiRect::all(Val::Px(1.)),
                         //border_color: Color::BLACK.into(),
                         ..default()
                     })
@@ -1937,19 +1777,15 @@ fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) 
                             .or(item.durability.map(|d| format!("%{}", d.current)))
                             .unwrap_or(String::from(""));
 
-                        parent.spawn(
-                            TextBundle::from_section(
-                                label,
-                                //format!("${}", price.0),
-                                //String::from("9"),
-                                TextStyle {
-                                    font_size: 8.0,
-                                    color: Color::srgb(0.9, 0.9, 0.0),
-                                    ..default()
-                                },
-                            )
-                            .with_text_justify(JustifyText::Right),
-                        );
+                        parent
+                            .spawn(Text::new(label))
+                            .insert(TextFont {
+                                font_size: 8.0,
+                                ..default()
+                            })
+                            .insert(TextColor(Color::srgb(0.9, 0.9, 0.0)));
+                        // TODO: redo
+                        //.with_text_justify(JustifyText::Right),
                     });
             });
     });

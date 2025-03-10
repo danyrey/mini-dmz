@@ -88,7 +88,7 @@ fn start_raid(mut commands: Commands, mut q_windows: Query<&mut Window, With<Pri
 
     // if you want to use the cursor, but not let it leave the window,
     // use `Confined` mode:
-    primary_window.cursor.grab_mode = CursorGrabMode::Confined;
+    primary_window.cursor_options.grab_mode = CursorGrabMode::Confined;
 
     // for a game that doesn't use the cursor (like a shooter):
     // use `Locked` mode to keep the cursor in one place
@@ -115,8 +115,8 @@ fn bye_raid(
 ) {
     let mut primary_window = q_windows.single_mut();
 
-    primary_window.cursor.grab_mode = CursorGrabMode::None;
-    primary_window.cursor.visible = true;
+    primary_window.cursor_options.grab_mode = CursorGrabMode::None;
+    primary_window.cursor_options.visible = true;
 
     debug!("exiting raid called");
     for entity in &query {

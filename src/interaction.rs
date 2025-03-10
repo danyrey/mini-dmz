@@ -19,7 +19,7 @@ impl Plugin for InteractionPlugin {
             .add_event::<Interact>()
             .add_systems(
                 Update,
-                (interaction).run_if(in_state(AppState::Raid).and_then(in_state(RaidState::Raid))),
+                (interaction).run_if(in_state(AppState::Raid).and(in_state(RaidState::Raid))),
             );
     }
 }

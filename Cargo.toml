@@ -1,13 +1,13 @@
 [package]
 name = "mini-dmz"
-version = "0.1.9"
+version = "0.1.10"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.14"
-bevy-inspector-egui = "0.26"
+bevy = "0.15"
+bevy-inspector-egui = "0.28"
 # below: hardcoded version of :
 # cargo run --features bevy/dynamic_linking
 # TODO test features with 0.13

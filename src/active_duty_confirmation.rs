@@ -38,32 +38,22 @@ fn start_active_duty_confirmation_screen(mut commands: Commands) {
     // Layout
     // Top-level grid (app frame)
     let location_layout = commands
-        .spawn(NodeBundle {
-            style: Style {
-                display: Display::Grid,
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                grid_template_columns: vec![GridTrack::auto()],
-                grid_template_rows: vec![
-                    GridTrack::auto(),
-                    GridTrack::flex(1.0),
-                    GridTrack::px(20.),
-                ],
-                ..default()
-            },
+        .spawn(Node {
+            display: Display::Grid,
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            grid_template_columns: vec![GridTrack::auto()],
+            grid_template_rows: vec![GridTrack::auto(), GridTrack::flex(1.0), GridTrack::px(20.)],
             ..default()
         })
         .insert(Name::new("Main Layout"))
         .with_children(|builder| {
             // Header
             builder
-                .spawn(NodeBundle {
-                    style: Style {
-                        display: Display::Grid,
-                        justify_items: JustifyItems::Center,
-                        padding: UiRect::all(Val::Px(12.0)),
-                        ..default()
-                    },
+                .spawn(Node {
+                    display: Display::Grid,
+                    justify_items: JustifyItems::Center,
+                    padding: UiRect::all(Val::Px(12.0)),
                     ..default()
                 })
                 .insert(Name::new("Header"))
@@ -77,14 +67,11 @@ fn start_active_duty_confirmation_screen(mut commands: Commands) {
                 });
             // Main
             builder
-                .spawn(NodeBundle {
-                    style: Style {
-                        display: Display::Grid,
-                        justify_items: JustifyItems::Center,
-                        padding: UiRect::all(Val::Px(12.0)),
-                        grid_template_columns: RepeatedGridTrack::flex(4, 1.0),
-                        ..default()
-                    },
+                .spawn(Node {
+                    display: Display::Grid,
+                    justify_items: JustifyItems::Center,
+                    padding: UiRect::all(Val::Px(12.0)),
+                    grid_template_columns: RepeatedGridTrack::flex(4, 1.0),
                     ..default()
                 })
                 .insert(Name::new("Main"))
@@ -158,14 +145,13 @@ fn bye_active_duty_confirmation_screen(
 
 // helper functions
 fn spawn_nested_text_bundle(builder: &mut ChildBuilder, font_size: f32, text: &str) {
-    builder.spawn(TextBundle::from_section(
-        text,
-        TextStyle {
+    builder
+        .spawn(Text::new(text))
+        .insert(TextFont {
             font_size,
-            color: Color::srgb(0.9, 0.9, 0.9),
             ..default()
-        },
-    ));
+        })
+        .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
 }
 
 fn button_bundle(
@@ -175,40 +161,38 @@ fn button_bundle(
     button_target_state: ButtonTargetState,
 ) {
     builder
-        .spawn(NodeBundle {
-            style: Style {
-                width: Val::Percent(100.),
-                height: Val::Percent(100.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
+        .spawn(Node {
+            width: Val::Percent(100.),
+            height: Val::Percent(100.),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
             ..default()
         })
         .insert(button_name_component.clone())
         .with_children(|parent| {
             parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(150.),
-                        height: Val::Px(110.),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: NORMAL_BUTTON.into(),
+                .spawn(Button)
+                // TODO: according to migration guide to 0.15 UiImage should be used for background colors. not sure if this here is correct
+                .insert(ImageNode {
+                    color: NORMAL_BUTTON.into(),
+                    ..default()
+                })
+                .insert(Node {
+                    width: Val::Px(150.),
+                    height: Val::Px(110.),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
                     ..default()
                 })
                 .insert(button_name_component)
                 .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        button_text,
-                        TextStyle {
+                    parent
+                        .spawn(Text::new(button_text))
+                        .insert(TextFont {
                             font_size: 40.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
-                        },
-                    ));
+                        })
+                        .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
                 })
                 .insert(button_target_state);
         });

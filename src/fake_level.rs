@@ -19,11 +19,9 @@ use crate::squad::SquadId;
 use crate::wallet::Money;
 use crate::AppState;
 use crate::AppState::Raid;
+use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
 use bevy::math::Affine2;
 use bevy::prelude::*;
-use bevy::render::texture::{
-    ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor,
-};
 use bevy::window::{CursorGrabMode, PrimaryWindow};
 
 // Plugin
@@ -110,48 +108,43 @@ pub fn start_fake_level(
     let disc_size = 8.0;
 
     commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Circle::new(disc_size)),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(meshes.add(Circle::new(disc_size))),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
                 base_color: Color::WHITE,
                 uv_transform: Affine2::from_scale(Vec2::new(2. * disc_size, 2. * disc_size)),
                 ..Default::default()
-            }),
-            transform: Transform::from_rotation(Quat::from_rotation_x(
-                -std::f32::consts::FRAC_PI_2,
-            )),
-            ..default()
-        })
+            })),
+            Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2)),
+        ))
         .insert(Name::new("Disc"))
         .insert(FakeLevelStuff);
     // cube 1
     commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
                 base_color: Color::srgb(1.0, 1.0, 0.0),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(2.0, 0.5, 2.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(2.0, 0.5, 2.0),
+        ))
         .insert(ExfilArea(String::from("Exfil1")))
         .insert(Name::new("Exfil1"))
         .insert(FakeLevelStuff);
     // cube 2
     commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
                 base_color: Color::srgb(1.0, 1.0, 0.0),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(4.0, 0.5, 5.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(4.0, 0.5, 5.0),
+        ))
         .insert(ExfilArea(String::from("Exfil2")))
         .insert(Name::new("Exfil2"))
         .insert(HurtBox(bevy::math::bounding::Aabb3d {
@@ -182,17 +175,16 @@ pub fn start_fake_level(
     //scale_uv(enemy_mesh, enemy_cube_size_x, enemy_cube_size_y);
 
     commands
-        .spawn(PbrBundle {
-            mesh: enemy_cube,
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(enemy_cube),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
                 base_color: Color::srgb(1.0, 1.0, 1.0),
                 uv_transform: Affine2::from_scale(Vec2::new(enemy_cube_size_x, enemy_cube_size_y)),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(5.0, 1.0, 5.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(5.0, 1.0, 5.0),
+        ))
         .insert(Enemy)
         .insert(Name::new("Enemy1"))
         .insert(Ghost)
@@ -216,9 +208,9 @@ pub fn start_fake_level(
     let capsule_radius = 0.25;
 
     commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Capsule3d::new(capsule_radius, capsule_height)),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(meshes.add(Capsule3d::new(capsule_radius, capsule_height))),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
                 base_color: Color::srgb(0.75, 0.0, 0.0),
                 uv_transform: Affine2::from_scale(Vec2::new(
@@ -226,10 +218,9 @@ pub fn start_fake_level(
                     capsule_height + (2.0 * capsule_radius),
                 )),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(3.5, 1.0, 5.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(3.5, 1.0, 5.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
+        ))
         .insert(Enemy)
         .insert(Name::new("Enemy2"))
         .insert(Zombie)
@@ -240,35 +231,34 @@ pub fn start_fake_level(
     let loot_cube = meshes.add(Cuboid::new(loot_cube_size, loot_cube_size, loot_cube_size));
 
     commands
-        .spawn(PbrBundle {
-            mesh: loot_cube.clone(),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(loot_cube.clone()),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
                 base_color: Color::srgb(0.5, 0.75, 0.0),
                 uv_transform: Affine2::from_scale(Vec2::new(loot_cube_size, loot_cube_size)),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(6.0, 1.1, -2.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(6.0, 1.1, -2.0),
+        ))
         .insert(Name::new("Toolbox Key"))
         .insert(Loot)
         .insert(Interactable)
         .insert(LootName(String::from("Toolbox Key")))
         .insert(Key::RegularKey(crate::lock::RegularKey { code: 123 }))
         .insert(LootType::Key);
+
     commands
-        .spawn(PbrBundle {
-            mesh: loot_cube.clone(),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(loot_cube.clone()),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color_texture: Some(texture_06.clone()),
                 base_color: Color::srgb(0.0, 1.0, 0.0),
                 uv_transform: Affine2::from_scale(Vec2::new(loot_cube_size, loot_cube_size)),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(5.0, 1.1, -2.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(5.0, 1.1, -2.0),
+        ))
         .insert(Name::new("Loot1"))
         .insert(Loot)
         .insert(Interactable)
@@ -280,19 +270,19 @@ pub fn start_fake_level(
             current_stack: 1,
         })
         .insert(FakeLevelStuff);
+
     // loot cube 2
     commands
-        .spawn(PbrBundle {
-            mesh: loot_cube.clone(),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(loot_cube.clone()),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: Color::srgb(0.0, 1.0, 0.0),
                 base_color_texture: Some(texture_06.clone()),
                 uv_transform: Affine2::from_scale(Vec2::new(loot_cube_size, loot_cube_size)),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(4.0, 1.1, -2.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(4.0, 1.1, -2.0),
+        ))
         .insert(Name::new("Loot2"))
         .insert(Loot)
         .insert(Interactable)
@@ -304,38 +294,38 @@ pub fn start_fake_level(
             max: 100,
             current: 99,
         });
+
     // loot cube 3
     commands
-        .spawn(PbrBundle {
-            mesh: loot_cube.clone(),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(loot_cube.clone()),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: Color::srgb(0.0, 0.75, 0.0),
                 base_color_texture: Some(texture_06.clone()),
                 uv_transform: Affine2::from_scale(Vec2::new(loot_cube_size, loot_cube_size)),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(3.0, 0.1, -2.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(3.0, 0.1, -2.0),
+        ))
         .insert(Name::new("Loot3"))
         .insert(Loot)
         .insert(Interactable)
         .insert(LootName(String::from("P890")))
         .insert(LootType::Weapon)
         .insert(FakeLevelStuff);
+
     // loot cube 4
     commands
-        .spawn(PbrBundle {
-            mesh: loot_cube.clone(),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(loot_cube.clone()),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: Color::srgb(0.0, 1.0, 0.0),
                 base_color_texture: Some(texture_06.clone()),
                 uv_transform: Affine2::from_scale(Vec2::new(loot_cube_size, loot_cube_size)),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(2.0, 0.1, -2.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(2.0, 0.1, -2.0),
+        ))
         .insert(Name::new("Loot4"))
         .insert(LootName(String::from("Harddrive")))
         .insert(LootType::Item(ItemType::Item))
@@ -346,50 +336,50 @@ pub fn start_fake_level(
             current_stack: 1,
         })
         .insert(FakeLevelStuff);
+
     // sell station
     commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(0.3, 0.6, 0.5)),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(meshes.add(Cuboid::new(0.3, 0.6, 0.5))),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: Color::srgb(0.5, 0.5, 1.0),
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(-4.0, 0.3, 2.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(-4.0, 0.3, 2.0),
+        ))
         .insert(Name::new("Sellstation"))
         .insert(Interactable)
         .insert(FakeLevelStuff);
+
     // loot cache 1
     commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(0.3, 0.3, 0.5)),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(meshes.add(Cuboid::new(0.3, 0.3, 0.5))),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: Color::srgb(0.0, 0.0, 0.75),
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(-4.0, 0.15, 0.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(-4.0, 0.15, 0.0),
+        ))
         .insert(Name::new("Toolbox"))
         .insert(Inventory)
         .insert(Interactable)
         .insert(ItemSlots(4))
         .insert(FakeLevelStuff);
+
     // loot cache 2
     commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(0.4, 2.0, 1.0)),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(meshes.add(Cuboid::new(0.4, 2.0, 1.0))),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: Color::srgb(0.0, 0.0, 0.75),
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(-3.0, 1.0, 0.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(-3.0, 1.0, 0.0),
+        ))
         .insert(Name::new("Weapon Locker"))
         .insert(Inventory)
         .insert(Interactable)
@@ -398,9 +388,9 @@ pub fn start_fake_level(
         .insert(FakeLevelStuff)
         .with_children(|parent| {
             parent
-                .spawn(PbrBundle {
-                    mesh: loot_cube.clone(),
-                    material: materials.add(StandardMaterial {
+                .spawn((
+                    Mesh3d(loot_cube.clone()),
+                    MeshMaterial3d(materials.add(StandardMaterial {
                         base_color: Color::srgb(0.0, 1.0, 1.0),
                         base_color_texture: Some(texture_06.clone()),
                         uv_transform: Affine2::from_scale(Vec2::new(
@@ -408,10 +398,9 @@ pub fn start_fake_level(
                             loot_cube_size,
                         )),
                         ..Default::default()
-                    }),
-                    visibility: Visibility::Visible,
-                    ..default()
-                })
+                    })),
+                    Visibility::Visible,
+                ))
                 .insert(Name::new("WeaponLockerLoot1"))
                 .insert(Loot)
                 .insert(Interactable)
@@ -420,9 +409,9 @@ pub fn start_fake_level(
                 .insert(LootType::Weapon)
                 .insert(FakeLevelStuff);
             parent
-                .spawn(PbrBundle {
-                    mesh: loot_cube.clone(),
-                    material: materials.add(StandardMaterial {
+                .spawn((
+                    Mesh3d(loot_cube.clone()),
+                    MeshMaterial3d(materials.add(StandardMaterial {
                         base_color_texture: Some(texture_06.clone()),
                         base_color: Color::srgb(0.0, 1.0, 0.0),
                         uv_transform: Affine2::from_scale(Vec2::new(
@@ -430,10 +419,9 @@ pub fn start_fake_level(
                             loot_cube_size,
                         )),
                         ..Default::default()
-                    }),
-                    visibility: Visibility::Visible,
-                    ..default()
-                })
+                    })),
+                    Visibility::Visible,
+                ))
                 .insert(Name::new("WeaponLockerLoot2"))
                 .insert(Loot)
                 .insert(Interactable)
@@ -447,9 +435,9 @@ pub fn start_fake_level(
                 })
                 .insert(FakeLevelStuff);
             parent
-                .spawn(PbrBundle {
-                    mesh: loot_cube.clone(),
-                    material: materials.add(StandardMaterial {
+                .spawn((
+                    Mesh3d(loot_cube.clone()),
+                    MeshMaterial3d(materials.add(StandardMaterial {
                         base_color: Color::srgb(0.0, 1.0, 0.0),
                         base_color_texture: Some(texture_06.clone()),
                         uv_transform: Affine2::from_scale(Vec2::new(
@@ -457,9 +445,8 @@ pub fn start_fake_level(
                             loot_cube_size,
                         )),
                         ..Default::default()
-                    }),
-                    ..default()
-                })
+                    })),
+                ))
                 .insert(Name::new("Durable Gasmask"))
                 .insert(Loot)
                 .insert(Interactable)
@@ -470,18 +457,18 @@ pub fn start_fake_level(
                 .insert(FakeLevelStuff)
                 .insert(Durability::default());
         });
+
     // loot cache locked
     commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(0.3, 0.3, 0.5)),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(meshes.add(Cuboid::new(0.3, 0.3, 0.5))),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: Color::srgb(0.75, 0.0, 0.0),
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(-2.0, 0.15, 0.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(-2.0, 0.15, 0.0),
+        ))
         .insert(Name::new("Toolbox Locked"))
         .insert(Inventory)
         .insert(LootCacheState::Locked)
@@ -492,30 +479,26 @@ pub fn start_fake_level(
 
     // light
     commands
-        .spawn(PointLightBundle {
-            point_light: PointLight {
-                shadows_enabled: true,
-                ..default()
-            },
-            transform: Transform::from_xyz(4.0, 8.0, 4.0),
+        .spawn(PointLight {
+            shadows_enabled: true,
             ..default()
         })
+        .insert(Transform::from_xyz(4.0, 8.0, 4.0))
         .insert(Name::new("PointyLight"))
         .insert(FakeLevelStuff);
 
     // money
     commands
-        .spawn(PbrBundle {
-            mesh: loot_cube.clone(),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(loot_cube.clone()),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: Color::srgb(0.8, 1.0, 0.0),
                 base_color_texture: Some(texture_06.clone()),
                 uv_transform: Affine2::from_scale(Vec2::new(loot_cube_size, loot_cube_size)),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(5.0, 1.1, -3.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(5.0, 1.1, -3.0),
+        ))
         .insert(Name::new("Dineros"))
         .insert(Loot)
         .insert(Interactable)
@@ -528,16 +511,15 @@ pub fn start_fake_level(
     // contract phone
     // TODO: setup resources and link it to this contract phone
     commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(0.05, 0.15, 0.01)),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(meshes.add(Cuboid::new(0.05, 0.15, 0.01))),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: Color::srgb(1.0, 1.0, 0.0),
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(16.0, 1.35, 2.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(16.0, 1.35, 2.0),
+        ))
         .insert(Name::new("ContractPhone"))
         .insert(Interactable)
         .insert(ContractPhone)
@@ -547,16 +529,15 @@ pub fn start_fake_level(
 
     // supply contract loot cache 1
     commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(1.0, 0.5, 0.5)),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(meshes.add(Cuboid::new(1.0, 0.5, 0.5))),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: Color::srgb(0.0, 0.0, 0.75),
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(16.0, 0.25, 10.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(16.0, 0.25, 10.0),
+        ))
         .insert(Name::new("SupplyContractBox1"))
         .insert(Inventory)
         .insert(LootCacheState::Locked)
@@ -566,9 +547,9 @@ pub fn start_fake_level(
         .insert(FakeLevelStuff)
         .with_children(|parent| {
             parent
-                .spawn(PbrBundle {
-                    mesh: loot_cube.clone(),
-                    material: materials.add(StandardMaterial {
+                .spawn((
+                    Mesh3d(loot_cube.clone()),
+                    MeshMaterial3d(materials.add(StandardMaterial {
                         base_color: Color::srgb(0.0, 1.0, 0.0),
                         base_color_texture: Some(texture_06.clone()),
                         uv_transform: Affine2::from_scale(Vec2::new(
@@ -576,9 +557,8 @@ pub fn start_fake_level(
                             loot_cube_size,
                         )),
                         ..Default::default()
-                    }),
-                    ..default()
-                })
+                    })),
+                ))
                 .insert(ItemSlot(0))
                 .insert(Name::new("Durable Gasmask"))
                 .insert(Loot)
@@ -592,16 +572,15 @@ pub fn start_fake_level(
 
     // supply contract loot cache 2
     commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(1.0, 0.5, 0.5)),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(meshes.add(Cuboid::new(1.0, 0.5, 0.5))),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: Color::srgb(0.0, 0.0, 0.75),
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(18.0, 0.25, 10.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(18.0, 0.25, 10.0),
+        ))
         .insert(Name::new("SupplyContractBox2"))
         .insert(Inventory)
         .insert(LootCacheState::Locked)
@@ -609,18 +588,18 @@ pub fn start_fake_level(
         .insert(ContractId(123))
         .insert(ItemSlots(4))
         .insert(FakeLevelStuff);
+
     // supply contract loot cache 3
     commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::new(1.0, 0.5, 0.5)),
-            material: materials.add(StandardMaterial {
+        .spawn((
+            Mesh3d(meshes.add(Cuboid::new(1.0, 0.5, 0.5))),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: Color::srgb(0.0, 0.0, 0.75),
                 base_color_texture: Some(texture_06.clone()),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(20.0, 0.25, 10.0),
-            ..default()
-        })
+            })),
+            Transform::from_xyz(20.0, 0.25, 10.0),
+        ))
         .insert(Name::new("SupplyContractBox3"))
         .insert(Inventory)
         .insert(LootCacheState::Locked)
@@ -633,27 +612,26 @@ pub fn start_fake_level(
 fn start_fake_level_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     // ui
     commands
-        .spawn(NodeBundle {
-            transform: Transform::from_xyz(0.0, 0.0, 10.0),
-            style: Style {
-                position_type: PositionType::Absolute,
-                ..default()
-            },
-            visibility: Visibility::Hidden,
+        .spawn(Node {
+            position_type: PositionType::Absolute,
             ..default()
         })
+        .insert(Transform::from_xyz(0.0, 0.0, 10.0))
+        .insert(Visibility::Hidden)
         .insert(Name::new("Crosshair POC"))
         .insert(FakeLevelStuff)
         .insert(Crosshair)
         .with_children(|parent| {
-            parent.spawn(SpriteBundle {
-                texture: asset_server.load("textures/crosshair.png"),
-                sprite: Sprite {
-                    custom_size: Some(Vec2 { x: 18.0, y: 18.0 }),
-                    ..default()
-                },
-                ..default()
-            });
+            parent.spawn(Sprite::from_image(
+                asset_server.load("textures/crosshair.png"),
+            ));
+            // TODO: how to do scale by 2 in 0.15
+            /*
+                        parent.spawn(Sprite {
+                            custom_size: Some(Vec2 { x: 18.0, y: 18.0 }),
+                            ..default()
+                        });
+            */
         });
 }
 
@@ -677,15 +655,14 @@ fn add_inventory_to_operators(
         debug!("found one added operator: {:?}", added);
         // backpack/inventory cube
         commands
-            .spawn(PbrBundle {
-                mesh: meshes.add(Cuboid::new(0.4, 0.5, 0.25)),
-                material: materials.add(StandardMaterial {
+            .spawn((
+                Mesh3d(meshes.add(Cuboid::new(0.4, 0.5, 0.25))),
+                MeshMaterial3d(materials.add(StandardMaterial {
                     base_color: Color::srgb(0.0, 0.75, 0.0),
                     ..Default::default()
-                }),
-                transform: Transform::from_xyz(0.0, 1.5, 0.25),
-                ..default()
-            })
+                })),
+                Transform::from_xyz(0.0, 1.5, 0.25),
+            ))
             .insert(Name::new("Large Backpack"))
             .insert(Inventory)
             .insert(ItemSlots(9))
@@ -748,21 +725,21 @@ fn manage_cursor(
     let crosshair_vis = crosshair.single();
 
     if key_input.pressed(KeyCode::F9) {
-        primary_window.cursor.visible = false;
+        primary_window.cursor_options.visible = false;
         commands.entity(crosshair_vis).insert(Visibility::Visible);
     }
 
     if key_input.pressed(KeyCode::F10) {
-        primary_window.cursor.visible = true;
+        primary_window.cursor_options.visible = true;
         commands.entity(crosshair_vis).insert(Visibility::Hidden);
     }
 
     if key_input.pressed(KeyCode::F11) {
-        primary_window.cursor.grab_mode = CursorGrabMode::Confined;
+        primary_window.cursor_options.grab_mode = CursorGrabMode::Confined;
     }
 
     if key_input.pressed(KeyCode::F12) {
-        primary_window.cursor.grab_mode = CursorGrabMode::None;
+        primary_window.cursor_options.grab_mode = CursorGrabMode::None;
     }
 }
 

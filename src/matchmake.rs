@@ -65,32 +65,22 @@ fn start_matchmake_screen(mut commands: Commands) {
     // Layout
     // Top-level grid (app frame)
     let location_layout = commands
-        .spawn(NodeBundle {
-            style: Style {
-                display: Display::Grid,
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                grid_template_columns: vec![GridTrack::auto()],
-                grid_template_rows: vec![
-                    GridTrack::auto(),
-                    GridTrack::flex(1.0),
-                    GridTrack::px(20.),
-                ],
-                ..default()
-            },
+        .spawn(Node {
+            display: Display::Grid,
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            grid_template_columns: vec![GridTrack::auto()],
+            grid_template_rows: vec![GridTrack::auto(), GridTrack::flex(1.0), GridTrack::px(20.)],
             ..default()
         })
         .insert(Name::new("Main Layout"))
         .with_children(|builder| {
             // Header
             builder
-                .spawn(NodeBundle {
-                    style: Style {
-                        display: Display::Grid,
-                        justify_items: JustifyItems::Center,
-                        padding: UiRect::all(Val::Px(12.0)),
-                        ..default()
-                    },
+                .spawn(Node {
+                    display: Display::Grid,
+                    justify_items: JustifyItems::Center,
+                    padding: UiRect::all(Val::Px(12.0)),
                     ..default()
                 })
                 .insert(Name::new("Header"))
@@ -100,14 +90,11 @@ fn start_matchmake_screen(mut commands: Commands) {
                 });
             // Main
             builder
-                .spawn(NodeBundle {
-                    style: Style {
-                        display: Display::Grid,
-                        justify_items: JustifyItems::Center,
-                        padding: UiRect::all(Val::Px(12.0)),
-                        grid_template_columns: RepeatedGridTrack::flex(4, 1.0),
-                        ..default()
-                    },
+                .spawn(Node {
+                    display: Display::Grid,
+                    justify_items: JustifyItems::Center,
+                    padding: UiRect::all(Val::Px(12.0)),
+                    grid_template_columns: RepeatedGridTrack::flex(4, 1.0),
                     ..default()
                 })
                 .insert(Name::new("Main"))
@@ -239,26 +226,21 @@ fn start_matchmake_in_progress_screen(
     debug!("starting matchmake in progress screen");
     event_counter.0 = 0;
     let matchmake_messagebox_entity = commands
-        .spawn(NodeBundle {
-            style: Style {
-                flex_direction: FlexDirection::Column,
-                justify_content: JustifyContent::SpaceBetween,
-                align_items: AlignItems::Start,
-                flex_grow: 1.,
-                margin: UiRect::axes(Val::Px(15.), Val::Px(5.)),
-                ..default()
-            },
+        .spawn(Node {
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::SpaceBetween,
+            align_items: AlignItems::Start,
+            flex_grow: 1.,
+            margin: UiRect::axes(Val::Px(15.), Val::Px(5.)),
             ..default()
         })
         .with_children(|builder| {
             builder
-                .spawn(TextBundle::from_section(
-                    "",
-                    TextStyle {
-                        font_size: 30.0,
-                        ..default()
-                    },
-                ))
+                .spawn(Text::new(""))
+                .insert(TextFont {
+                    font_size: 30.0,
+                    ..default()
+                })
                 .insert(MessageTextMarker);
         })
         .id();
@@ -339,11 +321,12 @@ fn update_fake_matchmake_server(
 #[allow(clippy::type_complexity)]
 fn matchmaking_started_listener(
     mut event: EventReader<MatchmakingStarted>,
-    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
+    query: Query<Entity, (With<Text>, With<MessageTextMarker>)>,
+    mut writer: TextUiWriter,
 ) {
     for _ev in event.read() {
-        for mut text in &mut query {
-            text.sections[0].value = "CONNECTING".to_string();
+        for entity in query.iter() {
+            *writer.text(entity, 0) = "CONNECTING".to_string();
             debug!("matchmaking started. connecting.");
         }
     }
@@ -352,12 +335,13 @@ fn matchmaking_started_listener(
 #[allow(clippy::type_complexity)]
 fn matchmaking_update_listener(
     mut event: EventReader<MatchmakingUpdate>,
-    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
+    query: Query<Entity, (With<Text>, With<MessageTextMarker>)>,
+    mut writer: TextUiWriter,
 ) {
     for ev in event.read() {
         let e = ev.0;
-        for mut text in &mut query {
-            text.sections[0].value = format!("SEARCHING FOR A MATCH <{:?}MS PING", e);
+        for entity in query.iter() {
+            *writer.text(entity, 0) = format!("SEARCHING FOR A MATCH <{:?}MS PING", e);
             debug!("matchmaking updated. searching for ping <{:?}ms", e);
         }
     }
@@ -366,11 +350,12 @@ fn matchmaking_update_listener(
 #[allow(clippy::type_complexity)]
 fn match_found_listener(
     mut event: EventReader<MatchFound>,
-    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
+    query: Query<Entity, (With<Text>, With<MessageTextMarker>)>,
+    mut writer: TextUiWriter,
 ) {
     for _ev in event.read() {
-        for mut text in &mut query {
-            text.sections[0].value = "CONNECTING".to_string();
+        for entity in query.iter() {
+            *writer.text(entity, 0) = "CONNECTING".to_string();
             debug!("match found. connecting");
         }
     }
@@ -378,20 +363,21 @@ fn match_found_listener(
 
 fn players_found_listener(
     mut event: EventReader<PlayersFoundUpdate>,
-    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
+    query: Query<Entity, (With<Text>, With<MessageTextMarker>)>,
+    mut writer: TextUiWriter,
 ) {
     // TODO: hardcoded for now, make this dynamic later
     let max_num_players = 30;
     for ev in event.read() {
         let num = ev.0;
         let remaining_players = max_num_players - num;
-        for mut text in &mut query {
+        for entity in query.iter() {
             let player_string = if remaining_players == 1 {
                 String::from("PLAYER")
             } else {
                 String::from("PLAYERS")
             };
-            text.sections[0].value = format!(
+            *writer.text(entity, 0) = format!(
                 "LOOKING FOR {:?} MORE {:}",
                 remaining_players, player_string
             );
@@ -402,11 +388,12 @@ fn players_found_listener(
 
 fn lobby_filled_listener(
     mut event: EventReader<LobbyFilled>,
-    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
+    query: Query<Entity, (With<Text>, With<MessageTextMarker>)>,
+    mut writer: TextUiWriter,
 ) {
     for _ev in event.read() {
-        for mut text in &mut query {
-            text.sections[0].value = "WAITING. LOADING LEVEL".to_string();
+        for entity in query.iter() {
+            *writer.text(entity, 0) = "WAITING. LOADING LEVEL".to_string();
             debug!("lobby filled. waiting. loading level");
         }
     }
@@ -414,11 +401,12 @@ fn lobby_filled_listener(
 
 fn level_loaded_listener(
     mut event: EventReader<LevelLoaded>,
-    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
+    query: Query<Entity, (With<Text>, With<MessageTextMarker>)>,
+    mut writer: TextUiWriter,
 ) {
     for _ev in event.read() {
-        for mut text in &mut query {
-            text.sections[0].value = "LAUNCHING".to_string();
+        for entity in query.iter() {
+            *writer.text(entity, 0) = "LAUNCHING".to_string();
             debug!("level loaded. start launching.");
         }
     }
@@ -427,12 +415,13 @@ fn level_loaded_listener(
 fn launching_listener(
     mut next_state: ResMut<NextState<AppState>>,
     mut event: EventReader<Launching>,
-    mut query: Query<&mut Text, (With<Text>, With<MessageTextMarker>)>,
+    query: Query<Entity, (With<Text>, With<MessageTextMarker>)>,
+    mut writer: TextUiWriter,
 ) {
     for ev in event.read() {
-        for mut text in &mut query {
+        for entity in query.iter() {
             let countdown = ev.0;
-            text.sections[0].value = format!("LAUNCHING {:?}", countdown);
+            *writer.text(entity, 0) = format!("LAUNCHING {:?}", countdown);
             debug!("launch countdown.");
             if countdown == 0 {
                 next_state.set(AppState::LoadingScreen);
@@ -443,14 +432,13 @@ fn launching_listener(
 
 // helper functions
 fn spawn_nested_text_bundle(builder: &mut ChildBuilder, font_size: f32, text: &str) {
-    builder.spawn(TextBundle::from_section(
-        text,
-        TextStyle {
+    builder
+        .spawn(Text::new(text))
+        .insert(TextFont {
             font_size,
-            color: Color::srgb(0.9, 0.9, 0.9),
             ..default()
-        },
-    ));
+        })
+        .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
 }
 
 fn button_bundle(
@@ -460,40 +448,35 @@ fn button_bundle(
     button_target_state: ButtonTargetState,
 ) {
     builder
-        .spawn(NodeBundle {
-            style: Style {
-                width: Val::Percent(100.),
-                height: Val::Percent(100.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
+        .spawn(Node {
+            width: Val::Percent(100.),
+            height: Val::Percent(100.),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
             ..default()
         })
         .insert(button_name_component.clone())
         .with_children(|parent| {
             parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(150.),
-                        height: Val::Px(110.),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: NORMAL_BUTTON.into(),
+                .spawn(Button)
+                .insert(Node {
+                    width: Val::Px(150.),
+                    height: Val::Px(110.),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    // TODO: redo
+                    //background_color: NORMAL_BUTTON.into(),
                     ..default()
                 })
                 .insert(button_name_component)
                 .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        button_text,
-                        TextStyle {
+                    parent
+                        .spawn(Text::new(button_text))
+                        .insert(TextFont {
                             font_size: 40.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
-                        },
-                    ));
+                        })
+                        .insert(TextColor(Color::srgb(0.9, 0.9, 0.9)));
                 })
                 .insert(button_target_state);
         });

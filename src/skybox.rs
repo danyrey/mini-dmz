@@ -1,11 +1,9 @@
 use crate::first_person_controller::{start_first_person_controller_system, FirstPersonCamera};
 use crate::AppState;
 use crate::AppState::Raid;
-use bevy::asset::LoadState;
+use bevy::image::CompressedImageFormats;
 use bevy::render::render_resource::{TextureViewDescriptor, TextureViewDimension};
-use bevy::{
-    app::Plugin, core_pipeline::Skybox, prelude::*, render::texture::CompressedImageFormats,
-};
+use bevy::{app::Plugin, core_pipeline::Skybox, prelude::*};
 use bevy_inspector_egui::prelude::InspectorOptions;
 use bevy_inspector_egui::prelude::ReflectInspectorOptions;
 
@@ -64,6 +62,7 @@ fn start_skybox_system(
     commands.entity(cam).insert(Skybox {
         image: skybox_handle.clone(),
         brightness: 1000.0,
+        ..default()
     });
 
     commands.insert_resource(Cubemap {
@@ -79,7 +78,7 @@ fn asset_loaded(
     mut cubemap: ResMut<Cubemap>,
     mut skyboxes: Query<&mut Skybox>,
 ) {
-    if !cubemap.is_loaded && asset_server.load_state(&cubemap.image_handle) == LoadState::Loaded {
+    if !cubemap.is_loaded && asset_server.load_state(&cubemap.image_handle).is_loaded() {
         info!("Swapping to {}...", CUBEMAPS[cubemap.index].0);
         let image = images.get_mut(&cubemap.image_handle).unwrap();
         // NOTE: PNGs do not have any metadata that could indicate they contain a cubemap texture,

@@ -44,7 +44,7 @@ impl Plugin for InventoryPlugin {
             .add_systems(
                 Update,
                 (inventory_interaction)
-                    .run_if(in_state(AppState::Raid).and_then(in_state(RaidState::Raid))),
+                    .run_if(in_state(AppState::Raid).and(in_state(RaidState::Raid))),
             );
     }
 }
