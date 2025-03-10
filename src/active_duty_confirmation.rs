@@ -174,7 +174,7 @@ fn button_bundle(
                 .spawn(Button)
                 // TODO: according to migration guide to 0.15 UiImage should be used for background colors. not sure if this here is correct
                 .insert(ImageNode {
-                    color: NORMAL_BUTTON.into(),
+                    color: NORMAL_BUTTON,
                     ..default()
                 })
                 .insert(Node {

@@ -1,6 +1,6 @@
 use bevy::{
     app::Plugin,
-    color::palettes::css::{MAROON, RED},
+    color::palettes::css::{DARK_GREY, GREY, MAROON, RED},
     window::PrimaryWindow,
 };
 use bevy_inspector_egui::{inspector_options::ReflectInspectorOptions, InspectorOptions};
@@ -23,7 +23,7 @@ use bevy::prelude::*;
 const NORMAL_BUTTON: Color = Color::srgb(MAROON.red, MAROON.green, MAROON.blue);
 const HOVERED_BUTTON: Color = Color::srgb(RED.red, RED.green, RED.blue);
 const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
-const RARE_COLOR: Color = Color::srgb(0.5, 0.5, 0.0);
+const RARE_COLOR: Color = Color::srgb(0.75, 0.75, 0.0);
 
 // Plugin
 
@@ -495,7 +495,6 @@ fn render_backpack_ui(
                     ..default()
                 })
                 .insert(Name::new("Backpack Header"))
-                // TODO: include backpack summary into the header
                 .with_children(|builder| {
                     let label = format!("{} (${})", backpack_name, backpack_summary_value);
                     builder
@@ -723,11 +722,10 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                                 margin: UiRect::all(Val::Px(20.)),
                                 align_items: AlignItems::Center,
                                 justify_content: JustifyContent::Center,
-                                // TODO: how to customize styling here?
-                                //background_color: MAROON.into(),
-                                //border_color: RED.into(),
                                 ..Default::default()
                             },
+                            BorderColor(RED.into()),
+                            BackgroundColor(MAROON.into()),
                             Outline {
                                 width: Val::Px(6.),
                                 offset: Val::Px(6.),
@@ -746,11 +744,10 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                                 margin: UiRect::all(Val::Px(20.)),
                                 align_items: AlignItems::Center,
                                 justify_content: JustifyContent::Center,
-                                // TODO: how to customize styling here?
-                                //background_color: MAROON.into(),
-                                //border_color: RED.into(),
                                 ..Default::default()
                             },
+                            BorderColor(RED.into()),
+                            BackgroundColor(MAROON.into()),
                             Outline {
                                 width: Val::Px(6.),
                                 offset: Val::Px(6.),
@@ -769,11 +766,10 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                                 margin: UiRect::all(Val::Px(20.)),
                                 align_items: AlignItems::Center,
                                 justify_content: JustifyContent::Center,
-                                // TODO: how to customize styling here?
-                                //background_color: MAROON.into(),
-                                //border_color: RED.into(),
                                 ..Default::default()
                             },
+                            BorderColor(RED.into()),
+                            BackgroundColor(MAROON.into()),
                             Outline {
                                 width: Val::Px(6.),
                                 offset: Val::Px(6.),
@@ -792,11 +788,10 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                                 margin: UiRect::all(Val::Px(20.)),
                                 align_items: AlignItems::Center,
                                 justify_content: JustifyContent::Center,
-                                // TODO: how to customize styling here?
-                                //background_color: MAROON.into(),
-                                //border_color: RED.into(),
                                 ..Default::default()
                             },
+                            BorderColor(RED.into()),
+                            BackgroundColor(MAROON.into()),
                             Outline {
                                 width: Val::Px(6.),
                                 offset: Val::Px(6.),
@@ -815,11 +810,10 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                                 margin: UiRect::all(Val::Px(20.)),
                                 align_items: AlignItems::Center,
                                 justify_content: JustifyContent::Center,
-                                // TODO: how to customize styling here?
-                                //background_color: MAROON.into(),
-                                //border_color: RED.into(),
                                 ..Default::default()
                             },
+                            BorderColor(RED.into()),
+                            BackgroundColor(MAROON.into()),
                             Outline {
                                 width: Val::Px(6.),
                                 offset: Val::Px(6.),
@@ -838,11 +832,10 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                                 margin: UiRect::all(Val::Px(20.)),
                                 align_items: AlignItems::Center,
                                 justify_content: JustifyContent::Center,
-                                // TODO: how to customize styling here?
-                                //background_color: MAROON.into(),
-                                //border_color: RED.into(),
                                 ..Default::default()
                             },
+                            BorderColor(RED.into()),
+                            BackgroundColor(MAROON.into()),
                             Outline {
                                 width: Val::Px(6.),
                                 offset: Val::Px(6.),
@@ -861,11 +854,10 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                                 margin: UiRect::all(Val::Px(20.)),
                                 align_items: AlignItems::Center,
                                 justify_content: JustifyContent::Center,
-                                // TODO: how to customize styling here?
-                                //background_color: MAROON.into(),
-                                //border_color: RED.into(),
                                 ..Default::default()
                             },
+                            BorderColor(RED.into()),
+                            BackgroundColor(MAROON.into()),
                             Outline {
                                 width: Val::Px(6.),
                                 offset: Val::Px(6.),
@@ -883,11 +875,10 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                                 margin: UiRect::all(Val::Px(20.)),
                                 align_items: AlignItems::Center,
                                 justify_content: JustifyContent::Center,
-                                // TODO: how to customize styling here?
-                                //background_color: MAROON.into(),
-                                //border_color: RED.into(),
                                 ..Default::default()
                             },
+                            BorderColor(RED.into()),
+                            BackgroundColor(MAROON.into()),
                             Outline {
                                 width: Val::Px(6.),
                                 offset: Val::Px(6.),
@@ -905,11 +896,10 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                                 margin: UiRect::all(Val::Px(20.)),
                                 align_items: AlignItems::Center,
                                 justify_content: JustifyContent::Center,
-                                // TODO: how to customize styling here?
-                                //background_color: MAROON.into(),
-                                //border_color: RED.into(),
                                 ..Default::default()
                             },
+                            BorderColor(RED.into()),
+                            BackgroundColor(MAROON.into()),
                             Outline {
                                 width: Val::Px(6.),
                                 offset: Val::Px(6.),
@@ -927,11 +917,10 @@ fn start_loadout_ui(mut commands: Commands, _wallet: Query<Option<&Wallet>>) {
                                 margin: UiRect::all(Val::Px(20.)),
                                 align_items: AlignItems::Center,
                                 justify_content: JustifyContent::Center,
-                                // TODO: how to customize styling here?
-                                //background_color: MAROON.into(),
-                                //border_color: RED.into(),
                                 ..Default::default()
                             },
+                            BorderColor(RED.into()),
+                            BackgroundColor(MAROON.into()),
                             Outline {
                                 width: Val::Px(6.),
                                 offset: Val::Px(6.),
@@ -1225,11 +1214,10 @@ fn create_empty_weapon_slot_ui(builder: &mut ChildBuilder) {
             margin: UiRect::all(Val::Px(20.)),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
-            // TODO: how to customize styling here?
-            //background_color: DARK_GREY.into(),
-            //border_color: GREY.into(),
             ..Default::default()
         },
+        BorderColor(GREY.into()),
+        BackgroundColor(DARK_GREY.into()),
         Outline {
             width: Val::Px(6.),
             offset: Val::Px(6.),
@@ -1250,11 +1238,10 @@ fn create_weapon_slot_ui(builder: &mut ChildBuilder, weapon: Weapon, ui: Invento
             margin: UiRect::all(Val::Px(20.)),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
-            // TODO: redo
-            //border_color: RED.into(),
-            //background_color: NORMAL_BUTTON.into(),
             ..default()
         },
+        BorderColor(RED.into()),
+        BackgroundColor(NORMAL_BUTTON),
         Outline {
             width: Val::Px(6.),
             offset: Val::Px(6.),
@@ -1292,11 +1279,11 @@ fn create_wallet_slot_ui(builder: &mut ChildBuilder, wallet_value: u32, ui: Inve
             margin: UiRect::all(Val::Px(20.)),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
-            //border_color: RED.into(),
-            // same as rare items (gold)
-            //background_color: RARE_COLOR.into(),
             ..default()
         },
+        // same as rare items (gold)
+        BackgroundColor(RARE_COLOR),
+        BorderColor(RED.into()),
         Outline {
             width: Val::Px(6.),
             offset: Val::Px(6.),
@@ -1519,11 +1506,10 @@ fn create_empty_item_slot_ui(builder: &mut ChildBuilder) {
             margin: UiRect::all(Val::Px(20.)),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
-            // TODO: how to do this now?
-            //background_color: DARK_GREY.into(),
-            //border_color: GREY.into(),
             ..Default::default()
         },
+        BackgroundColor(DARK_GREY.into()),
+        BorderColor(GREY.into()),
         Outline {
             width: Val::Px(6.),
             offset: Val::Px(6.),
@@ -1548,21 +1534,18 @@ fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) 
             margin: UiRect::all(Val::Px(20.)),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
-            // TODO: how to do this now?
-            /*
-                        border_color: RED.into(),
-                        background_color: {
-                            match item.rarity {
-                                Some(r) => match r {
-                                    Rarity::Regular => NORMAL_BUTTON.into(),
-                                    Rarity::Rare => RARE_COLOR.into(),
-                                },
-                                None => NORMAL_BUTTON.into(),
-                            }
-                        },
-            */
             ..default()
         },
+        {
+            BackgroundColor(match item.rarity {
+                Some(r) => match r {
+                    Rarity::Regular => NORMAL_BUTTON,
+                    Rarity::Rare => RARE_COLOR,
+                },
+                None => NORMAL_BUTTON,
+            })
+        },
+        BorderColor(RED.into()),
         Outline {
             width: Val::Px(6.),
             offset: Val::Px(6.),
@@ -1572,24 +1555,26 @@ fn create_item_slot_ui(builder: &mut ChildBuilder, item: Item, ui: InventoryUI) 
 
     ui_item.with_children(|parent| {
         parent
-            .spawn(Node {
-                // Make the height of the node fill its parent
-                height: Val::Percent(100.0),
-                // Make the grid have a 1:1 aspect ratio meaning it will scale as an exact square
-                // As the height is set explicitly, this means the width will adjust to match the height
-                aspect_ratio: Some(1.0),
-                // Use grid layout for this node
-                display: Display::Grid,
-                // Set the grid to have 3 columns all with sizes minmax(0, 1fr)
-                // This creates 3 exactly evenly sized columns
-                grid_template_columns: RepeatedGridTrack::flex(3, 1.0),
-                // Set the grid to have 3 rows all with sizes minmax(0, 1fr)
-                // This creates 3 exactly evenly sized rows
-                grid_template_rows: RepeatedGridTrack::flex(3, 1.0),
-                //border: UiRect::all(Val::Px(1.)),
-                //border_color: Color::WHITE.into(),
-                ..default()
-            })
+            .spawn((
+                Node {
+                    // Make the height of the node fill its parent
+                    height: Val::Percent(100.0),
+                    // Make the grid have a 1:1 aspect ratio meaning it will scale as an exact square
+                    // As the height is set explicitly, this means the width will adjust to match the height
+                    aspect_ratio: Some(1.0),
+                    // Use grid layout for this node
+                    display: Display::Grid,
+                    // Set the grid to have 3 columns all with sizes minmax(0, 1fr)
+                    // This creates 3 exactly evenly sized columns
+                    grid_template_columns: RepeatedGridTrack::flex(3, 1.0),
+                    // Set the grid to have 3 rows all with sizes minmax(0, 1fr)
+                    // This creates 3 exactly evenly sized rows
+                    grid_template_rows: RepeatedGridTrack::flex(3, 1.0),
+                    //border: UiRect::all(Val::Px(1.)),
+                    ..default()
+                },
+                //BorderColor(Color::WHITE.into()),
+            ))
             .with_children(|parent| {
                 // TOP
                 parent

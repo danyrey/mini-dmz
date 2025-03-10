@@ -207,7 +207,7 @@ fn spawn_location_button_bundle(
                     ..default()
                 })
                 .insert(ImageNode {
-                    color: NORMAL_BUTTON.into(),
+                    color: NORMAL_BUTTON,
                     ..default()
                 })
                 .insert(button_name_component)

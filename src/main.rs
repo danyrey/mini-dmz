@@ -77,8 +77,8 @@ pub enum AppState {
     StartScreen,
     MissionObjectives(MissionObjectives),
     DeployScreen(DeployScreen),
-    LoadingScreen,
     #[default]
+    LoadingScreen,
     Raid,
 }
 

@@ -271,7 +271,7 @@ fn start_exfil(mut commands: Commands) {
                     ..default()
                 })
                 .insert(ImageNode {
-                    color: NORMAL_BUTTON.into(),
+                    color: NORMAL_BUTTON,
                     ..default()
                 })
                 .with_children(|parent| {

@@ -174,7 +174,7 @@ fn spawn_location_button_bundle(
                 })
                 // TODO: not sure this is how it works, see migration guide
                 .insert(ImageNode {
-                    color: NORMAL_BUTTON.into(),
+                    color: NORMAL_BUTTON,
                     ..default()
                 })
                 .insert(button_name_component)
