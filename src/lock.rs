@@ -189,7 +189,7 @@ mod tests {
 
         // check if still_locked event was sent
         let still_locked_events = app.world().resource::<Events<StillLocked>>();
-        let mut still_locked_reader = still_locked_events.get_reader();
+        let mut still_locked_reader = still_locked_events.get_cursor();
         let actual_locked = still_locked_reader
             .read(still_locked_events)
             .next()
@@ -235,7 +235,7 @@ mod tests {
 
         // check if unlocked event was sent
         let unlocked_events = app.world().resource::<Events<Unlocked>>();
-        let mut unlocked_reader = unlocked_events.get_reader();
+        let mut unlocked_reader = unlocked_events.get_cursor();
         let actual_unlocked = unlocked_reader.read(unlocked_events).next().unwrap();
         let expected_unlocked = Unlocked {
             unlocked_entity: locked,

@@ -135,7 +135,7 @@ mod tests {
 
         // check for update/notification event
         let notifications = app.world().resource::<Events<BackpackSummaryUpdate>>();
-        let mut notification_reader = notifications.get_reader();
+        let mut notification_reader = notifications.get_cursor();
         let update = notification_reader.read(notifications).next();
         let expected_update = BackpackSummaryUpdate {
             old_value: 0,
@@ -185,7 +185,7 @@ mod tests {
 
         // check for update/notification event
         let notifications = app.world().resource::<Events<BackpackSummaryUpdate>>();
-        let mut notification_reader = notifications.get_reader();
+        let mut notification_reader = notifications.get_cursor();
         let update = notification_reader.read(notifications).next();
         let expected_update = BackpackSummaryUpdate {
             old_value: 0,
@@ -239,7 +239,7 @@ mod tests {
 
         // check for update/notification event
         let notifications = app.world().resource::<Events<BackpackSummaryUpdate>>();
-        let mut notification_reader = notifications.get_reader();
+        let mut notification_reader = notifications.get_cursor();
         let update = notification_reader.read(notifications).next();
         let expected_update = BackpackSummaryUpdate {
             old_value: 0,

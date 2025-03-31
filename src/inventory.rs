@@ -459,7 +459,7 @@ mod tests {
 
         // assert the event has been sent
         let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
-        let mut stowed_loot_reader = stowed_loot_events.get_reader();
+        let mut stowed_loot_reader = stowed_loot_events.get_cursor();
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
 
         let expected_stowed_loot = StowedLoot {
@@ -515,7 +515,7 @@ mod tests {
 
         // assert the event has been sent
         let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
-        let mut stowed_loot_reader = stowed_loot_events.get_reader();
+        let mut stowed_loot_reader = stowed_loot_events.get_cursor();
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
 
         let expected_stowed_loot = StowedLoot {
@@ -566,7 +566,7 @@ mod tests {
 
         // assert the event for 1 has been sent
         let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
-        let mut stowed_loot_reader = stowed_loot_events.get_reader();
+        let mut stowed_loot_reader = stowed_loot_events.get_cursor();
         assert_eq!(1, stowed_loot_reader.len(stowed_loot_events));
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
 
@@ -597,7 +597,7 @@ mod tests {
 
         // assert the event for 2 has been sent
         let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
-        let mut stowed_loot_reader = stowed_loot_events.get_reader();
+        let mut stowed_loot_reader = stowed_loot_events.get_cursor();
         // TODO: why is the consumed previous event still in this new reader????
         assert_eq!(2, stowed_loot_reader.len(stowed_loot_events));
         stowed_loot_reader.read(stowed_loot_events).next(); // skip
@@ -625,7 +625,7 @@ mod tests {
 
         // assert the event for 3 has not been sent
         let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
-        let mut stowed_loot_reader = stowed_loot_events.get_reader();
+        let mut stowed_loot_reader = stowed_loot_events.get_cursor();
         // TODO: same here, why is the consumed previous event still in this new reader????
         assert_eq!(1, stowed_loot_reader.len(stowed_loot_events));
         stowed_loot_reader.read(stowed_loot_events).next(); // skip
@@ -674,7 +674,7 @@ mod tests {
 
         // assert the event for 1 has been sent
         let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
-        let mut stowed_loot_reader = stowed_loot_events.get_reader();
+        let mut stowed_loot_reader = stowed_loot_events.get_cursor();
         assert_eq!(1, stowed_loot_reader.len(stowed_loot_events));
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
 
@@ -705,7 +705,7 @@ mod tests {
 
         // assert the event for 2 has been sent
         let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
-        let mut stowed_loot_reader = stowed_loot_events.get_reader();
+        let mut stowed_loot_reader = stowed_loot_events.get_cursor();
         // TODO: why is the consumed previous event still in this new reader????
         assert_eq!(2, stowed_loot_reader.len(stowed_loot_events));
         stowed_loot_reader.read(stowed_loot_events).next(); // skip
@@ -733,7 +733,7 @@ mod tests {
 
         // assert the event for 3 has not been sent
         let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
-        let mut stowed_loot_reader = stowed_loot_events.get_reader();
+        let mut stowed_loot_reader = stowed_loot_events.get_cursor();
         // TODO: same here, why is the consumed previous event still in this new reader????
         assert_eq!(1, stowed_loot_reader.len(stowed_loot_events));
         stowed_loot_reader.read(stowed_loot_events).next(); // skip
@@ -770,7 +770,7 @@ mod tests {
 
         // then
         let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
-        let mut stowed_loot_reader = stowed_loot_events.get_reader();
+        let mut stowed_loot_reader = stowed_loot_events.get_cursor();
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
         let item_slot = app.world().get::<ItemSlot>(actual_stowed_loot.loot);
         assert_eq!(item_slot.unwrap().0, 0);
@@ -805,7 +805,7 @@ mod tests {
 
         // then
         let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
-        let mut stowed_loot_reader = stowed_loot_events.get_reader();
+        let mut stowed_loot_reader = stowed_loot_events.get_cursor();
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
         let item_slot = app.world().get::<WeaponSlot>(actual_stowed_loot.loot);
         assert_eq!(item_slot.unwrap().0, 0);
@@ -854,7 +854,7 @@ mod tests {
 
         // then
         let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
-        let mut stowed_loot_reader = stowed_loot_events.get_reader();
+        let mut stowed_loot_reader = stowed_loot_events.get_cursor();
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
         let item_slot = app.world().get::<ItemSlot>(actual_stowed_loot.loot);
         assert_eq!(item_slot.unwrap().0, 1);
@@ -903,7 +903,7 @@ mod tests {
 
         // then
         let stowed_loot_events = app.world().resource::<Events<StowedLoot>>();
-        let mut stowed_loot_reader = stowed_loot_events.get_reader();
+        let mut stowed_loot_reader = stowed_loot_events.get_cursor();
         let actual_stowed_loot = stowed_loot_reader.read(stowed_loot_events).next().unwrap();
         let item_slot = app.world().get::<WeaponSlot>(actual_stowed_loot.loot);
         assert_eq!(item_slot.unwrap().0, 1);
@@ -954,7 +954,7 @@ mod tests {
         );
         // check if dropped item event was sent
         let dropped_loot_events = app.world().resource::<Events<DroppedLoot>>();
-        let mut dropped_loot_reader = dropped_loot_events.get_reader();
+        let mut dropped_loot_reader = dropped_loot_events.get_cursor();
         let actual_dropped_loot = dropped_loot_reader
             .read(dropped_loot_events)
             .next()
@@ -1012,7 +1012,7 @@ mod tests {
         );
         // check if dropped item event was sent
         let dropped_loot_events = app.world().resource::<Events<DroppedLoot>>();
-        let mut dropped_loot_reader = dropped_loot_events.get_reader();
+        let mut dropped_loot_reader = dropped_loot_events.get_cursor();
         let actual_dropped_loot = dropped_loot_reader
             .read(dropped_loot_events)
             .next()

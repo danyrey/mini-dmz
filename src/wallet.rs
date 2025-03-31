@@ -271,7 +271,7 @@ mod tests {
         assert_eq!(operator_position, (money.3).translation());
 
         let dropped_money_events = app.world().resource::<Events<DroppedMoney>>();
-        let mut dropped_money_reader = dropped_money_events.get_reader();
+        let mut dropped_money_reader = dropped_money_events.get_cursor();
         let actual_dropped_money = dropped_money_reader
             .read(dropped_money_events)
             .next()
@@ -339,7 +339,7 @@ mod tests {
         // check for event StowedMoney
 
         let stowed_money_events = app.world().resource::<Events<StowedMoney>>();
-        let mut stowed_money_reader = stowed_money_events.get_reader();
+        let mut stowed_money_reader = stowed_money_events.get_cursor();
         let actual_stowed_money = stowed_money_reader.read(stowed_money_events).next();
         let expected_dropped_money = StowedMoney {
             stowing_entity: operator_id,
@@ -414,7 +414,7 @@ mod tests {
         // check for event StowedMoney
 
         let stowed_money_events = app.world().resource::<Events<StowedMoney>>();
-        let mut stowed_money_reader = stowed_money_events.get_reader();
+        let mut stowed_money_reader = stowed_money_events.get_cursor();
         let actual_stowed_money = stowed_money_reader.read(stowed_money_events).next();
         let expected_stowed_money = StowedMoney {
             stowing_entity: operator_id,
@@ -472,7 +472,7 @@ mod tests {
         // check for event StowedMoney
 
         let received_money_events = app.world().resource::<Events<ReceivedMoney>>();
-        let mut received_money_reader = received_money_events.get_reader();
+        let mut received_money_reader = received_money_events.get_cursor();
         let actual_received_money = received_money_reader.read(received_money_events).next();
         let expected_received_money = ReceivedMoney {
             amount: 99,
@@ -530,7 +530,7 @@ mod tests {
         // check for event StowedMoney
 
         let received_money_events = app.world().resource::<Events<ReceivedMoney>>();
-        let mut received_money_reader = received_money_events.get_reader();
+        let mut received_money_reader = received_money_events.get_cursor();
         let actual_received_money = received_money_reader.read(received_money_events).next();
         let expected_received_money = ReceivedMoney {
             amount: 90,

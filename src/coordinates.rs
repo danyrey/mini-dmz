@@ -242,11 +242,8 @@ mod tests {
         let operator = app
             .world_mut()
             .spawn(Operator)
-            .insert(SpatialBundle {
-                transform,
-                global_transform: GlobalTransform::from(transform),
-                ..default()
-            })
+            .insert(Transform::from(transform))
+            .insert(GlobalTransform::from(transform))
             .insert(GridPosition::default())
             .id();
 
@@ -276,11 +273,8 @@ mod tests {
         let operator = app
             .world_mut()
             .spawn(Operator)
-            .insert(SpatialBundle {
-                transform,
-                global_transform: GlobalTransform::from(transform),
-                ..default()
-            })
+            .insert(Transform::from(transform))
+            .insert(GlobalTransform::from(transform))
             .insert(GridPosition::default())
             .id();
 
@@ -310,11 +304,8 @@ mod tests {
         let operator = app
             .world_mut()
             .spawn(Operator)
-            .insert(SpatialBundle {
-                transform,
-                global_transform: GlobalTransform::from(transform),
-                ..default()
-            })
+            .insert(Transform::from(transform))
+            .insert(GlobalTransform::from(transform))
             .insert(GridPosition::default())
             .id();
 
@@ -344,11 +335,8 @@ mod tests {
         let operator = app
             .world_mut()
             .spawn(Operator)
-            .insert(SpatialBundle {
-                transform,
-                global_transform: GlobalTransform::from(transform),
-                ..default()
-            })
+            .insert(Transform::from(transform))
+            .insert(GlobalTransform::from(transform))
             .insert(GridPosition::default())
             .id();
 
