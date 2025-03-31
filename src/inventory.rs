@@ -453,7 +453,7 @@ mod tests {
         let entities = app
             .world_mut()
             .query::<(Entity, &Loot)>()
-            .iter(&app.world())
+            .iter(app.world())
             .collect::<Vec<_>>();
         assert_eq!(1, entities.len());
 
@@ -509,7 +509,7 @@ mod tests {
         let entities = app
             .world_mut()
             .query::<(Entity, &Loot)>()
-            .iter(&app.world())
+            .iter(app.world())
             .collect::<Vec<_>>();
         assert_eq!(1, entities.len());
 

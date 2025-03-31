@@ -242,7 +242,7 @@ mod tests {
         let operator = app
             .world_mut()
             .spawn(Operator)
-            .insert(Transform::from(transform))
+            .insert(transform)
             .insert(GlobalTransform::from(transform))
             .insert(GridPosition::default())
             .id();
@@ -273,7 +273,7 @@ mod tests {
         let operator = app
             .world_mut()
             .spawn(Operator)
-            .insert(Transform::from(transform))
+            .insert(transform)
             .insert(GlobalTransform::from(transform))
             .insert(GridPosition::default())
             .id();
@@ -304,7 +304,7 @@ mod tests {
         let operator = app
             .world_mut()
             .spawn(Operator)
-            .insert(Transform::from(transform))
+            .insert(transform)
             .insert(GlobalTransform::from(transform))
             .insert(GridPosition::default())
             .id();
@@ -335,7 +335,7 @@ mod tests {
         let operator = app
             .world_mut()
             .spawn(Operator)
-            .insert(Transform::from(transform))
+            .insert(transform)
             .insert(GlobalTransform::from(transform))
             .insert(GridPosition::default())
             .id();
