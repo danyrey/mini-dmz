@@ -622,16 +622,11 @@ fn start_fake_level_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(FakeLevelStuff)
         .insert(Crosshair)
         .with_children(|parent| {
-            parent.spawn(Sprite::from_image(
-                asset_server.load("textures/crosshair.png"),
-            ));
-            // TODO: how to do scale by 2 in 0.15
-            /*
-                        parent.spawn(Sprite {
-                            custom_size: Some(Vec2 { x: 18.0, y: 18.0 }),
-                            ..default()
-                        });
-            */
+            parent.spawn(Sprite {
+                image: asset_server.load("textures/crosshair.png"),
+                custom_size: Some(Vec2 { x: 18.0, y: 18.0 }),
+                ..default()
+            });
         });
 }
 

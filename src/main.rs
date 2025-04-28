@@ -30,6 +30,7 @@ use point_of_interest::PointOfInterestPlugin;
 use raid::RaidPlugin;
 use raid_summary::RaidSummaryPlugin;
 use skybox::SkyboxPlugin;
+use spawn::SpawnPlugin;
 use squad::SquadPlugin;
 use start_screen::StartScreenPlugin;
 use wallet::WalletPlugin;
@@ -67,6 +68,7 @@ mod point_of_interest;
 mod raid;
 mod raid_summary;
 mod skybox;
+mod spawn;
 mod squad;
 mod start_screen;
 mod template_plugin;
@@ -112,16 +114,10 @@ pub enum DeployScreen {
 struct ButtonTargetState(AppState);
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera2d);
-    /* TODO: not sure how to port the order attribute
-        commands.spawn(Camera2dBundle {
-            camera: Camera {
-                order: 1,
-                ..default()
-            },
-            ..Default::default()
-        });
-    */
+    commands.spawn(Camera2d).insert(Camera {
+        order: 1,
+        ..default()
+    });
 }
 
 fn main() {
@@ -166,6 +162,7 @@ fn main() {
             BackpackSummaryPlugin,
             ContractsPlugin,
             SquadPlugin,
+            SpawnPlugin,
             LockPlugin,
         ))
         .init_state::<AppState>()
