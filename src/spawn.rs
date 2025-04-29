@@ -1,11 +1,21 @@
 use bevy::app::Plugin;
+use bevy::utils::HashMap;
 
+use crate::squad::SquadId;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
+use bevy_inspector_egui::prelude::*;
 
 // Constants
 const NAME: &str = "spawn";
+
+#[derive(Reflect)]
+pub enum Formation {
+    Triangle,
+    Staggered,
+    Line,
+}
 
 // Plugin
 pub struct SpawnPlugin;
@@ -20,17 +30,51 @@ impl Plugin for SpawnPlugin {
 
 // Components
 
+#[derive(Component, Reflect)]
+pub struct Spawn {
+    pub direction: Dir3,
+    pub formation: Formation,
+}
+
+#[derive(Resource, Default, Reflect, InspectorOptions)]
+#[reflect(Resource, InspectorOptions)]
+pub struct Spawns {
+    pub map: HashMap<SquadId, Spawn>,
+}
+
 // Resources
 
 // Events
 
 // Systems
-fn start_spawn(mut _commands: Commands) {
+fn start_spawn(
+    mut _commands: Commands,
+    _spawn_added: Query<Entity, Added<Spawn>>,
+    mut _gizmos: Gizmos,
+) {
     debug!("starting {}", NAME);
+    // TODO: debug gizmos and geometry
 }
-fn update_spawn() {
+
+fn update_spawn(
+    mut _commands: Commands,
+    spawns: Query<(&Spawn, &GlobalTransform)>,
+    mut gizmos: Gizmos,
+) {
     debug!("updating {}", NAME);
+
+    for (_spawn, global_transform) in spawns.iter() {
+        if cfg!(debug_assertions) {
+            debug!("Debugging enabled");
+            gizmos.arrow(
+                global_transform.translation(),
+                global_transform.translation() + Vec3::X,
+                Srgba::rgb(0.0, 1.00, 0.0),
+            );
+        }
+    }
 }
+
 fn bye_spawn(mut _commands: Commands) {
     debug!("stopping {}", NAME);
 }

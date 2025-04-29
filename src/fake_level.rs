@@ -15,6 +15,7 @@ use crate::loot::{
     Durability, ItemType, Loot, LootCacheState, LootName, LootType, Price, Rarity, Stackable,
 };
 use crate::raid::Enemy;
+use crate::spawn::{Formation, Spawn};
 use crate::squad::SquadId;
 use crate::wallet::Money;
 use crate::AppState;
@@ -106,6 +107,14 @@ pub fn start_fake_level(
 
     // circular base
     let disc_size = 8.0;
+
+    // spawn
+    commands
+        .spawn(Spawn {
+            direction: Dir3::X,
+            formation: Formation::Staggered,
+        })
+        .insert(Transform::from_xyz(0.0, 0.0, 0.0));
 
     commands
         .spawn((
