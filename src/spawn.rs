@@ -1,7 +1,6 @@
 use bevy::app::Plugin;
 use bevy::utils::HashMap;
 
-use crate::squad::SquadId;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
@@ -30,16 +29,22 @@ impl Plugin for SpawnPlugin {
 
 // Components
 
+#[allow(dead_code)]
+#[derive(Component, Clone, Debug, Eq, Hash, PartialEq, Reflect)]
+pub struct SpawnId(pub u32);
+
 #[derive(Component, Reflect)]
 pub struct Spawn {
-    pub direction: Dir3,
     pub formation: Formation,
 }
+
+#[derive(Component, Reflect)]
+pub struct SpawnPosition;
 
 #[derive(Resource, Default, Reflect, InspectorOptions)]
 #[reflect(Resource, InspectorOptions)]
 pub struct Spawns {
-    pub map: HashMap<SquadId, Spawn>,
+    pub map: HashMap<SpawnId, Spawn>,
 }
 
 // Resources
@@ -47,18 +52,13 @@ pub struct Spawns {
 // Events
 
 // Systems
-fn start_spawn(
-    mut _commands: Commands,
-    _spawn_added: Query<Entity, Added<Spawn>>,
-    mut _gizmos: Gizmos,
-) {
+fn start_spawn(mut _commands: Commands, _spawn_added: Query<Entity, Added<Spawn>>) {
     debug!("starting {}", NAME);
-    // TODO: debug gizmos and geometry
 }
 
 fn update_spawn(
     mut _commands: Commands,
-    spawns: Query<(&Spawn, &GlobalTransform)>,
+    spawns: Query<(&SpawnPosition, &GlobalTransform)>,
     mut gizmos: Gizmos,
 ) {
     debug!("updating {}", NAME);
@@ -69,6 +69,15 @@ fn update_spawn(
             gizmos.arrow(
                 global_transform.translation(),
                 global_transform.translation() + Vec3::X,
+                Srgba::rgb(0.0, 1.00, 0.0),
+            );
+            gizmos.circle(
+                Isometry3d {
+                    translation: Vec3::new(0.0, 0.0, 0.0).into(),
+                    // TODO: correct rotation
+                    ..default()
+                },
+                1.,
                 Srgba::rgb(0.0, 1.00, 0.0),
             );
         }

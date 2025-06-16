@@ -15,7 +15,7 @@ use crate::loot::{
     Durability, ItemType, Loot, LootCacheState, LootName, LootType, Price, Rarity, Stackable,
 };
 use crate::raid::Enemy;
-use crate::spawn::{Formation, Spawn};
+use crate::spawn::{Formation, Spawn, SpawnId, SpawnPosition};
 use crate::squad::SquadId;
 use crate::wallet::Money;
 use crate::AppState;
@@ -111,9 +111,18 @@ pub fn start_fake_level(
     // spawn
     commands
         .spawn(Spawn {
-            direction: Dir3::X,
             formation: Formation::Staggered,
         })
+        .insert(SpawnId(1))
+        .insert(SquadId(1))
+        .insert(Transform::from_xyz(0.0, 0.0, 0.0));
+
+    // TODO: should this be a child of spawn or no?
+    // spawn position 1
+    commands
+        .spawn(SpawnPosition)
+        .insert(SpawnId(1))
+        .insert(SquadId(1))
         .insert(Transform::from_xyz(0.0, 0.0, 0.0));
 
     commands
