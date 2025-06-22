@@ -21,7 +21,9 @@ pub struct SpawnPlugin;
 
 impl Plugin for SpawnPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Raid), start_spawn)
+        app.register_type::<Spawn>()
+            .register_type::<SpawnId>()
+            .add_systems(OnEnter(Raid), start_spawn)
             .add_systems(Update, (update_spawn).run_if(in_state(AppState::Raid)))
             .add_systems(OnExit(AppState::Raid), bye_spawn);
     }
@@ -74,8 +76,8 @@ fn update_spawn(
             gizmos.circle(
                 Isometry3d {
                     translation: global_transform.translation().into(),
+                    rotation: global_transform.rotation(),
                     // TODO: correct rotation
-                    ..default()
                 },
                 1.,
                 Srgba::rgb(0.0, 1.00, 0.0),

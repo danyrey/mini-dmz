@@ -37,6 +37,7 @@ impl Plugin for FakeLevelPlugin {
                     update_fake_level,
                     add_backpack_summary,
                     add_inventory_to_operators,
+                    add_squad_id_to_operator,
                     manage_cursor,
                 )
                     .run_if(in_state(AppState::Raid)),
@@ -114,7 +115,7 @@ pub fn start_fake_level(
             formation: Formation::Staggered,
         })
         .insert(SpawnId(1))
-        .insert(SquadId(1))
+        .insert(SquadId(111))
         .insert(Transform::from_xyz(-4.0, 0.0, 5.0));
 
     // TODO: should this be a child of spawn or no?
@@ -122,7 +123,7 @@ pub fn start_fake_level(
     commands
         .spawn(SpawnPosition)
         .insert(SpawnId(1))
-        .insert(SquadId(1))
+        .insert(SquadId(111))
         .insert(Transform::from_xyz(-4.0, 0.0, 5.0));
 
     commands
@@ -648,10 +649,15 @@ fn start_fake_level_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 }
 
+fn add_squad_id_to_operator(mut commands: Commands, query: Query<Entity, Added<Operator>>) {
+    for added in query.iter() {
+        commands.entity(added).insert(SquadId(111)); // TODO: just 111 for now for everybody, all friends in fake level for now
+    }
+}
+
 fn add_backpack_summary(mut commands: Commands, query: Query<Entity, Added<Operator>>) {
     for added in query.iter() {
         commands.entity(added).insert(BackpackSummary::default());
-        commands.entity(added).insert(SquadId(111)); // TODO: just 111 for now for everybody, all friends in fake level for now
     }
 }
 
