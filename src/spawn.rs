@@ -73,7 +73,7 @@ fn update_spawn(
             );
             gizmos.circle(
                 Isometry3d {
-                    translation: Vec3::new(0.0, 0.0, 0.0).into(),
+                    translation: global_transform.translation().into(),
                     // TODO: correct rotation
                     ..default()
                 },

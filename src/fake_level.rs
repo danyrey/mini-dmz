@@ -115,7 +115,7 @@ pub fn start_fake_level(
         })
         .insert(SpawnId(1))
         .insert(SquadId(1))
-        .insert(Transform::from_xyz(0.0, 0.0, 0.0));
+        .insert(Transform::from_xyz(-4.0, 0.0, 5.0));
 
     // TODO: should this be a child of spawn or no?
     // spawn position 1
@@ -123,7 +123,7 @@ pub fn start_fake_level(
         .spawn(SpawnPosition)
         .insert(SpawnId(1))
         .insert(SquadId(1))
-        .insert(Transform::from_xyz(0.0, 0.0, 0.0));
+        .insert(Transform::from_xyz(-4.0, 0.0, 5.0));
 
     commands
         .spawn((
