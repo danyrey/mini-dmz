@@ -1,6 +1,8 @@
 use bevy::app::Plugin;
 use bevy::utils::HashMap;
 
+use crate::exfil::Operator;
+use crate::squad::SquadId;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
@@ -24,7 +26,10 @@ impl Plugin for SpawnPlugin {
         app.register_type::<Spawn>()
             .register_type::<SpawnId>()
             .add_systems(OnEnter(Raid), start_spawn)
-            .add_systems(Update, (update_spawn).run_if(in_state(AppState::Raid)))
+            .add_systems(
+                Update,
+                (update_spawn, added_squad_id_to_operator).run_if(in_state(AppState::Raid)),
+            )
             .add_systems(OnExit(AppState::Raid), bye_spawn);
     }
 }
@@ -56,6 +61,22 @@ pub struct Spawns {
 // Systems
 fn start_spawn(mut _commands: Commands, _spawn_added: Query<Entity, Added<Spawn>>) {
     debug!("starting {}", NAME);
+}
+
+#[allow(clippy::type_complexity)]
+fn added_squad_id_to_operator(
+    mut commands: Commands,
+    added_operators: Query<(Entity, &SquadId), (With<Operator>, Added<SquadId>)>,
+    spawn_query: Query<(&SquadId, &Transform), With<SpawnPosition>>,
+) {
+    for (operator, operator_squad_id) in added_operators.iter() {
+        for (spawn_position_squad_id, global_transform) in spawn_query.iter() {
+            if operator_squad_id.eq(spawn_position_squad_id) {
+                commands.entity(operator).insert(*global_transform);
+                break; // TODO: just use the first and be done, fix later
+            }
+        }
+    }
 }
 
 fn update_spawn(
