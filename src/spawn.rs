@@ -48,6 +48,9 @@ pub struct Spawn {
 #[derive(Component, Reflect)]
 pub struct SpawnPosition;
 
+#[derive(Component, Reflect)]
+pub struct SpawnPositionOccupied;
+
 #[derive(Resource, Default, Reflect, InspectorOptions)]
 #[reflect(Resource, InspectorOptions)]
 pub struct Spawns {
@@ -63,17 +66,39 @@ fn start_spawn(mut _commands: Commands, _spawn_added: Query<Entity, Added<Spawn>
     debug!("starting {}", NAME);
 }
 
+/// this system moves operator to their respective spawn position positions and orientations
 #[allow(clippy::type_complexity)]
 fn added_squad_id_to_operator(
     mut commands: Commands,
     added_operators: Query<(Entity, &SquadId), (With<Operator>, Added<SquadId>)>,
-    spawn_query: Query<(&SquadId, &Transform), With<SpawnPosition>>,
+    spawn_query: Query<
+        (Entity, &SquadId, &Transform, Option<&SpawnPositionOccupied>),
+        With<SpawnPosition>,
+    >,
 ) {
+    let mut all_spawns: HashMap<&SquadId, Vec<(Entity, &Transform)>> = HashMap::default();
+
+    // filter out occupied spawns
+    let unoccupied_spawns: Vec<(Entity, &SquadId, &Transform, Option<&SpawnPositionOccupied>)> =
+        spawn_query
+            .iter()
+            .filter(|(_, _, _, occupied)| occupied.is_none())
+            .collect();
+
+    // build a map of spawns using squad id as key
+    unoccupied_spawns
+        .iter()
+        .for_each(|(spawn, squad_id, transform, _occupied)| {
+            let vec = all_spawns.entry(*squad_id).or_default();
+            vec.push((*spawn, *transform));
+        });
+
     for (operator, operator_squad_id) in added_operators.iter() {
-        for (spawn_position_squad_id, global_transform) in spawn_query.iter() {
-            if operator_squad_id.eq(spawn_position_squad_id) {
-                commands.entity(operator).insert(*global_transform);
-                break; // TODO: just use the first and be done, fix later
+        if let Some(squad_id_spawns) = all_spawns.get_mut(operator_squad_id) {
+            if let Some((spawn, transform)) = squad_id_spawns.first() {
+                commands.entity(operator).insert(**transform);
+                commands.entity(*spawn).insert(SpawnPositionOccupied);
+                squad_id_spawns.remove(0); // remove vec entry to avoid reuse
             }
         }
     }
@@ -117,24 +142,86 @@ fn bye_spawn(mut _commands: Commands) {
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
-    //use super::*;
+    use super::*;
 
-    /*
     #[test]
-    fn should_test_something() {
+    fn should_move_single_operator_to_single_spawn_position() {
         // given
-        //let mut _app = App::new();
+        let mut app = App::new();
+        let operator = app
+            .world_mut()
+            .spawn(Operator)
+            .insert(Transform::from_xyz(0.0, 0.0, 0.0))
+            .insert(SquadId(123))
+            .id();
+        let spawn_position = app
+            .world_mut()
+            .spawn(SpawnPosition)
+            .insert(Transform::from_xyz(1.0, 2.0, 3.0))
+            .insert(SquadId(123))
+            .id();
 
         // when
-        //app.add_event::<HealthDamageReceived>();
-        //app.add_systems(Update, damage_received_listener);
-        //let entity = app.borrow_mut().world.spawn(Health(100)).id();
-        //app.borrow_mut().world.resource_mut::<Events<HealthDamageReceived>>().send(HealthDamageReceived { entity, damage: 10 });
-        //app.update();
+        app.add_systems(Update, added_squad_id_to_operator);
+        app.update();
 
         // then
         //assert!(app.world.get::<Health>(entity).is_some());
-        //assert_eq!(app.world.get::<Health>(entity).unwrap().0, 90);
+        assert_eq!(
+            app.world().get::<Transform>(operator),
+            app.world().get::<Transform>(spawn_position)
+        );
     }
-    */
+
+    #[test]
+    fn should_move_two_operators_to_two_spawn_positions() {
+        // given
+        let mut app = App::new();
+        let operator1 = app
+            .world_mut()
+            .spawn(Operator)
+            .insert(Transform::from_xyz(0.0, 0.0, 0.0))
+            .insert(SquadId(123))
+            .id();
+        let spawn_position1 = app
+            .world_mut()
+            .spawn(SpawnPosition)
+            .insert(Transform::from_xyz(1.0, 2.0, 3.0))
+            .insert(SquadId(123))
+            .id();
+        let operator2 = app
+            .world_mut()
+            .spawn(Operator)
+            .insert(Transform::from_xyz(0.0, 0.0, 0.0))
+            .insert(SquadId(123))
+            .id();
+        let spawn_position2 = app
+            .world_mut()
+            .spawn(SpawnPosition)
+            .insert(Transform::from_xyz(2.0, 4.0, 6.0))
+            .insert(SquadId(123))
+            .id();
+
+        // when
+        app.add_systems(Update, added_squad_id_to_operator);
+        app.update();
+
+        // then
+        assert_eq!(
+            app.world().get::<Transform>(spawn_position1),
+            app.world().get::<Transform>(operator1),
+        );
+        assert!(app
+            .world()
+            .get::<SpawnPositionOccupied>(spawn_position1)
+            .is_some());
+        assert_eq!(
+            app.world().get::<Transform>(spawn_position2),
+            app.world().get::<Transform>(operator2),
+        );
+        assert!(app
+            .world()
+            .get::<SpawnPositionOccupied>(spawn_position2)
+            .is_some());
+    }
 }

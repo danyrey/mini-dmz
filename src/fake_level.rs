@@ -6,6 +6,7 @@ use crate::coordinates::{GridOffset, GridScale};
 //  * transfer from state from one appstate to another: active dute layout -> ...load in -> raid
 use crate::damage::HurtBox;
 use crate::exfil::{ExfilArea, Operator};
+use crate::first_person_controller::PlayerControlled;
 use crate::flee::Ghost;
 use crate::follow::Zombie;
 use crate::interaction::Interactable;
@@ -37,7 +38,7 @@ impl Plugin for FakeLevelPlugin {
                     update_fake_level,
                     add_backpack_summary,
                     add_inventory_to_operators,
-                    add_squad_id_to_operator,
+                    add_squad_id_to_my_operator,
                     manage_cursor,
                 )
                     .run_if(in_state(AppState::Raid)),
@@ -114,17 +115,68 @@ pub fn start_fake_level(
         .spawn(Spawn {
             formation: Formation::Staggered,
         })
+        .insert(Name::new("Spawn1"))
         .insert(SpawnId(1))
         .insert(SquadId(111))
         .insert(Transform::from_xyz(-4.0, 0.0, 5.0));
 
     // TODO: should this be a child of spawn or no?
-    // spawn position 1
+    // spawn position 1 / 1
     commands
         .spawn(SpawnPosition)
+        .insert(Name::new("Spawn1/1"))
         .insert(SpawnId(1))
         .insert(SquadId(111))
-        .insert(Transform::from_xyz(-4.0, 0.0, 5.0));
+        .insert(Transform::from_xyz(-1.0, 0.0, 5.0));
+
+    // spawn position 1 / 2
+    commands
+        .spawn(SpawnPosition)
+        .insert(Name::new("Spawn1/2"))
+        .insert(SpawnId(1))
+        .insert(SquadId(111))
+        .insert(Transform::from_xyz(-3.0, 0.0, 5.0));
+
+    // spawn position 1 / 3
+    commands
+        .spawn(SpawnPosition)
+        .insert(Name::new("Spawn1/3"))
+        .insert(SpawnId(1))
+        .insert(SquadId(111))
+        .insert(Transform::from_xyz(-5.0, 0.0, 5.0));
+
+    commands
+        .spawn(Spawn {
+            formation: Formation::Staggered,
+        })
+        .insert(Name::new("Spawn2"))
+        .insert(SpawnId(2))
+        .insert(SquadId(222))
+        .insert(Transform::from_xyz(4.0, 0.0, 3.0));
+
+    // spawn position 2 / 1
+    commands
+        .spawn(SpawnPosition)
+        .insert(Name::new("Spawn2/1"))
+        .insert(SpawnId(2))
+        .insert(SquadId(222))
+        .insert(Transform::from_xyz(1.0, 0.0, 3.0));
+
+    // spawn position 2 / 2
+    commands
+        .spawn(SpawnPosition)
+        .insert(Name::new("Spawn2/2"))
+        .insert(SpawnId(2))
+        .insert(SquadId(222))
+        .insert(Transform::from_xyz(3.0, 0.0, 3.0));
+
+    // spawn position 2 / 3
+    commands
+        .spawn(SpawnPosition)
+        .insert(Name::new("Spawn2/3"))
+        .insert(SpawnId(2))
+        .insert(SquadId(222))
+        .insert(Transform::from_xyz(5.0, 0.0, 3.0));
 
     commands
         .spawn((
@@ -244,6 +296,102 @@ pub fn start_fake_level(
         .insert(Name::new("Enemy2"))
         .insert(Zombie)
         .insert(FakeLevelStuff);
+
+    commands
+        .spawn((
+            Mesh3d(meshes.add(Capsule3d::new(capsule_radius, capsule_height))),
+            MeshMaterial3d(materials.add(StandardMaterial {
+                base_color_texture: Some(texture_06.clone()),
+                base_color: Color::srgb(0.0, 0.75, 0.0),
+                uv_transform: Affine2::from_scale(Vec2::new(
+                    6.0 * capsule_radius,
+                    capsule_height + (2.0 * capsule_radius),
+                )),
+                ..Default::default()
+            })),
+            Transform::from_xyz(-1.0, 1.0, 4.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
+        ))
+        .insert(Operator)
+        .insert(SquadId(111))
+        .insert(Name::new("Squadmate1"))
+        .insert(FakeLevelStuff);
+
+    commands
+        .spawn((
+            Mesh3d(meshes.add(Capsule3d::new(capsule_radius, capsule_height))),
+            MeshMaterial3d(materials.add(StandardMaterial {
+                base_color_texture: Some(texture_06.clone()),
+                base_color: Color::srgb(0.0, 0.75, 0.0),
+                uv_transform: Affine2::from_scale(Vec2::new(
+                    6.0 * capsule_radius,
+                    capsule_height + (2.0 * capsule_radius),
+                )),
+                ..Default::default()
+            })),
+            Transform::from_xyz(-3.0, 1.0, 4.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
+        ))
+        .insert(Operator)
+        .insert(SquadId(111))
+        .insert(Name::new("Squadmate2"))
+        .insert(FakeLevelStuff);
+
+    commands
+        .spawn((
+            Mesh3d(meshes.add(Capsule3d::new(capsule_radius, capsule_height))),
+            MeshMaterial3d(materials.add(StandardMaterial {
+                base_color_texture: Some(texture_06.clone()),
+                base_color: Color::srgb(0.75, 0.75, 0.75),
+                uv_transform: Affine2::from_scale(Vec2::new(
+                    6.0 * capsule_radius,
+                    capsule_height + (2.0 * capsule_radius),
+                )),
+                ..Default::default()
+            })),
+            Transform::from_xyz(-1.0, 1.0, 4.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
+        ))
+        .insert(Operator)
+        .insert(SquadId(222))
+        .insert(Name::new("Enemy Squadmember 1"))
+        .insert(FakeLevelStuff);
+
+    commands
+        .spawn((
+            Mesh3d(meshes.add(Capsule3d::new(capsule_radius, capsule_height))),
+            MeshMaterial3d(materials.add(StandardMaterial {
+                base_color_texture: Some(texture_06.clone()),
+                base_color: Color::srgb(0.75, 0.75, 0.75),
+                uv_transform: Affine2::from_scale(Vec2::new(
+                    6.0 * capsule_radius,
+                    capsule_height + (2.0 * capsule_radius),
+                )),
+                ..Default::default()
+            })),
+            Transform::from_xyz(-3.0, 1.0, 4.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
+        ))
+        .insert(Operator)
+        .insert(SquadId(222))
+        .insert(Name::new("Enemy Squadmember 2"))
+        .insert(FakeLevelStuff);
+
+    commands
+        .spawn((
+            Mesh3d(meshes.add(Capsule3d::new(capsule_radius, capsule_height))),
+            MeshMaterial3d(materials.add(StandardMaterial {
+                base_color_texture: Some(texture_06.clone()),
+                base_color: Color::srgb(0.75, 0.75, 0.75),
+                uv_transform: Affine2::from_scale(Vec2::new(
+                    6.0 * capsule_radius,
+                    capsule_height + (2.0 * capsule_radius),
+                )),
+                ..Default::default()
+            })),
+            Transform::from_xyz(5.0, 1.0, 4.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
+        ))
+        .insert(Operator)
+        .insert(SquadId(222))
+        .insert(Name::new("Enemy Squadmember 3"))
+        .insert(FakeLevelStuff);
+
     // loot cube 1
 
     let loot_cube_size = 0.2;
@@ -649,9 +797,12 @@ fn start_fake_level_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 }
 
-fn add_squad_id_to_operator(mut commands: Commands, query: Query<Entity, Added<Operator>>) {
+fn add_squad_id_to_my_operator(
+    mut commands: Commands,
+    query: Query<Entity, (With<PlayerControlled>, Added<Operator>)>,
+) {
     for added in query.iter() {
-        commands.entity(added).insert(SquadId(111)); // TODO: just 111 for now for everybody, all friends in fake level for now
+        commands.entity(added).insert(SquadId(111));
     }
 }
 
