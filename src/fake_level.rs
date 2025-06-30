@@ -15,6 +15,7 @@ use crate::lock::{Key, Lock};
 use crate::loot::{
     Durability, ItemType, Loot, LootCacheState, LootName, LootType, Price, Rarity, Stackable,
 };
+use crate::projectile::{Projectile, ProjectileVelocity};
 use crate::raid::Enemy;
 use crate::spawn::{Formation, Spawn, SpawnId, SpawnPosition};
 use crate::squad::SquadId;
@@ -773,6 +774,23 @@ pub fn start_fake_level(
         .insert(Interactable)
         .insert(ContractId(123))
         .insert(ItemSlots(4))
+        .insert(FakeLevelStuff);
+
+    // example projectile
+    commands
+        .spawn((
+            Mesh3d(meshes.add(Cuboid::new(0.2, 0.2, 0.2))),
+            MeshMaterial3d(materials.add(StandardMaterial {
+                base_color: Color::srgb(1.0, 1.0, 1.0),
+                ..Default::default()
+            })),
+            Transform::from_xyz(0.0, 1.0, 0.0),
+        ))
+        .insert(Name::new("Bullet"))
+        .insert(Projectile { mass: 1 })
+        .insert(ProjectileVelocity {
+            velocity: Vec3::default(),
+        })
         .insert(FakeLevelStuff);
 }
 
