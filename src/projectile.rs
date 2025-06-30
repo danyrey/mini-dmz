@@ -23,7 +23,7 @@ impl Plugin for ProjectilePlugin {
             .add_systems(OnEnter(Raid), start_projectile_system)
             .add_systems(
                 FixedUpdate,
-                (flying_projectiles).run_if(in_state(AppState::Raid)),
+                (flying_projectiles, projectile_timers).run_if(in_state(AppState::Raid)),
             )
             .add_systems(OnExit(AppState::Raid), bye_projectile_system);
     }
@@ -35,6 +35,11 @@ impl Plugin for ProjectilePlugin {
 pub struct Projectile {
     /// mass for now only
     pub mass: u32,
+}
+
+#[derive(Component, Reflect)]
+pub struct ProjectileTime {
+    pub timer: Timer,
 }
 
 #[derive(Component, Reflect)]
@@ -72,7 +77,23 @@ fn flying_projectiles(
         // Take projectile speed & velocity and apply it to transform and velocity
         // update
         // FIXME: only move along x axis as MVP
-        transform.translation.x += 0.01 * time.elapsed_secs()
+        transform.translation.x = 1.5 * time.elapsed_secs()
+    }
+}
+
+fn projectile_timers(
+    mut commands: Commands,
+    mut q: Query<(Entity, &mut ProjectileTime)>,
+    time: Res<Time>,
+) {
+    for (entity, mut projectile_timer) in q.iter_mut() {
+        // timers gotta be ticked, to work
+        projectile_timer.timer.tick(time.delta());
+
+        // if it finished, despawn the bomb
+        if projectile_timer.timer.finished() {
+            commands.entity(entity).despawn();
+        }
     }
 }
 

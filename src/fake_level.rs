@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::backpack_summary::BackpackSummary;
 use crate::contracts::{ContractId, ContractPhone, ContractType};
 use crate::coordinates::{GridOffset, GridScale};
@@ -15,7 +17,7 @@ use crate::lock::{Key, Lock};
 use crate::loot::{
     Durability, ItemType, Loot, LootCacheState, LootName, LootType, Price, Rarity, Stackable,
 };
-use crate::projectile::{Projectile, ProjectileVelocity};
+use crate::projectile::{Projectile, ProjectileTime, ProjectileVelocity};
 use crate::raid::Enemy;
 use crate::spawn::{Formation, Spawn, SpawnId, SpawnPosition};
 use crate::squad::SquadId;
@@ -790,6 +792,9 @@ pub fn start_fake_level(
         .insert(Projectile { mass: 1 })
         .insert(ProjectileVelocity {
             velocity: Vec3::default(),
+        })
+        .insert(ProjectileTime {
+            timer: Timer::new(Duration::from_secs(3), TimerMode::Once),
         })
         .insert(FakeLevelStuff);
 }
