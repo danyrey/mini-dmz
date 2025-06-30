@@ -27,6 +27,7 @@ use matchmake::{MatchmakeInProgressScreenPlugin, MatchmakeScreenPlugin};
 use mission_objective_screen::MissionObjectivesScreenPlugin;
 use out_of_bounds::OutOfBoundsPlugin;
 use point_of_interest::PointOfInterestPlugin;
+use projectile::ProjectilePlugin;
 use raid::RaidPlugin;
 use raid_summary::RaidSummaryPlugin;
 use skybox::SkyboxPlugin;
@@ -165,6 +166,7 @@ fn main() {
             SquadPlugin,
             SpawnPlugin,
             LockPlugin,
+            ProjectilePlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Update, close_on_esc)

@@ -12,9 +12,16 @@ pub struct ProjectilePlugin;
 
 impl Plugin for ProjectilePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Raid), start_projectile_system)
+        app
+            // register types
+            .register_type::<Projectile>()
+            .register_type::<ProjectileEmitter>()
+            .register_type::<ProjectileCapacity>()
+            // register events
+            // add systems
+            .add_systems(OnEnter(Raid), start_projectile_system)
             .add_systems(
-                Update,
+                FixedUpdate,
                 (update_projectile_system).run_if(in_state(AppState::Raid)),
             )
             .add_systems(OnExit(AppState::Raid), bye_projectile_system);
@@ -22,6 +29,23 @@ impl Plugin for ProjectilePlugin {
 }
 
 // Components
+#[derive(Component, Reflect)]
+/// projectile component
+/// mass for now only
+pub struct Projectile {
+    pub mass: u32,
+}
+
+#[derive(Component, Reflect)]
+pub struct ProjectileEmitter {
+    pub velocity: u32,
+    pub rate: u32,
+}
+
+#[derive(Component, Reflect)]
+pub struct ProjectileCapacity {
+    pub capacity: u32,
+}
 
 // Resources
 
@@ -31,9 +55,12 @@ impl Plugin for ProjectilePlugin {
 fn start_projectile_system(mut _commands: Commands) {
     debug!("starting {}", NAME);
 }
+
+/// note: this system runs in a FixedUpdate schedule as it is physics related
 fn update_projectile_system() {
     debug!("updating {}", NAME);
 }
+
 fn bye_projectile_system(mut _commands: Commands) {
     debug!("stopping {}", NAME);
 }
