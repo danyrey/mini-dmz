@@ -96,7 +96,12 @@ fn added_squad_id_to_operator(
     for (operator, operator_squad_id) in added_operators.iter() {
         if let Some(squad_id_spawns) = all_spawns.get_mut(operator_squad_id) {
             if let Some((spawn, transform)) = squad_id_spawns.first() {
-                commands.entity(operator).insert(**transform);
+                // TODO: reconsider instead of simple replacing, maybe copy only xz and
+                // orientation instaed. not sure yet whos responsibility would it be.
+                let new_transform = (*transform).clone();
+                //new_transform.translation.y += 1.0;
+                // currently the backpack is still wrong after above correction
+                commands.entity(operator).insert(new_transform);
                 commands.entity(*spawn).insert(SpawnPositionOccupied);
                 squad_id_spawns.remove(0); // remove vec entry to avoid reuse
             }
