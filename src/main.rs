@@ -65,6 +65,7 @@ mod matchmake;
 mod mission_objective_screen;
 mod out_of_bounds;
 mod point_of_interest;
+mod projectile;
 mod raid;
 mod raid_summary;
 mod skybox;
