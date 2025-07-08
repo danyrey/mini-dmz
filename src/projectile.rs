@@ -1,12 +1,21 @@
+use std::time::Duration;
+
 use bevy::app::Plugin;
 
 use crate::AppState;
-use crate::AppState::Raid;
 use bevy::prelude::*;
 
 // Constants
 const NAME: &str = "projectile";
-const GRAVITY: f32 = 9.81;
+const _GRAVITY: f32 = 9.81;
+/// assume 9mm as a default which would be around 300 m/s
+const BULLET_VELOCITY: u32 = 300;
+/// default bullet mass, 9mm assumed
+const BULLET_MASS: u32 = 8;
+/// time to live in seconds
+const BULLET_TTL: f32 = 3.0;
+/// rate of fire per second
+const RATE_OF_FIRE: u32 = 13;
 
 // Plugin
 pub struct ProjectilePlugin;
@@ -20,7 +29,6 @@ impl Plugin for ProjectilePlugin {
             .register_type::<ProjectileEmitter>()
             // register events
             // add systems
-            .add_systems(OnEnter(Raid), start_projectile_system)
             .add_systems(
                 FixedUpdate,
                 (flying_projectiles, projectile_timers).run_if(in_state(AppState::Raid)),
@@ -33,8 +41,15 @@ impl Plugin for ProjectilePlugin {
 #[derive(Component, Reflect)]
 /// projectile component, ballistic.
 pub struct Projectile {
-    /// mass for now only
+    /// mass in g for now only
     pub mass: u32,
+}
+
+/// represents a 9mm projectile
+impl Default for Projectile {
+    fn default() -> Self {
+        Projectile { mass: BULLET_MASS }
+    }
 }
 
 #[derive(Component, Reflect)]
@@ -42,9 +57,30 @@ pub struct ProjectileTime {
     pub timer: Timer,
 }
 
+impl Default for ProjectileTime {
+    fn default() -> Self {
+        ProjectileTime {
+            timer: Timer::new(Duration::from_secs_f32(BULLET_TTL), TimerMode::Once),
+        }
+    }
+}
+
+/// projectile velocity direction per second
 #[derive(Component, Reflect)]
 pub struct ProjectileVelocity {
     pub velocity: Vec3,
+}
+
+impl Default for ProjectileVelocity {
+    fn default() -> Self {
+        ProjectileVelocity {
+            velocity: Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: -1.0 * BULLET_VELOCITY as f32,
+            },
+        }
+    }
 }
 
 /// this component is attached to all entities that
@@ -57,34 +93,39 @@ pub struct ProjectileEmitter {
     pub rate: u32,
 }
 
+/// represents defaults for a mp5 smg
+impl Default for ProjectileEmitter {
+    fn default() -> Self {
+        ProjectileEmitter {
+            velocity: BULLET_VELOCITY,
+            rate: RATE_OF_FIRE,
+        }
+    }
+}
+
 // Resources
 
 // Events
 
 // Systems
-fn start_projectile_system(mut _commands: Commands) {
-    debug!("starting {}", NAME);
-}
 
 /// note: this system runs in a FixedUpdate schedule as it is physics related
 fn flying_projectiles(
-    time: Res<Time>,
-    mut projectiles: Query<(Entity, &Projectile, &ProjectileVelocity, &mut Transform)>,
+    time: Res<Time<Fixed>>,
+    mut projectiles: Query<(&Projectile, &ProjectileVelocity, &mut Transform)>,
 ) {
     debug!("updating {}", NAME);
-    for (_entity, _projectile, _velocity, mut transform) in projectiles.iter_mut() {
-        // TODO: fly, you fools!
-        // Take projectile speed & velocity and apply it to transform and velocity
-        // update
-        // FIXME: only move along x axis as MVP
-        transform.translation.x = 1.5 * time.elapsed_secs()
+    for (_projectile, velocity, mut transform) in projectiles.iter_mut() {
+        transform.translation += velocity.velocity * time.delta_secs();
     }
 }
 
+/// this system is just managing a projectiles lifetime and
+/// despanws entities upon its end
 fn projectile_timers(
     mut commands: Commands,
     mut q: Query<(Entity, &mut ProjectileTime)>,
-    time: Res<Time>,
+    time: Res<Time<Fixed>>,
 ) {
     for (entity, mut projectile_timer) in q.iter_mut() {
         // timers gotta be ticked, to work

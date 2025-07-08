@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use crate::backpack_summary::BackpackSummary;
 use crate::contracts::{ContractId, ContractPhone, ContractType};
 use crate::coordinates::{GridOffset, GridScale};
@@ -786,16 +784,12 @@ pub fn start_fake_level(
                 base_color: Color::srgb(1.0, 1.0, 1.0),
                 ..Default::default()
             })),
-            Transform::from_xyz(0.0, 1.0, 0.0),
+            Transform::from_xyz(-5.0, 1.0, 4.0),
         ))
         .insert(Name::new("Bullet"))
-        .insert(Projectile { mass: 1 })
-        .insert(ProjectileVelocity {
-            velocity: Vec3::default(),
-        })
-        .insert(ProjectileTime {
-            timer: Timer::new(Duration::from_secs(3), TimerMode::Once),
-        })
+        .insert(Projectile::default())
+        .insert(ProjectileVelocity::default())
+        .insert(ProjectileTime::default())
         .insert(FakeLevelStuff);
 }
 
