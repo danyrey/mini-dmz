@@ -98,7 +98,7 @@ fn added_squad_id_to_operator(
             if let Some((spawn, transform)) = squad_id_spawns.first() {
                 // TODO: reconsider instead of simple replacing, maybe copy only xz and
                 // orientation instaed. not sure yet whos responsibility would it be.
-                let new_transform = (*transform).clone();
+                let new_transform = *(*transform);
                 //new_transform.translation.y += 1.0;
                 // currently the backpack is still wrong after above correction
                 commands.entity(operator).insert(new_transform);
