@@ -15,7 +15,7 @@ use crate::lock::{Key, Lock};
 use crate::loot::{
     Durability, ItemType, Loot, LootCacheState, LootName, LootType, Price, Rarity, Stackable,
 };
-use crate::projectile::{Projectile, ProjectileTime, ProjectileVelocity};
+use crate::projectile::{Projectile, ProjectileEmitter, ProjectileTime, ProjectileVelocity};
 use crate::raid::Enemy;
 use crate::spawn::{Formation, Spawn, SpawnId, SpawnPosition};
 use crate::squad::SquadId;
@@ -38,7 +38,9 @@ impl Plugin for FakeLevelPlugin {
                 (
                     update_fake_level,
                     add_backpack_summary,
+                    add_weapon_to_operators,
                     add_inventory_to_operators,
+                    add_cubes_to_projectiles,
                     add_squad_id_to_my_operator,
                     manage_cursor,
                 )
@@ -829,6 +831,30 @@ fn add_backpack_summary(mut commands: Commands, query: Query<Entity, Added<Opera
     }
 }
 
+fn add_weapon_to_operators(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    query: Query<Entity, Added<Operator>>,
+) {
+    debug!("adding weapon to new operators");
+    for added in query.iter() {
+        commands
+            .spawn((
+                Mesh3d(meshes.add(Cuboid::new(0.125, 0.125, 1.0))),
+                MeshMaterial3d(materials.add(StandardMaterial {
+                    base_color: Color::srgb(0.75, 0.0, 0.0),
+                    ..Default::default()
+                })),
+                Transform::from_xyz(0.0, 1.0, -0.5),
+            ))
+            .insert(Name::new("Weapon"))
+            .insert(ProjectileEmitter::default())
+            .insert(FakeLevelStuff)
+            .set_parent(added);
+    }
+}
+
 /// semi init procedure: add inventory cube to Operator entities.
 // TODO: not sure if this is an idiomatic way to do post setup stuff but it works
 fn add_inventory_to_operators(
@@ -855,6 +881,29 @@ fn add_inventory_to_operators(
             .insert(ItemSlots(9))
             .insert(WeaponSlots(2))
             .insert(FakeLevelStuff)
+            .set_parent(added);
+    }
+}
+
+fn add_cubes_to_projectiles(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    query: Query<Entity, Added<Projectile>>,
+) {
+    debug!("adding cubes to new projectiles");
+    for added in query.iter() {
+        commands
+            .spawn((
+                Mesh3d(meshes.add(Cuboid::new(0.2, 0.2, 0.2))),
+                MeshMaterial3d(materials.add(StandardMaterial {
+                    base_color: Color::srgb(1.0, 0.0, 0.0),
+                    ..Default::default()
+                })),
+                Transform::from_xyz(0.0, 0.0, 0.0),
+                FakeLevelStuff,
+                Name::new("BulletCube"),
+            ))
             .set_parent(added);
     }
 }

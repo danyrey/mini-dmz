@@ -28,12 +28,13 @@ impl Plugin for ProjectilePlugin {
             .register_type::<ProjectileVelocity>()
             .register_type::<ProjectileEmitter>()
             // register events
+            .add_event::<SingleShot>()
             // add systems
             .add_systems(
                 FixedUpdate,
-                (flying_projectiles, projectile_timers).run_if(in_state(AppState::Raid)),
-            )
-            .add_systems(OnExit(AppState::Raid), bye_projectile_system);
+                (emit_single_shot, flying_projectiles, projectile_timers)
+                    .run_if(in_state(AppState::Raid)),
+            );
     }
 }
 
@@ -43,6 +44,7 @@ impl Plugin for ProjectilePlugin {
 pub struct Projectile {
     /// mass in g for now only
     pub mass: u32,
+    // TODO: ballistic coefficient here
 }
 
 /// represents a 9mm projectile
@@ -106,8 +108,31 @@ impl Default for ProjectileEmitter {
 // Resources
 
 // Events
+#[derive(Event, Debug, PartialEq)]
+pub struct SingleShot {
+    pub shooter: Entity,
+}
 
 // Systems
+fn emit_single_shot(
+    mut commands: Commands,
+    mut single_shot_triggered: EventReader<SingleShot>,
+    projectile_emitters: Query<(&Parent, &ProjectileEmitter, &GlobalTransform)>,
+) {
+    // TODO: prevent fire rate that is not possible
+    for event in single_shot_triggered.read() {
+        for (shooter, _pewpew, _transform) in projectile_emitters.iter() {
+            if shooter.get().eq(&event.shooter) {
+                commands
+                    .spawn(Projectile::default())
+                    .insert(Name::new("Bullet"))
+                    .insert(ProjectileTime::default())
+                    .insert(Transform::from_xyz(0.0, 0.0, 0.0))
+                    .insert(ProjectileVelocity::default());
+            }
+        }
+    }
+}
 
 /// note: this system runs in a FixedUpdate schedule as it is physics related
 fn flying_projectiles(
@@ -116,6 +141,8 @@ fn flying_projectiles(
 ) {
     debug!("updating {}", NAME);
     for (_projectile, velocity, mut transform) in projectiles.iter_mut() {
+        // TODO: gravity
+        // TODO: drag, slowing down velocity
         transform.translation += velocity.velocity * time.delta_secs();
     }
 }
@@ -133,13 +160,9 @@ fn projectile_timers(
 
         // if it finished, despawn the bomb
         if projectile_timer.timer.finished() {
-            commands.entity(entity).despawn();
+            commands.entity(entity).despawn_recursive();
         }
     }
-}
-
-fn bye_projectile_system(mut _commands: Commands) {
-    debug!("stopping {}", NAME);
 }
 
 // helper functions

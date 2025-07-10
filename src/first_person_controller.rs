@@ -1,10 +1,12 @@
 use std::f32::consts::PI;
 
+use bevy::input::mouse::MouseButtonInput;
 use bevy::{app::Plugin, input::mouse::MouseMotion};
 
 use crate::compass::Compass;
 use crate::coordinates::GridPosition;
 use crate::heightmap::FlatEarth;
+use crate::projectile::SingleShot;
 use crate::raid::{RaidState, Volume};
 use crate::wallet::Wallet;
 use crate::AppState;
@@ -34,7 +36,11 @@ impl Plugin for FirstPersonControllerPlugin {
             )
             .add_systems(
                 Update,
-                (update_camera_look_yaw, update_camera_look_pitch)
+                (
+                    trigger_single_shot,
+                    update_camera_look_yaw,
+                    update_camera_look_pitch,
+                )
                     .run_if(in_state(AppState::Raid).and(in_state(RaidState::Raid))),
             )
             .add_systems(OnExit(AppState::Raid), bye_first_person_controller_system);
@@ -235,6 +241,21 @@ fn update_camera_look_pitch(
                 let x = camera_transform.1.rotation.to_axis_angle().0.x;
                 camera_transform.1.rotation.x = x * PI_QUARTER;
                 camera_transform.1.rotation.w = PI_QUARTER;
+            }
+        }
+    }
+}
+
+fn trigger_single_shot(
+    mut mouse_events: EventReader<MouseButtonInput>,
+    mut single_shot: EventWriter<SingleShot>,
+    operator_query: Query<Entity, (With<Operator>, With<PlayerControlled>)>,
+) {
+    // FIXME: for now mouse clicks are shooting, ALWAYS, EVERYWHERE
+    for mouse_event in mouse_events.read() {
+        if mouse_event.button.eq(&MouseButton::Left) && mouse_event.state.is_pressed() {
+            for shooter in operator_query.iter() {
+                single_shot.send(SingleShot { shooter });
             }
         }
     }
