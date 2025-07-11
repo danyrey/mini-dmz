@@ -127,7 +127,7 @@ fn emit_single_shot(
                     .spawn(Projectile::default())
                     .insert(Name::new("Bullet"))
                     .insert(ProjectileTime::default())
-                    .insert(Transform::from(g_transform.clone()))
+                    .insert(Transform::from(*g_transform))
                     .insert(ProjectileVelocity {
                         velocity: g_transform.forward() * pewpew.velocity as f32,
                     });
