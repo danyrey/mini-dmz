@@ -121,14 +121,16 @@ fn emit_single_shot(
 ) {
     // TODO: prevent fire rate that is not possible
     for event in single_shot_triggered.read() {
-        for (shooter, _pewpew, _transform) in projectile_emitters.iter() {
+        for (shooter, pewpew, g_transform) in projectile_emitters.iter() {
             if shooter.get().eq(&event.shooter) {
                 commands
                     .spawn(Projectile::default())
                     .insert(Name::new("Bullet"))
                     .insert(ProjectileTime::default())
-                    .insert(Transform::from_xyz(0.0, 0.0, 0.0))
-                    .insert(ProjectileVelocity::default());
+                    .insert(Transform::from(g_transform.clone()))
+                    .insert(ProjectileVelocity {
+                        velocity: g_transform.forward() * pewpew.velocity as f32,
+                    });
             }
         }
     }
