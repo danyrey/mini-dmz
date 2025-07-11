@@ -49,8 +49,8 @@ fn start_follow_system(
     debug!("starting {}", NAME);
     for zombie in zombies.iter_mut() {
         debug!("zombie {}", zombie);
-        let operator = operators.get_single();
-        if let Ok(operator) = operator {
+        let operator = operators.iter().last();
+        if let Some(operator) = operator {
             debug!("operator {}", operator);
             commands.entity(zombie).insert(FollowTarget(operator));
         }

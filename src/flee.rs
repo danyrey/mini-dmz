@@ -49,8 +49,8 @@ fn start_flee_system(
     debug!("starting {}", NAME);
     for ghost in ghosts.iter_mut() {
         debug!("ghost {}", ghost);
-        let operator = operators.get_single();
-        if let Ok(operator) = operator {
+        let operator = operators.iter().last();
+        if let Some(operator) = operator {
             debug!("operator {}", operator);
             commands.entity(ghost).insert(FleeTarget(operator));
         }
