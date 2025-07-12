@@ -166,12 +166,12 @@ fn stow_money_listener(
                 } else {
                     let remainder = operator.1.money + amount - operator.1.limit;
                     operator.1.money = operator.1.limit;
-                    println!("amount: {:?}", amount);
+                    println!("amount: {amount:?}");
                     println!("operator.1: {:?}", operator.1);
-                    println!("remainder: {:?}", remainder);
+                    println!("remainder: {remainder:?}");
                     let mut x = money.1;
                     x.0 = remainder;
-                    println!("x: {:?}", x);
+                    println!("x: {x:?}");
                     event.send(StowedMoney {
                         stowing_entity: operator.0,
                         amount: amount - remainder,

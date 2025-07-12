@@ -79,7 +79,7 @@ impl Default for ProjectileVelocity {
             velocity: Vec3 {
                 x: 0.0,
                 y: 0.0,
-                z: -1.0 * BULLET_VELOCITY as f32,
+                z: -(BULLET_VELOCITY as f32),
             },
         }
     }

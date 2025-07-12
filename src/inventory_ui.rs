@@ -496,7 +496,7 @@ fn render_backpack_ui(
                 })
                 .insert(Name::new("Backpack Header"))
                 .with_children(|builder| {
-                    let label = format!("{} (${})", backpack_name, backpack_summary_value);
+                    let label = format!("{backpack_name} (${backpack_summary_value})");
                     builder
                         .spawn(Text::new(label))
                         .insert(TextFont {

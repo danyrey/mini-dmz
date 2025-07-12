@@ -341,7 +341,7 @@ fn matchmaking_update_listener(
     for ev in event.read() {
         let e = ev.0;
         for entity in query.iter() {
-            *writer.text(entity, 0) = format!("SEARCHING FOR A MATCH <{:?}MS PING", e);
+            *writer.text(entity, 0) = format!("SEARCHING FOR A MATCH <{e:?}MS PING");
             debug!("matchmaking updated. searching for ping <{:?}ms", e);
         }
     }
@@ -377,10 +377,8 @@ fn players_found_listener(
             } else {
                 String::from("PLAYERS")
             };
-            *writer.text(entity, 0) = format!(
-                "LOOKING FOR {:?} MORE {:}",
-                remaining_players, player_string
-            );
+            *writer.text(entity, 0) =
+                format!("LOOKING FOR {remaining_players:?} MORE {player_string}");
             debug!("found players. ({:?})", num);
         }
     }
@@ -421,7 +419,7 @@ fn launching_listener(
     for ev in event.read() {
         for entity in query.iter() {
             let countdown = ev.0;
-            *writer.text(entity, 0) = format!("LAUNCHING {:?}", countdown);
+            *writer.text(entity, 0) = format!("LAUNCHING {countdown:?}");
             debug!("launch countdown.");
             if countdown == 0 {
                 next_state.set(AppState::LoadingScreen);
