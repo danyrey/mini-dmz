@@ -10,6 +10,7 @@ use crate::damage::ArmorDamageReceived;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
+use bevy_inspector_egui::InspectorOptions;
 
 // Constants
 const NAME: &str = "armor";
@@ -19,7 +20,11 @@ pub struct ArmorPlugin;
 
 impl Plugin for ArmorPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Raid), start_armor_system)
+        app
+            // types
+            .register_type::<Armor>()
+            // systems
+            .add_systems(OnEnter(Raid), start_armor_system)
             .add_systems(
                 Update,
                 (update_armor_system, damage_received_listener).run_if(in_state(AppState::Raid)),
@@ -29,7 +34,7 @@ impl Plugin for ArmorPlugin {
 }
 
 // Components
-#[derive(Component)]
+#[derive(Component, Debug, PartialEq, Reflect, InspectorOptions)]
 pub struct Armor(pub i32);
 
 impl Default for Armor {

@@ -1,13 +1,14 @@
 use std::cmp::max;
 
 use bevy::app::Plugin;
-use bevy::math::bounding::{Aabb3d, IntersectsVolume};
+use bevy::math::bounding::{Aabb3d, BoundingVolume, IntersectsVolume};
 
 use crate::armor::Armor;
 use crate::health::Health;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
+use bevy_inspector_egui::InspectorOptions;
 
 // Constants
 const NAME: &str = "damage";
@@ -17,7 +18,13 @@ pub struct DamagePlugin;
 
 impl Plugin for DamagePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Raid), start_damage_system)
+        app
+            // types
+            .register_type::<Damage>()
+            .register_type::<HurtBox>()
+            .register_type::<HitBox>()
+            // systems
+            .add_systems(OnEnter(Raid), start_damage_system)
             .add_systems(
                 Update,
                 (update_damage_system).run_if(in_state(AppState::Raid)),
@@ -31,15 +38,15 @@ impl Plugin for DamagePlugin {
 // Components
 
 /// component that deals the damage
-#[derive(Component, Debug)]
-pub struct HitBox(Aabb3d);
+#[derive(Component, Debug, Reflect, InspectorOptions)]
+pub struct HitBox(pub Aabb3d);
 
 /// component that receives the damage(hurt)
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Reflect, InspectorOptions)]
 pub struct HurtBox(pub Aabb3d);
 
 /// damage component
-#[derive(Component, Debug)]
+#[derive(Component, Debug, PartialEq, Reflect, InspectorOptions)]
 pub struct Damage(pub i32);
 
 // Resources
@@ -62,18 +69,30 @@ fn start_damage_system(mut _commands: Commands) {
     debug!("starting {}", NAME);
 }
 
+#[allow(clippy::type_complexity)]
 fn update_damage_system(
-    mut hitbox_query: Query<(Entity, &HitBox, &Damage)>,
-    mut hurtbox_query: Query<(Entity, &HurtBox, Option<&Health>, Option<&Armor>)>,
+    mut hitbox_query: Query<(Entity, &HitBox, &Damage, &GlobalTransform)>,
+    mut hurtbox_query: Query<(
+        Entity,
+        &HurtBox,
+        Option<&Health>,
+        Option<&Armor>,
+        &GlobalTransform,
+    )>,
     mut health_sender: EventWriter<HealthDamageReceived>,
     mut armor_sender: EventWriter<ArmorDamageReceived>,
     mut commands: Commands,
 ) {
     debug!("updating {}", NAME);
-    for (hit_entity, hitbox, damage) in hitbox_query.iter_mut() {
-        for (hurt_entity, hurtbox, health, armor) in hurtbox_query.iter_mut() {
+    for (hit_entity, hitbox, damage, hit_transform) in hitbox_query.iter_mut() {
+        let transformed_hit_box = Aabb3d::new(hit_transform.translation(), hitbox.0.half_size());
+        for (hurt_entity, hurtbox, health, armor, hurt_transform) in hurtbox_query.iter_mut() {
+            let transformed_hurt_box =
+                Aabb3d::new(hurt_transform.translation(), hurtbox.0.half_size());
+            debug!("we have a potential hit on entity({hurt_entity}) from entity({hit_entity})");
             // dont hit yourself if overlap occours
-            if hit_entity != hurt_entity && hitbox.0.intersects(&hurtbox.0) {
+            if hit_entity != hurt_entity && transformed_hit_box.intersects(&transformed_hurt_box) {
+                debug!("we have a definite hit on entity({hurt_entity}) from entity({hit_entity})");
                 let mut remaining_damage = damage.0;
                 if let Some(a) = armor {
                     let x = max(0, a.0 - damage.0);
@@ -135,6 +154,7 @@ mod tests {
                     },
                 )),
                 Damage(10),
+                Transform::default(),
             ))
             .id();
         let hurt_entity = app
@@ -151,6 +171,7 @@ mod tests {
                 )),
                 Armor(100),
                 Health(100),
+                Transform::default(),
             ))
             .id();
 
@@ -196,6 +217,7 @@ mod tests {
                     },
                 )),
                 Damage(110),
+                Transform::default(),
             ))
             .id();
         let hurt_entity = app
@@ -212,6 +234,7 @@ mod tests {
                 )),
                 Armor(100),
                 Health(100),
+                Transform::default(),
             ))
             .id();
 
@@ -270,6 +293,7 @@ mod tests {
                     },
                 )),
                 Damage(210),
+                Transform::default(),
             ))
             .id();
         let hurt_entity = app
@@ -286,6 +310,7 @@ mod tests {
                 )),
                 Armor(100),
                 Health(100),
+                Transform::default(),
             ))
             .id();
 

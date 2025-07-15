@@ -9,11 +9,11 @@ use bevy::prelude::*;
 const NAME: &str = "projectile";
 const _GRAVITY: f32 = 9.81;
 /// assume 9mm as a default which would be around 300 m/s
-const BULLET_VELOCITY: u32 = 300;
+const BULLET_VELOCITY: u32 = 3;
 /// default bullet mass, 9mm assumed
 const BULLET_MASS: u32 = 8;
 /// time to live in seconds
-const BULLET_TTL: f32 = 3.0;
+const BULLET_TTL: f32 = 30.0;
 /// rate of fire per second
 const RATE_OF_FIRE: u32 = 13;
 

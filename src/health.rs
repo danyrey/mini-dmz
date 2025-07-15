@@ -6,28 +6,30 @@ use bevy::app::Plugin;
 
 use crate::damage::HealthDamageReceived;
 use crate::AppState;
-use crate::AppState::Raid;
 use bevy::prelude::*;
+use bevy_inspector_egui::InspectorOptions;
 
 // Constants
-const NAME: &str = "health";
+const _NAME: &str = "health";
 
 // Plugin
 pub struct HealthPlugin;
 
 impl Plugin for HealthPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Raid), start_health_system)
+        app
+            // types
+            .register_type::<Health>()
+            // systems
             .add_systems(
                 Update,
-                (update_health_system, damage_received_listener).run_if(in_state(AppState::Raid)),
-            )
-            .add_systems(OnExit(AppState::Raid), bye_health_system);
+                (damage_received_listener).run_if(in_state(AppState::Raid)),
+            );
     }
 }
 
 // Components
-#[derive(Component)]
+#[derive(Component, Debug, PartialEq, Reflect, InspectorOptions)]
 pub struct Health(pub i32);
 
 impl Default for Health {
@@ -41,15 +43,6 @@ impl Default for Health {
 // Events
 
 // Systems
-fn start_health_system(mut _commands: Commands) {
-    debug!("starting {}", NAME);
-}
-fn update_health_system() {
-    debug!("updating {}", NAME);
-}
-fn bye_health_system(mut _commands: Commands) {
-    debug!("stopping {}", NAME);
-}
 
 #[allow(clippy::type_complexity)]
 fn damage_received_listener(

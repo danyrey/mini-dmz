@@ -1,14 +1,16 @@
+use crate::armor::Armor;
 use crate::backpack_summary::BackpackSummary;
 use crate::contracts::{ContractId, ContractPhone, ContractType};
 use crate::coordinates::{GridOffset, GridScale};
 // TODO: how to make sure every operator has a backpack attached to it
 //  TODO: transfer from the active loadout screen should be done
 //  * transfer from state from one appstate to another: active dute layout -> ...load in -> raid
-use crate::damage::HurtBox;
+use crate::damage::{Damage, HitBox, HurtBox};
 use crate::exfil::{ExfilArea, Operator};
 use crate::first_person_controller::PlayerControlled;
 use crate::flee::Ghost;
 use crate::follow::Zombie;
+use crate::health::Health;
 use crate::interaction::Interactable;
 use crate::inventory::{Inventory, ItemSlot, ItemSlots, WeaponSlot, WeaponSlots};
 use crate::lock::{Key, Lock};
@@ -23,6 +25,7 @@ use crate::wallet::Money;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
+use bevy::math::bounding::Aabb3d;
 use bevy::math::Affine2;
 use bevy::prelude::*;
 use bevy::window::{CursorGrabMode, PrimaryWindow};
@@ -260,22 +263,30 @@ pub fn start_fake_level(
             Transform::from_xyz(5.0, 1.0, 5.0),
         ))
         .insert(Enemy)
-        .insert(Name::new("Enemy1"))
+        .insert(Name::new("Enemy Ghost"))
         .insert(Ghost)
-        .insert(HurtBox(bevy::math::bounding::Aabb3d {
-            min: Vec3 {
-                x: 4.75,
-                y: 0.0,
-                z: 4.75,
-            }
-            .into(),
-            max: Vec3 {
-                x: 5.25,
-                y: 2.0,
-                z: 5.25,
-            }
-            .into(),
-        }))
+        .insert(HurtBox(bevy::math::bounding::Aabb3d::new(
+            Vec3::default(),
+            Vec3::new(0.25, 1.0, 0.25),
+        )))
+        /*
+                .insert(HurtBox(bevy::math::bounding::Aabb3d {
+                    min: Vec3 {
+                        x: 4.75,
+                        y: 0.0,
+                        z: 4.75,
+                    }
+                    .into(),
+                    max: Vec3 {
+                        x: 5.25,
+                        y: 2.0,
+                        z: 5.25,
+                    }
+                    .into(),
+                }))
+        */
+        .insert(Armor::default())
+        .insert(Health::default())
         .insert(FakeLevelStuff);
     // enemy 2 capsule
     let capsule_height = 1.50;
@@ -296,8 +307,30 @@ pub fn start_fake_level(
             Transform::from_xyz(3.5, 1.0, 5.0).with_scale(Vec3::new(1.0, 1.0, 0.5)),
         ))
         .insert(Enemy)
-        .insert(Name::new("Enemy2"))
+        .insert(Name::new("Enemy Zombie"))
         .insert(Zombie)
+        .insert(HurtBox(bevy::math::bounding::Aabb3d::new(
+            Vec3::default(),
+            Vec3::new(0.25, 1.0, 0.25),
+        )))
+        /*
+                .insert(HurtBox(bevy::math::bounding::Aabb3d {
+                    min: Vec3 {
+                        x: 4.75,
+                        y: 0.0,
+                        z: 4.75,
+                    }
+                    .into(),
+                    max: Vec3 {
+                        x: 5.25,
+                        y: 2.0,
+                        z: 5.25,
+                    }
+                    .into(),
+                }))
+        */
+        .insert(Armor::default())
+        .insert(Health::default())
         .insert(FakeLevelStuff);
 
     commands
@@ -789,6 +822,16 @@ pub fn start_fake_level(
             Transform::from_xyz(-5.0, 1.0, 4.0),
         ))
         .insert(Name::new("Bullet"))
+        // FIXME: regular hitbox detection for now, needs to be optimized of course later
+        // fast bullets might skip through objects, different method needed
+        .insert(HitBox(Aabb3d::new(
+            Vec3::default(),
+            Vec3 {
+                x: 1.1,
+                y: 1.1,
+                z: 1.1,
+            },
+        )))
         .insert(Projectile::default())
         .insert(ProjectileVelocity::default())
         .insert(ProjectileTime::default())
@@ -903,6 +946,15 @@ fn add_cubes_to_projectiles(
                 Transform::from_xyz(0.0, 0.0, 0.0),
                 FakeLevelStuff,
                 Name::new("BulletCube"),
+                HitBox(Aabb3d::new(
+                    Vec3::default(),
+                    Vec3 {
+                        x: 0.1,
+                        y: 0.1,
+                        z: 0.1,
+                    },
+                )),
+                Damage(10),
             ))
             .set_parent(added);
     }
