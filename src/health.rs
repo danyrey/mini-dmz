@@ -5,6 +5,7 @@
 use bevy::app::Plugin;
 
 use crate::damage::HealthDamageReceived;
+use crate::death::EntityDie;
 use crate::AppState;
 use bevy::prelude::*;
 use bevy_inspector_egui::InspectorOptions;
@@ -48,19 +49,26 @@ impl Default for Health {
 fn damage_received_listener(
     mut health_damage: EventReader<HealthDamageReceived>,
     mut query: Query<(Entity, &mut Health)>,
+    mut dying: EventWriter<EntityDie>,
 ) {
     for event in health_damage.read() {
         debug!(
-            "event received for operator {:?}, damage received: {}",
+            "event received for entity {:?}, damage received: {}",
             event.entity, event.damage
         );
         for (entity, mut health) in &mut query {
             if entity == event.entity {
                 health.0 -= event.damage;
                 debug!(
-                    "event applied to operator {:?}, damage applied: {}",
+                    "event applied to entity {:?}, damage applied: {}",
                     entity, health.0
                 );
+                if health.0 <= 0 {
+                    dying.send(EntityDie {
+                        dying: entity,
+                        killer: Option::None,
+                    });
+                }
             }
         }
     }
@@ -83,6 +91,7 @@ mod tests {
 
         // Add `DamageReceived` event
         app.add_event::<HealthDamageReceived>();
+        app.add_event::<EntityDie>();
 
         // Add our two systems
         app.add_systems(Update, damage_received_listener);

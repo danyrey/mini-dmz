@@ -8,6 +8,7 @@ use compass::CompassPlugin;
 use contracts::ContractsPlugin;
 use coordinates::CoordinatesPlugin;
 use damage::DamagePlugin;
+use death::DeathPlugin;
 use exfil::ExfilPlugin;
 use exfil_timers::ExfilTimersPlugin;
 use fake_level::FakeLevelPlugin;
@@ -45,6 +46,7 @@ mod compass;
 mod contracts;
 mod coordinates;
 mod damage;
+mod death;
 mod deploy;
 mod exfil;
 mod exfil_timers;
@@ -166,6 +168,7 @@ fn main() {
             SquadPlugin,
             SpawnPlugin,
             LockPlugin,
+            DeathPlugin,
             ProjectilePlugin,
         ))
         .init_state::<AppState>()
