@@ -4,6 +4,7 @@ use bevy::app::Plugin;
 
 use crate::AppState;
 use bevy::prelude::*;
+use bevy_inspector_egui::{inspector_options::ReflectInspectorOptions, InspectorOptions};
 
 // Constants
 const NAME: &str = "projectile";
@@ -25,6 +26,7 @@ impl Plugin for ProjectilePlugin {
         app
             // register types
             .register_type::<Projectile>()
+            .register_type::<ProjectileOrigin>()
             .register_type::<ProjectileVelocity>()
             .register_type::<ProjectileEmitter>()
             // register events
@@ -46,6 +48,11 @@ pub struct Projectile {
     pub mass: u32,
     // TODO: ballistic coefficient here
 }
+
+#[derive(Component, Reflect, InspectorOptions)]
+#[reflect(Component, InspectorOptions)]
+/// reference to entity that is the origin of assigned projectile
+struct ProjectileOrigin(Entity);
 
 /// represents a 9mm projectile
 impl Default for Projectile {
@@ -126,6 +133,7 @@ fn emit_single_shot(
                 commands
                     .spawn(Projectile::default())
                     .insert(Name::new("Bullet"))
+                    .insert(ProjectileOrigin(**shooter))
                     .insert(ProjectileTime::default())
                     .insert(Transform::from(*g_transform))
                     .insert(ProjectileVelocity {
