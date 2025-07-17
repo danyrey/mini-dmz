@@ -350,6 +350,12 @@ pub fn start_fake_level(
         .insert(Operator)
         .insert(SquadId(111))
         .insert(Name::new("Squadmate1"))
+        .insert(Armor::default())
+        .insert(Health::default())
+        .insert(HurtBox(bevy::math::bounding::Aabb3d::new(
+            Vec3::default(),
+            Vec3::new(0.25, 1.0, 0.25),
+        )))
         .insert(FakeLevelStuff);
 
     commands
@@ -369,6 +375,12 @@ pub fn start_fake_level(
         .insert(Operator)
         .insert(SquadId(111))
         .insert(Name::new("Squadmate2"))
+        .insert(Armor::default())
+        .insert(Health::default())
+        .insert(HurtBox(bevy::math::bounding::Aabb3d::new(
+            Vec3::default(),
+            Vec3::new(0.25, 1.0, 0.25),
+        )))
         .insert(FakeLevelStuff);
 
     commands
@@ -388,6 +400,12 @@ pub fn start_fake_level(
         .insert(Operator)
         .insert(SquadId(222))
         .insert(Name::new("Enemy Squadmember 1"))
+        .insert(Armor::default())
+        .insert(Health::default())
+        .insert(HurtBox(bevy::math::bounding::Aabb3d::new(
+            Vec3::default(),
+            Vec3::new(0.25, 1.0, 0.25),
+        )))
         .insert(FakeLevelStuff);
 
     commands
@@ -407,6 +425,12 @@ pub fn start_fake_level(
         .insert(Operator)
         .insert(SquadId(222))
         .insert(Name::new("Enemy Squadmember 2"))
+        .insert(Armor::default())
+        .insert(Health::default())
+        .insert(HurtBox(bevy::math::bounding::Aabb3d::new(
+            Vec3::default(),
+            Vec3::new(0.25, 1.0, 0.25),
+        )))
         .insert(FakeLevelStuff);
 
     commands
@@ -426,6 +450,12 @@ pub fn start_fake_level(
         .insert(Operator)
         .insert(SquadId(222))
         .insert(Name::new("Enemy Squadmember 3"))
+        .insert(Armor::default())
+        .insert(Health::default())
+        .insert(HurtBox(bevy::math::bounding::Aabb3d::new(
+            Vec3::default(),
+            Vec3::new(0.25, 1.0, 0.25),
+        )))
         .insert(FakeLevelStuff);
 
     // loot cube 1
