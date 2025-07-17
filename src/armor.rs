@@ -108,7 +108,11 @@ mod tests {
         app.borrow_mut()
             .world_mut()
             .resource_mut::<Events<ArmorDamageReceived>>()
-            .send(ArmorDamageReceived { entity, damage: 10 });
+            .send(ArmorDamageReceived {
+                entity,
+                damage: 10,
+                dealer: Option::None,
+            });
 
         // Run systems
         app.update();

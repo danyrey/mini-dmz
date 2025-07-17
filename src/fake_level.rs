@@ -958,6 +958,7 @@ fn add_inventory_to_operators(
     }
 }
 
+// TODO: how to connect DamageOrigin and ProjectileOrigin ???
 fn add_cubes_to_projectiles(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,

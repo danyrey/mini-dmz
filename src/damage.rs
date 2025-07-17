@@ -49,6 +49,10 @@ pub struct HurtBox(pub Aabb3d);
 #[derive(Component, Debug, PartialEq, Reflect, InspectorOptions)]
 pub struct Damage(pub i32);
 
+/// origin of damage
+#[derive(Component, Debug, PartialEq, Reflect, InspectorOptions)]
+pub struct DamageOrigin(Entity);
+
 // Resources
 
 // Events
@@ -56,12 +60,14 @@ pub struct Damage(pub i32);
 pub struct ArmorDamageReceived {
     pub entity: Entity,
     pub damage: i32,
+    pub dealer: Option<Entity>,
 }
 
 #[derive(Event, Debug, PartialEq)]
 pub struct HealthDamageReceived {
     pub entity: Entity,
     pub damage: i32,
+    pub dealer: Option<Entity>,
 }
 
 // Systems
@@ -71,7 +77,13 @@ fn start_damage_system(mut _commands: Commands) {
 
 #[allow(clippy::type_complexity)]
 fn update_damage_system(
-    mut hitbox_query: Query<(Entity, &HitBox, &Damage, &GlobalTransform)>,
+    mut hitbox_query: Query<(
+        Entity,
+        &HitBox,
+        &Damage,
+        &GlobalTransform,
+        Option<&DamageOrigin>,
+    )>,
     mut hurtbox_query: Query<(
         Entity,
         &HurtBox,
@@ -84,7 +96,7 @@ fn update_damage_system(
     mut commands: Commands,
 ) {
     debug!("updating {}", NAME);
-    for (hit_entity, hitbox, damage, hit_transform) in hitbox_query.iter_mut() {
+    for (hit_entity, hitbox, damage, hit_transform, damage_origin) in hitbox_query.iter_mut() {
         let transformed_hit_box = Aabb3d::new(hit_transform.translation(), hitbox.0.half_size());
         for (hurt_entity, hurtbox, health, armor, hurt_transform) in hurtbox_query.iter_mut() {
             let transformed_hurt_box =
@@ -100,6 +112,7 @@ fn update_damage_system(
                     armor_sender.send(ArmorDamageReceived {
                         entity: hurt_entity,
                         damage: y,
+                        dealer: damage_origin.map(|dealer_ref| dealer_ref.0),
                     });
                     remaining_damage = damage.0 - y;
                 }
@@ -109,6 +122,7 @@ fn update_damage_system(
                     health_sender.send(HealthDamageReceived {
                         entity: hurt_entity,
                         damage: y,
+                        dealer: damage_origin.map(|dealer_ref| dealer_ref.0),
                     });
                     remaining_damage -= y;
                 }
@@ -188,7 +202,8 @@ mod tests {
         assert_eq!(
             Some(&ArmorDamageReceived {
                 entity: hurt_entity,
-                damage: 10
+                damage: 10,
+                dealer: Option::None,
             }),
             armor_damage_received
         );
@@ -257,14 +272,16 @@ mod tests {
         assert_eq!(
             Some(&ArmorDamageReceived {
                 entity: hurt_entity,
-                damage: 100
+                damage: 100,
+                dealer: Option::None,
             }),
             armor_damage_received
         );
         assert_eq!(
             Some(&HealthDamageReceived {
                 entity: hurt_entity,
-                damage: 10
+                damage: 10,
+                dealer: Option::None,
             }),
             health_damage_received
         );
@@ -333,14 +350,16 @@ mod tests {
         assert_eq!(
             Some(&ArmorDamageReceived {
                 entity: hurt_entity,
-                damage: 100
+                damage: 100,
+                dealer: Option::None,
             }),
             armor_damage_received
         );
         assert_eq!(
             Some(&HealthDamageReceived {
                 entity: hurt_entity,
-                damage: 100
+                damage: 100,
+                dealer: Option::None,
             }),
             health_damage_received
         );
