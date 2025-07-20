@@ -21,6 +21,7 @@ impl Plugin for DamagePlugin {
         app
             // types
             .register_type::<Damage>()
+            .register_type::<DamageOrigin>()
             .register_type::<HurtBox>()
             .register_type::<HitBox>()
             // systems
@@ -51,7 +52,7 @@ pub struct Damage(pub i32);
 
 /// origin of damage
 #[derive(Component, Debug, PartialEq, Reflect, InspectorOptions)]
-pub struct DamageOrigin(Entity);
+pub struct DamageOrigin(pub Entity);
 
 // Resources
 

@@ -52,7 +52,7 @@ pub struct Projectile {
 #[derive(Component, Reflect, InspectorOptions)]
 #[reflect(Component, InspectorOptions)]
 /// reference to entity that is the origin of assigned projectile
-struct ProjectileOrigin(Entity);
+pub struct ProjectileOrigin(pub Entity);
 
 /// represents a 9mm projectile
 impl Default for Projectile {

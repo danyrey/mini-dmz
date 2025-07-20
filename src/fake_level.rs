@@ -5,7 +5,7 @@ use crate::coordinates::{GridOffset, GridScale};
 // TODO: how to make sure every operator has a backpack attached to it
 //  TODO: transfer from the active loadout screen should be done
 //  * transfer from state from one appstate to another: active dute layout -> ...load in -> raid
-use crate::damage::{Damage, HitBox, HurtBox};
+use crate::damage::{Damage, DamageOrigin, HitBox, HurtBox};
 use crate::exfil::{ExfilArea, Operator};
 use crate::first_person_controller::PlayerControlled;
 use crate::flee::Ghost;
@@ -17,7 +17,9 @@ use crate::lock::{Key, Lock};
 use crate::loot::{
     Durability, ItemType, Loot, LootCacheState, LootName, LootType, Price, Rarity, Stackable,
 };
-use crate::projectile::{Projectile, ProjectileEmitter, ProjectileTime, ProjectileVelocity};
+use crate::projectile::{
+    Projectile, ProjectileEmitter, ProjectileOrigin, ProjectileTime, ProjectileVelocity,
+};
 use crate::raid::Enemy;
 use crate::spawn::{Formation, Spawn, SpawnId, SpawnPosition};
 use crate::squad::SquadId;
@@ -963,11 +965,11 @@ fn add_cubes_to_projectiles(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    query: Query<Entity, Added<Projectile>>,
+    query: Query<(Entity, Option<&ProjectileOrigin>), Added<Projectile>>,
 ) {
     debug!("adding cubes to new projectiles");
-    for added in query.iter() {
-        commands
+    for (added, origin) in query.iter() {
+        let entity = commands
             .spawn((
                 Mesh3d(meshes.add(Cuboid::new(0.2, 0.2, 0.2))),
                 MeshMaterial3d(materials.add(StandardMaterial {
@@ -987,7 +989,13 @@ fn add_cubes_to_projectiles(
                 )),
                 Damage(10),
             ))
-            .set_parent(added);
+            .set_parent(added)
+            .id();
+
+        // transfer if it is available
+        if let Some(o) = origin {
+            commands.entity(entity).insert(DamageOrigin(o.0));
+        }
     }
 }
 
