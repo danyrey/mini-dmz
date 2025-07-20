@@ -105,7 +105,7 @@ fn update_damage_system(
             debug!("we have a potential hit on entity({hurt_entity}) from entity({hit_entity})");
             // dont hit yourself if overlap occours
             if hit_entity != hurt_entity && transformed_hit_box.intersects(&transformed_hurt_box) {
-                debug!("we have a definite hit on entity({hurt_entity}) from entity({hit_entity})");
+                debug!("we have a definite hit on entity({hurt_entity}) from entity({hit_entity}), original damage dealer: ({0})", damage_origin.map_or(String::from("-"), |dealer_ref| dealer_ref.0.to_string()));
                 let mut remaining_damage = damage.0;
                 if let Some(a) = armor {
                     let x = max(0, a.0 - damage.0);

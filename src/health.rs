@@ -66,7 +66,7 @@ fn damage_received_listener(
                 if health.0 <= 0 {
                     dying.send(EntityDie {
                         dying: entity,
-                        killer: Option::None,
+                        killer: event.dealer,
                     });
                 }
             }
