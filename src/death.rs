@@ -35,6 +35,7 @@ impl Plugin for DeathPlugin {
 #[derive(Event, Debug, PartialEq)]
 pub struct EntityDie {
     pub dying: Entity,
+    /// killer is the final entity that delivered damage that lead to death
     pub killer: Option<Entity>,
 }
 

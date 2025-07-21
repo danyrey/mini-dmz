@@ -46,6 +46,7 @@ impl Plugin for FakeLevelPlugin {
                     add_weapon_to_operators,
                     add_inventory_to_operators,
                     add_cubes_to_projectiles,
+                    add_squad_id_to_damage,
                     add_squad_id_to_my_operator,
                     manage_cursor,
                 )
@@ -957,6 +958,20 @@ fn add_inventory_to_operators(
             .insert(WeaponSlots(2))
             .insert(FakeLevelStuff)
             .set_parent(added);
+    }
+}
+
+fn add_squad_id_to_damage(
+    mut commands: Commands,
+    damage_origin_added: Query<(Entity, &DamageOrigin, Option<&SquadId>), Added<DamageOrigin>>,
+    squad_id_query: Query<(Entity, &SquadId)>,
+) {
+    for (added, damage_origin, squad_id) in damage_origin_added.iter() {
+        if squad_id.is_some() {
+            continue;
+        } else if let Ok((_, s)) = squad_id_query.get(damage_origin.0) {
+            commands.entity(added).insert(s.clone());
+        }
     }
 }
 

@@ -5,6 +5,7 @@ use bevy::math::bounding::{Aabb3d, BoundingVolume, IntersectsVolume};
 
 use crate::armor::Armor;
 use crate::health::Health;
+use crate::squad::SquadId;
 use crate::AppState;
 use crate::AppState::Raid;
 use bevy::prelude::*;
@@ -76,6 +77,7 @@ fn start_damage_system(mut _commands: Commands) {
     debug!("starting {}", NAME);
 }
 
+// TODO: this system to implement friendly fire???
 #[allow(clippy::type_complexity)]
 fn update_damage_system(
     mut hitbox_query: Query<(
@@ -84,6 +86,7 @@ fn update_damage_system(
         &Damage,
         &GlobalTransform,
         Option<&DamageOrigin>,
+        Option<&SquadId>,
     )>,
     mut hurtbox_query: Query<(
         Entity,
@@ -91,43 +94,64 @@ fn update_damage_system(
         Option<&Health>,
         Option<&Armor>,
         &GlobalTransform,
+        Option<&SquadId>,
     )>,
     mut health_sender: EventWriter<HealthDamageReceived>,
     mut armor_sender: EventWriter<ArmorDamageReceived>,
     mut commands: Commands,
 ) {
     debug!("updating {}", NAME);
-    for (hit_entity, hitbox, damage, hit_transform, damage_origin) in hitbox_query.iter_mut() {
+    for (hit_entity, hitbox, damage, hit_transform, damage_origin, hit_squad_id) in
+        hitbox_query.iter_mut()
+    {
         let transformed_hit_box = Aabb3d::new(hit_transform.translation(), hitbox.0.half_size());
-        for (hurt_entity, hurtbox, health, armor, hurt_transform) in hurtbox_query.iter_mut() {
+        for (hurt_entity, hurtbox, health, armor, hurt_transform, hurt_squad_id) in
+            hurtbox_query.iter_mut()
+        {
             let transformed_hurt_box =
                 Aabb3d::new(hurt_transform.translation(), hurtbox.0.half_size());
             debug!("we have a potential hit on entity({hurt_entity}) from entity({hit_entity})");
+
             // dont hit yourself if overlap occours
             if hit_entity != hurt_entity && transformed_hit_box.intersects(&transformed_hurt_box) {
                 let dealer = damage_origin.map(|dealer_ref| dealer_ref.0);
+                if let (Some(hit_squad), Some(hurt_squad)) = (hit_squad_id, hurt_squad_id) {
+                    if hit_squad.eq(hurt_squad) && !hit_entity.eq(&hurt_entity) {
+                        debug!(
+                            "friendly fire occured on({}) from origin({})",
+                            hurt_entity,
+                            dealer.map_or(String::from("-"), |d| d.to_string())
+                        );
+                        continue; // friendly fire, skip event, no damage
+                    }
+                }
                 debug!("we have a definite hit on entity({hurt_entity}) from entity({hit_entity}), original damage dealer: ({0})", dealer.map_or(String::from("-"), |dealer| dealer.to_string()));
                 let mut remaining_damage = damage.0;
+
                 if let Some(a) = armor {
                     let x = max(0, a.0 - damage.0);
                     let y = a.0 - x;
-                    armor_sender.send(ArmorDamageReceived {
+                    let event = ArmorDamageReceived {
                         entity: hurt_entity,
                         damage: y,
                         dealer,
-                    });
+                    };
+                    armor_sender.send(event);
                     remaining_damage = damage.0 - y;
                 }
+
                 if let Some(h) = health {
                     let x = max(0, h.0 - remaining_damage);
                     let y = h.0 - x;
-                    health_sender.send(HealthDamageReceived {
+                    let event = HealthDamageReceived {
                         entity: hurt_entity,
                         damage: y,
                         dealer,
-                    });
+                    };
+                    health_sender.send(event);
                     remaining_damage -= y;
                 }
+
                 debug!("remaining_damage: {}", remaining_damage);
                 commands.entity(hit_entity).remove::<Damage>();
             }
